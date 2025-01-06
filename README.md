@@ -1,11 +1,9 @@
-## ShrampyBot - The Golden Shrimp Guild Mastodon Bot
+# ShrampyBot - The Golden Shrimp Guild NOW Bot
 
-This is a bot being used and developed actively by the [Golden Shrimp Guild](https://gsg.live) for announcing when streamers on the gsg.live Mastodon instance go live.
+This is a bot being used and developed actively by the [Golden Shrimp Guild](https://gsg.live) for announcing when streamers on the gsg.live Twitch group and Mastodon instance go live.
 
-This is a "serverless function" running in Python on DigitalOcean Functions. It leverages the Mastodon API for announcements and the Twitch API EventSub Webhooks to receive event notifications. It uses the Twitch REST API endpoint for getting more detailed information.
+This is a "serverless function" running in Python on DigitalOcean Functions. It leverages the Mastodon API for tooting, Discord API for announcing in the guild's NOW channel (along with crossposts), and Twitch API EventSub Webhooks to receive event notifications. It uses the Twitch REST API endpoint for getting more detailed information.
 
-Some early work is present to enable automatic editing of past toots (eg: when a stream ends or raids out) but that functionality is not yet available in the Mastodon API.
+A `project-example.yml` script is present with example options. The authoritative `project.yml` file needs to be in the directory to deploy using the doctl utility from Digital Ocean (available via apt or homebrew).
 
-A `project-example.yml` script is present with example options. Rename to `project.yml` and use the `doctl` utility to deploy to your DigitalOcean function namespace.
-
-TODO: Additional documentation on deployment and configuration.
+There are a number of settings which can be updated via REST calls. These will be documented below in the fullness of time.

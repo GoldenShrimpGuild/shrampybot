@@ -6,7 +6,7 @@ node_modules
 package-lock.json
 .DS_Store
 project.yml
-shrampy-prod
+.venv
 virtualenv
 .vscode
 *.http
