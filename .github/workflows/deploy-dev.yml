@@ -8,6 +8,8 @@ jobs:
   deploy-dev:
     runs-on: ubuntu-latest
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
       - name: Install and prepare doctl
         uses: digitalocean/action-doctl@v2.5.1
         with:
