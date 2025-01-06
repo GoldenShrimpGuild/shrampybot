@@ -16,5 +16,9 @@ jobs:
         run: doctl serverless install
       - name: Connect to serverless namespace
         run: doctl serverless connect ${{ vars.DO_SERVERLESS_NAMESPACE }}
+      - name: Decrypt project.yml
+        run: tools/decrypt_project_yml.sh
+        env:
+          PROJECT_YML_CRYPT_KEY: ${{ secrets.PROJECT_YML_CRYPT_KEY }}
       - name: Deploy shrampy-dev
         run: doctl serverless deploy . --include shrampy-dev
