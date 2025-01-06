@@ -46,6 +46,7 @@ async def main():
         document += line.decode(encoding="utf-8")
     s3.close()
     twitch_users: dict = json.loads(document)
+    twitch_ids = set([v["id"] for i,v in twitch_users.items()])
 
     th = await Twitch(twitch_api_key, twitch_api_secret)
     eh: EventSubWebhook = EventSubWebhook(eventsub_url, 443, twitch=th)
@@ -57,21 +58,49 @@ async def main():
 
     count = 0
 
-    for login, user in twitch_users.items():
-        print(f"Requesting for user: {login}")
-        try:
-            await eh.listen_stream_online(user["id"], _null_cb)
-        except EventSubSubscriptionConflict:
-            print(f"Already subscribed to online status for {user["id"]}.")
-        try:
-            await eh.listen_stream_offline(user["id"], _null_cb)
-        except EventSubSubscriptionConflict:
-            print(f"Already subscribed to offline status for {user["id"]}.")
-        count += 1
+    # for login, user in twitch_users.items():
+    #     print(f"Requesting for user: {login}")
+    #     try:
+    #         await eh.listen_stream_online(user["id"], _null_cb)
+    #     except EventSubSubscriptionConflict:
+    #         print(f"Already subscribed to online status for {user["id"]}.")
+    #     try:
+    #         await eh.listen_stream_offline(user["id"], _null_cb)
+    #     except EventSubSubscriptionConflict:
+    #         print(f"Already subscribed to offline status for {user["id"]}.")
+    #     count += 1
+
+    total_subs = []
+
+    next_cursor = None
+    while True:
+        es_subs = await th.get_eventsub_subscriptions(after=next_cursor)
+        total_subs.extend(es_subs.data)
+        next_cursor = es_subs.current_cursor()
+        if len(es_subs.data) < 100:
+            break
+
+    sub_ids = set([i.condition["broadcaster_user_id"] for i in total_subs])
+    outlier_subs = [i for i in total_subs if not i.transport["callback"].startswith(eventsub_url)]
+    types = set([i.type for i in total_subs])
+
+    new_twitch_ids = twitch_ids.difference(sub_ids)
+    pending_delete = sub_ids.difference(twitch_ids)
+
+    print(f"{sys.argv[1]} Twitch list contains {len(twitch_ids)} ids.")
+    print(f"Found {len(sub_ids)} ids across {len(total_subs)} event subscriptions.")
+    print(f"There are {len(new_twitch_ids)} ids awaiting event subscription.")
+    print(f"There are {len(pending_delete)} ids awaiting event unsubscription.")
+
+    print(f"{len(outlier_subs)} subs have an incorrect callback address.")
+
+    for t in types:
+        type_sub_size = len([i for i in total_subs if i.type == t])
+        print(f"Type {t} accounts for {type_sub_size} event subs.")
 
     await th.close()
 
-    print(f"Requested subscriptions for {count} users.")
+    # print(f"Requested subscriptions for {count} users.")
 
 if __name__ == "__main__":
     asyncio.run(main())
