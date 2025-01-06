@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import json
 from logging import DEBUG, WARN, ERROR, INFO
 from auth.admin import AdminAuthenticator
 from auth.twitch import TwitchAuthenticator
@@ -33,7 +34,6 @@ class EventController(GenericController):
         self._event_map = {
             "stream.online": self._stream_online_cb,
             "stream.offline": self._stream_offline_cb,
-            "channel.raid": self._channel_raid_cb
         }
 
     async def entry_point(self):
@@ -55,20 +55,32 @@ class EventController(GenericController):
                     "statusCode": 403
                 }
 
+        await self._th.authenticate()
         return await super().entry_point()
+    
+    async def _get__event_sub(self):
+        """Return all cached event subscriptions"""
+        return {
+            "body": self._s3.offline_subs,
+            "statusCode": 200
+        }
 
     async def _patch__event_sub(self):
         """Subscribe to events."""
-        self.l(INFO, "Subscribing to events.")
+        self.l(INFO, "Subscribing to events (10 at a time).")
         users = self._s3.twitch_users
+
+        results = await self._th.subscribe_to_events(users)
+        serializable = [sub.to_dict(True) for sub in results]
+
         return {
-            "body": self._th.subscribe_to_events(users),
+            "body": serializable,
             "statusCode": 200
         }
 
     async def _delete__event_sub(self):
         """Unsubscribe from events."""
-        self._th.unsubscribe_all_events()
+        await self._th.unsubscribe_all_events()
         return {
             "body": "",
             "statusCode": 204
@@ -120,10 +132,11 @@ class EventController(GenericController):
             ))
 
             # Callbacks for webhook handling
-            event_func = self._event_map.get(sub_type)
-            await event_func(
-                self._body.get("event", {})
-            )
+            if sub_type in self._event_map.keys():
+                event_func = self._event_map.get(sub_type)
+                await event_func(
+                    self._body.get("event", {})
+                )
 
         return {
             "body": body_out,
@@ -252,7 +265,7 @@ class EventController(GenericController):
             if data["id"] == user_id
         ]
         if not users:
-            raise CachedDataRetrievalError()
+            raise AttributeError(users)
         user = users.pop()
         user_login = user["login"]
         meta = self._s3.stream_meta.get(user_id, {})
@@ -283,17 +296,20 @@ class EventController(GenericController):
 
         # Get stream information
         self.l(INFO, "Retrieving live stream information.")
-        stream = self._th.get_stream_by_user_id(user_id)
-        self.l(INFO, "Stream ID: {}".format(stream["id"]))
+        stream = await self._th.get_stream_by_user_id(user_id)
+        if not stream:
+            return
+        
+        self.l(INFO, "Stream ID: {}".format(stream.id))
 
         # Debounce duplicate stream ID (different from event ID)
-        if stream["id"] == meta.get("last_stream_id"):
+        if stream.id == meta.get("last_stream_id"):
             self.l(WARN, "Received same stream notification twice in a row. Stopping.")
             return
         
         self.l(INFO, "Checking stream category.")
         # Check if stream category is one we care about
-        category = stream.get("game_name")
+        category = stream.game_name
         if category not in self._s3.category_map.keys():
             self.l(INFO, "New '{}' stream is not in a supported category."
                 .format(category)
@@ -301,17 +317,17 @@ class EventController(GenericController):
             return
 
         # Record stream info now that we know it makes sense to
-        self._s3.update_stream_cache(user_id, stream)
-        meta["last_stream_id"] = stream["id"]
+        self._s3.update_stream_cache(user_id, stream.to_dict())
+        meta["last_stream_id"] = stream.id
 
         self.l(INFO, "Preparing thumbnail.")
-        thumb = fetch_twitch_thumb(stream["thumbnail_url"])
+        thumb = fetch_twitch_thumb(stream.thumbnail_url)
         # thumb_url = self._s3.stow_thumb_as_file(stream["id"], thumb)
         
         loop = asyncio.get_event_loop_policy().get_event_loop()
         toot_id, discord_id = await asyncio.gather(
-            self._new_mastodon_msg(user, stream, meta, thumb),
-            self._new_discord_msg(user, stream, meta, thumb),
+            self._new_mastodon_msg(user, stream.to_dict(), meta, thumb),
+            self._new_discord_msg(user, stream.to_dict(), meta, thumb),
             loop=loop
         )
 

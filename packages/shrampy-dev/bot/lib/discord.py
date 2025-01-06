@@ -15,14 +15,15 @@ class DiscordHandler:
 
     @cached_property
     def _dh(self):
-        retval = None
+        dh = None
         rest = hikari.RESTApp()
-        retval = rest.acquire(
+        rest.start()
+        dh = rest.acquire(
             token=os.environ['DISCORD_TOKEN'],
             token_type=hikari.applications.TokenType.BOT
         )
-        retval.start()
-        return retval
+        dh.start()
+        return dh
 
     @cached_property
     async def _me(self):
@@ -47,7 +48,7 @@ class DiscordHandler:
                 channel=os.environ["DISCORD_CHANNEL"],
                 message=message
             )
-        except hikari.HikariError as e:
+        except DiscordError as e:
             self.l(WARN, "Could not crosspost message {}".format(
                 message.id
             ))

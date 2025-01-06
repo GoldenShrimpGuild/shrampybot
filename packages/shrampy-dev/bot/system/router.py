@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from controllers.event import EventController
 from controllers.admin import AdminController
 from controllers.user import UserController
@@ -35,7 +36,7 @@ class Router():
         self._args = args
         self.l(DEBUG, "Argument dump: {}".format(args))
         self._headers = args.get("__ow_headers", {})
-        self._body_raw = args["__ow_body"]
+        self._body_raw = args.get("__ow_body", "")
         try:
             self._body = json.loads(self._body_raw)
         except json.JSONDecodeError:
@@ -77,9 +78,10 @@ class Router():
         except Exception as e:
             return {"body": self.call_error(5, e)}
 
-    def call_error(self, error_code, *format_args):
+    def call_error(self, error_code, *format_args: Exception):
         self.l(ERROR, self.ERROR_MAP[error_code].format(*format_args))
         return {
             "error_code": error_code,
             "error_msg": self.ERROR_MAP[error_code].format(*format_args)
+            # "traceback": traceback.format_exc()
         }

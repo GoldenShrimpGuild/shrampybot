@@ -27,7 +27,8 @@ class UserController(GenericController):
                 "body": self._router.call_error(14),
                 "statusCode": 403
             }
-
+        
+        await self._th.authenticate()
         return await super().entry_point()
 
     async def _delete__user_custom(self):
@@ -93,6 +94,9 @@ class UserController(GenericController):
         Update s3 key-value store with current
         account mapping.
         """
+
+        # return {"body": {"status": "Made it to user_map function"}, "statusCode": 200}
+
         full_map = self._mh.twitch_map
         self._s3.commit_maps(full_map["m_to_t"], full_map["t_to_m"])
 
@@ -127,15 +131,20 @@ class UserController(GenericController):
         """Load Twitch users into S3 for each we have mapped."""
 
         # Retrieve cached mastodon users
-        user_list = list(self._s3.tm_map.keys())
+        user_list = list(set(self._s3.tm_map.keys()))
+        print("Unique users found in S3 userlist: {}".format(len(user_list)))
         # Retrieve list of Twitch team members (if any)
-        team_users = [u["user_login"] for u in self._th.team_info.get("users", [])]
-        
+        team_users = [u.user_login for u in (await self._th.get_team_info()).users]
+        print("Users found in Twitch Team: {}".format(len(team_users)))
+
         user_list.extend(team_users)
-        user_map = self._th.get_users(user_logins=list(set(user_list)))
+        logins = list(set(user_list))
+        user_map = {}
+        async for ul in self._th.get_users(user_logins=logins):
+            user_map.update(ul)
         self._s3.commit_twitch_users(users=user_map)
 
-        return {"body": {"users": list(user_map.keys())}, "statusCode": 200}
+        return {"body": {"users": list(set(user_map.keys()))}, "statusCode": 200}
 
     async def _post__user_custom(self):
         """Submit a new entry to the custom user map.

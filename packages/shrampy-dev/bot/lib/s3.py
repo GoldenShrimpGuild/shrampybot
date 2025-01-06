@@ -25,6 +25,7 @@ class S3:
         self._category_map_path = "category_map"
         self._stream_meta_path = "stream_meta"
         self._thumb_cache_path = "thumb_cache"
+        self._offline_subs_path = "offline_subs_list"
 
     @cached_property
     def _bucket(self):
@@ -148,6 +149,16 @@ class S3:
             self.l(WARN, "Accessed category map path before creation.")
             return {}
         return category_map
+    
+    @cached_property
+    def offline_subs(self) -> list:
+        self.l(DEBUG, "Accessed offline_subs cached property.")
+        try:
+            offline_subs = json.loads(self._bucket[self._offline_subs_path])
+        except ClientError:
+            self.l(WARN, "Accessed category map path before creation.")
+            return {}
+        return offline_subs
 
     def _commit_mt_map(self, map):
         self.l(DEBUG, "Running _commit_mt_map")
@@ -244,6 +255,14 @@ class S3:
             new_pairs.append(pair)
         
         self._bucket[self._custom_pair_path] = json.dumps(new_pairs)
+
+    def commit_offline_subs(self, subs):
+        self.l(INFO, "Committing offline subs to s3 store.")
+        self._bucket[self._offline_subs_path] = json.dumps(subs)
+        try:
+            del self.offline_subs
+        except AttributeError:
+            pass
 
     def commit_twitch_users(self, users):
         self.l(INFO, "Committing twitch users to s3 store.")

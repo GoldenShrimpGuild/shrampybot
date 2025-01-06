@@ -7,7 +7,6 @@ from system.router import Router
 
 logging.basicConfig(stream=sys.stdout, level=INFO)
 
-
 def main(args):
     """Entrypoint for serverless function"""
     log(INFO, "Entered main function.")
@@ -15,4 +14,9 @@ def main(args):
     router = Router()
     
     loop = asyncio.get_event_loop()
-    return loop.run_until_complete(router.route(args))
+    try:
+      return loop.run_until_complete(router.route(args))
+    except Exception as exp:
+      return {"body": f"{exp}"}
+    
+    return {"body": "moo"}
