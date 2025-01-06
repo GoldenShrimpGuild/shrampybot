@@ -57,8 +57,8 @@ async def main():
 
     await send_message(dh, discord_channel, "Technotronic is now streaming Music.", png)
 
-    # await dh.close()
-    # await rest.close()
+    await dh.close()
+    await rest.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
