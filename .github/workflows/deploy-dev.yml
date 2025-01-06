@@ -12,6 +12,8 @@ jobs:
         uses: digitalocean/action-doctl@v2.5.1
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Install doctl serverless support
+        run: doctl serverless install
       - name: Connect to serverless namespace
         run: doctl serverless connect ${{ vars.DO_SERVERLESS_NAMESPACE }}
       - name: Deploy shrampy-dev
