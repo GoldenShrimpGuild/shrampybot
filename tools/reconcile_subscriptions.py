@@ -5,9 +5,10 @@ import boto3
 import yaml
 import json
 import sys
+import time
 from botocore.config import Config as BotoConfig
 from twitchAPI.twitch import Twitch
-from twitchAPI.type import EventSubSubscriptionConflict, TwitchResourceNotFound
+from twitchAPI.type import EventSubSubscriptionConflict, TwitchResourceNotFound, EventSubSubscriptionError
 from twitchAPI.eventsub.webhook import EventSubWebhook
 
 async def _null_cb(data):
@@ -64,12 +65,14 @@ async def main():
         if len(es_subs.data) < 100:
             break
 
-    sub_ids = set([i.condition["broadcaster_user_id"] for i in total_subs])
-    outlier_subs = [i for i in total_subs if not i.transport["callback"].startswith(eventsub_url)]
+    sub_ids = set([i.condition["broadcaster_user_id"] for i in total_subs if i.condition.get("broadcaster_user_id")])
+    outlier_sub_ids = set([i.condition["broadcaster_user_id"] for i in total_subs
+                           if i.condition.get("broadcaster_user_id") 
+                           and not i.transport["callback"].startswith(eventsub_url)])
     types = set([i.type for i in total_subs])
 
     new_twitch_ids = twitch_ids.difference(sub_ids)
-    pending_delete = sub_ids.difference(twitch_ids)
+    pending_delete = sub_ids.difference(twitch_ids).union(outlier_sub_ids)
 
     print(f"{sys.argv[1]} Twitch list contains {len(twitch_ids)} ids.")
     print(f"There are {len(new_twitch_ids)} ids awaiting event subscription.")
@@ -81,16 +84,29 @@ async def main():
     for login, user in twitch_users.items():
         if user["id"] in new_twitch_ids:
             print(f"Requesting subscriptions for user: {login}")
-            try:
-                await eh.listen_stream_online(user["id"], _null_cb)
-                new_sub_count += 1
-            except EventSubSubscriptionConflict:
-                print(f"Already subscribed to online status for {user["id"]}.")
-            try:
-                await eh.listen_stream_offline(user["id"], _null_cb)
-                new_sub_count += 1
-            except EventSubSubscriptionConflict:
-                print(f"Already subscribed to offline status for {user["id"]}.")
+            while True:
+                try:
+                    await eh.listen_stream_online(user["id"], _null_cb)
+                    new_sub_count += 1
+                    break
+                except EventSubSubscriptionConflict:
+                    print(f"Already subscribed to online status for {user["id"]}.")
+                    break
+                except EventSubSubscriptionError:
+                    print(f"Connection issue, retrying in 1 sec...")
+                    time.sleep(1)
+                
+            while True:
+                try:
+                    await eh.listen_stream_offline(user["id"], _null_cb)
+                    new_sub_count += 1
+                    break
+                except EventSubSubscriptionConflict:
+                    print(f"Already subscribed to offline status for {user["id"]}.")
+                    break
+                except EventSubSubscriptionError:
+                    print(f"Connection issue, retrying in 1 sec...")
+                    time.sleep(1)
             
             new_id_count += 1
 
