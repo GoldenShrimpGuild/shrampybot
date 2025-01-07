@@ -10,3 +10,4 @@ project.yml
 virtualenv
 .vscode
 *.http
+spaces*
