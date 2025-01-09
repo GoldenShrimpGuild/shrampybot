@@ -11,3 +11,5 @@ virtualenv
 .vscode
 *.http
 spaces*
+gotools/blueskytest/blueskytest*
+gotools/twitchtest/twitchtest*

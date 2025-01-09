@@ -2,33 +2,54 @@ package router
 
 import (
 	"context"
+	"encoding/json"
 	"net/url"
 	"strings"
+
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 var (
-	errorCodes = map[int]string{
-		5:  "Unhandled exception occurred while routing: %s",
+	DefaultResponseHeaders = ResponseHeaders{
+		ContentType: "application/json",
+	}
+
+	ErrorMap = map[int]string{
+		5:  "Unhandled exception occurred while routing.",
 		10: "No arguments to route.",
 		11: "No route provided.",
-		12: "Invalid route: %s.",
+		12: "Invalid route.",
 		13: "No applicable methods or invalid command.",
 		14: "Authentication failed.",
-		15: "Key not found in input json: %s.",
+		15: "Key not found in input json.",
 		16: "Corrupt json found on input.",
 		17: "Duplicate Twitch message ID; possible replay attack.",
 	}
 )
 
+type Body struct {
+	Status *Status `json:"status"`
+	Count  int     `json:"count"`
+	Data   []any   `json:"data"`
+}
+
+type Status struct {
+	Msg       string `json:"msg"`
+	ErrorMsg  string `json:"error_msg,omitempty"`
+	ErrorCode int    `json:"error_code,omitempty"`
+}
+
 type Route struct {
 	match_path string
 
-	body   string
-	path   []string
-	method string
-	query  url.Values
+	Body   string
+	Method string
+	Query  url.Values
+	Path   []string
 
 	action func(route *Route) Response
+	Router *Router
 }
 
 type Router struct {
@@ -48,13 +69,19 @@ func NewRouter(ctx *context.Context, event *Event) Router {
 func (r *Router) AddRoute(match_path string, action func(route *Route) Response) {
 	q, _ := url.ParseQuery(r.event.Http.QueryString)
 
+	path := strings.Split(r.event.Http.Path, "/")
+	if len(path) > 1 {
+		path = path[1:]
+	}
+
 	new_route := Route{
 		match_path: match_path,
-		body:       r.event.Http.Body,
-		path:       strings.Split(r.event.Http.Path, "/")[1:],
-		method:     r.event.Http.Method,
-		query:      q,
+		Body:       r.event.Http.Body,
+		Path:       path,
+		Method:     r.event.Http.Method,
+		Query:      q,
 		action:     action,
+		Router:     r,
 	}
 
 	r.routes = append(r.routes, new_route)
@@ -63,25 +90,58 @@ func (r *Router) AddRoute(match_path string, action func(route *Route) Response)
 func (r *Router) Route() Response {
 	if r.event.Http.HttpHeaders.ContentType != "application/json" {
 		return Response{
-			Body:       "",
+			Body: map[string]any{
+				"status": map[string]any{
+					"msg": "Error processing request.",
+				},
+			},
 			StatusCode: "400",
-			// Headers: ResponseHeaders{
-			// 	ContentType: "application/json",
-			// },
+			Headers:    &DefaultResponseHeaders,
 		}
 	}
 
 	for i := 0; i < len(r.routes); i++ {
-		if r.routes[i].path[0] == r.routes[i].match_path {
+		if r.routes[i].Path[0] == r.routes[i].match_path {
 			return r.routes[i].action(&r.routes[i])
 		}
 	}
 
 	return Response{
-		Body:       "",
-		StatusCode: "404",
-		// Headers: ResponseHeaders{
-		// 	ContentType: "application/json",
-		// },
+		Body: map[string]any{
+			"status": map[string]any{
+				"msg": "Error processing request.",
+			},
+		},
+		StatusCode: "400",
+		Headers:    &DefaultResponseHeaders,
 	}
+}
+
+func (r *Router) ErrorBody(errorCode int, msg string) map[string]any {
+	errCodes := maps.Keys(ErrorMap)
+	errMsg := ""
+	if slices.Contains(errCodes, errorCode) {
+		errMsg = ErrorMap[errorCode]
+	}
+
+	body, err := json.Marshal(Body{
+		Status: &Status{
+			Msg:       msg,
+			ErrorMsg:  errMsg,
+			ErrorCode: errorCode,
+		},
+		Count: 0,
+		Data:  []any{},
+	})
+	if err != nil {
+		return map[string]any{}
+	}
+
+	retmap := map[string]any{}
+	err = json.Unmarshal(body, &retmap)
+	if err != nil {
+		return map[string]any{}
+	}
+
+	return retmap
 }

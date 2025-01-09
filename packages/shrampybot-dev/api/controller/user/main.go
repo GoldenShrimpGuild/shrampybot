@@ -6,10 +6,14 @@ import (
 
 func UserController(route *router.Route) router.Response {
 	return router.Response{
-		Body:       "{\"msg\": \"Called UserController\"}",
-		StatusCode: "200",
-		Headers: router.ResponseHeaders{
-			ContentType: "application/json",
+		Body: map[string]any{
+			"status": map[string]any{
+				"msg": "Routed to UserController",
+			},
+			"count": 0,
+			"data":  []map[string]any{},
 		},
+		StatusCode: "200",
+		Headers:    &router.DefaultResponseHeaders,
 	}
 }

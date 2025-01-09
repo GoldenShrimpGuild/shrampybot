@@ -5,11 +5,11 @@ import (
 )
 
 func EventController(route *router.Route) router.Response {
+
+	// Unhandled exception
 	return router.Response{
-		Body:       "{\"msg\": \"Called EventController\"}",
-		StatusCode: "200",
-		Headers: router.ResponseHeaders{
-			ContentType: "application/json",
-		},
+		Body:       route.Router.ErrorBody(5, ""),
+		StatusCode: "500",
+		Headers:    &router.DefaultResponseHeaders,
 	}
 }

@@ -5,8 +5,17 @@ type ResponseHeaders struct {
 	ContentType string `json:"Content-Type"`
 }
 
+// type ResponseStatus struct {
+// 	Msg       string `json:"msg"`
+// 	ErrorCode int    `json:"errorCode"`
+// }
+
+// type ResponseBody struct {
+// 	Data map[string]interface{} `json:"data"`
+// }
+
 type Response struct {
-	Body       string          `json:"body"`
-	StatusCode string          `json:"statusCode"`
-	Headers    ResponseHeaders `json:"headers"`
+	Body       map[string]any   `json:"body"`
+	StatusCode string           `json:"statusCode"`
+	Headers    *ResponseHeaders `json:"headers"`
 }
