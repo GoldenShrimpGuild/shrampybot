@@ -3,6 +3,7 @@ module shrampybot/gotools/blueskytest
 go 1.20
 
 require (
+	github.com/akamensky/argparse v1.4.0 // indirect
 	github.com/bluesky-social/indigo v0.0.0-20230504025040-8915cccc3319 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect

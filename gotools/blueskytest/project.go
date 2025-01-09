@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	filename     = "../../project.yml"
-	functionName = "api"
+	projectFilename = "../../project.yml"
+	functionName    = "api"
 )
 
 type Project struct {
@@ -40,8 +40,8 @@ type Function struct {
 	Limits      map[string]any    `yaml:"limits"`
 }
 
-func readProject() (*Project, error) {
-	buf, err := os.ReadFile(filename)
+func readProject(projectPath *string) (*Project, error) {
+	buf, err := os.ReadFile(projectFilename)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func readProject() (*Project, error) {
 	c := &Project{}
 	err = yaml.Unmarshal(buf, c)
 	if err != nil {
-		return nil, fmt.Errorf("in file %q: %w", filename, err)
+		return nil, fmt.Errorf("in file %q: %w", projectFilename, err)
 	}
 
 	return c, err
@@ -58,12 +58,12 @@ func readProject() (*Project, error) {
 type GetEnvError error
 
 // Merge relevant environment variables for easy lookup.
-func (p *Project) getAllEnv(packageName string) (map[string]string, error) {
+func (p *Project) getAllEnv(packageName *string) (map[string]string, error) {
 	env := p.Environment
 	err := errors.New("Could not find package/api")
 
 	for _, pk := range p.Packages {
-		if pk.Name == packageName {
+		if pk.Name == *packageName {
 			for k, v := range pk.Environment {
 				env[k] = v
 			}

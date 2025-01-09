@@ -1,4 +1,6 @@
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/akamensky/argparse v1.4.0 h1:YGzvsTqCvbEZhL8zZu2AiA5nq805NZh75JNj4ajn1xc=
+github.com/akamensky/argparse v1.4.0/go.mod h1:S5kwC7IuDcEr5VeXtGPRVZ5o/FdhcMlQz4IZQuw64xA=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/bluesky-social/indigo v0.0.0-20230504025040-8915cccc3319 h1:VCNXRXpgyK3xkaQ8fzL5WzswerwLycke4B9ggLs1uOA=
 github.com/bluesky-social/indigo v0.0.0-20230504025040-8915cccc3319/go.mod h1:Hc09SUJXAIujaAvq7JXxi8ZQQI887grzPkHgn4JyE1Q=

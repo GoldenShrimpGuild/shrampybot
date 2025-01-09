@@ -2,21 +2,41 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
+	"github.com/akamensky/argparse"
 	bSky "github.com/tailscale/go-bluesky"
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("You must specify the package name, eg: shrampybot-dev")
+	parser := argparse.NewParser("blueskytest", "Test Calls for Bluesky")
+	packageName := parser.Selector("p", "packageName", []string{"shrampybot-dev", "shrampybot-prod"}, &argparse.Options{
+		Required: false,
+		Help:     "Name of the package as it exists in project.yml.",
+		Default:  "shrampybot-dev",
+	})
+	projectPath := parser.String("j", "projectPath", &argparse.Options{
+		Required: false,
+		Help:     "Path (relative or absolute) to project.yml",
+		Default:  projectFilename,
+	})
+	test := parser.Selector("t", "test", []string{
+		"profile",
+		"post",
+	}, &argparse.Options{
+		Required: false,
+		Help:     "Test case to run",
+		Default:  "profile",
+	})
+	err := parser.Parse(os.Args)
+	if err != nil {
+		fmt.Print(parser.Usage(err))
 		os.Exit(1)
 	}
 
-	project, _ := readProject()
-	env, err := project.getAllEnv(os.Args[1])
+	project, _ := readProject(projectPath)
+	env, err := project.getAllEnv(packageName)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(2)
@@ -42,12 +62,15 @@ func main() {
 		os.Exit(4)
 	}
 
-	profile, err := bc.FetchProfile(ctx, "litui.ca")
+	switch *test {
+	case "profile":
+		err = testProfile(&ctx, bc)
+	case "post":
+		err = testPost(&ctx, bc)
+	}
+
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(5)
 	}
-
-	output, _ := json.MarshalIndent(profile, "", "  ")
-	fmt.Println(string(output))
 }
