@@ -1,4 +1,4 @@
-name: Deploy ShrampyDev
+name: Deploy ShrampyBot-Dev (Go)
 
 on:
   push:
@@ -21,5 +21,5 @@ jobs:
         run: tools/decrypt_project_yml.sh
         env:
           PROJECT_YML_CRYPT_KEY: ${{ secrets.PROJECT_YML_CRYPT_KEY }}
-      - name: Deploy shrampy-dev
-        run: doctl serverless deploy . --include shrampy-dev --remote-build
+      - name: Deploy shrampybot-dev
+        run: doctl serverless deploy . --include shrampybot-dev --remote-build

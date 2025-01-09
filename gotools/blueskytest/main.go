@@ -32,20 +32,20 @@ func main() {
 	bc, err := bSky.Dial(ctx, bSky.ServerBskySocial)
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(1)
+		os.Exit(3)
 	}
 	defer bc.Close()
 
 	err = bc.Login(ctx, blueskyLogin, blueskyPassword)
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(2)
+		os.Exit(4)
 	}
 
 	profile, err := bc.FetchProfile(ctx, "litui.ca")
 	if err != nil {
 		fmt.Println(err.Error())
-		os.Exit(3)
+		os.Exit(5)
 	}
 
 	output, _ := json.MarshalIndent(profile, "", "  ")
