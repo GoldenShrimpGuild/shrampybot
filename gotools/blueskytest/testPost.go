@@ -11,10 +11,10 @@ import (
 	"github.com/bluesky-social/indigo/api/bsky"
 	"github.com/bluesky-social/indigo/lex/util"
 	"github.com/bluesky-social/indigo/xrpc"
-	bSky "github.com/tailscale/go-bluesky"
+	blueSky "github.com/tailscale/go-bluesky"
 )
 
-func testPost(ctx *context.Context, bc *bSky.Client) error {
+func testPost(ctx *context.Context, bc *blueSky.Client) error {
 	now := time.Now()
 
 	fh, err := os.Open("assets/adi-goldstein-unsplash.jpg")
@@ -47,6 +47,10 @@ func testPost(ctx *context.Context, bc *bSky.Client) error {
 				{
 					Alt:   "Alt text",
 					Image: imageBlob,
+					AspectRatio: &bsky.EmbedDefs_AspectRatio{
+						Height: 720,
+						Width:  1280,
+					},
 				},
 			},
 		},

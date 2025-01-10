@@ -41,7 +41,7 @@ type Function struct {
 }
 
 func readProject(projectPath *string) (*Project, error) {
-	buf, err := os.ReadFile(projectFilename)
+	buf, err := os.ReadFile(*projectPath)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func readProject(projectPath *string) (*Project, error) {
 	c := &Project{}
 	err = yaml.Unmarshal(buf, c)
 	if err != nil {
-		return nil, fmt.Errorf("in file %q: %w", projectFilename, err)
+		return nil, fmt.Errorf("in file %q: %w", *projectPath, err)
 	}
 
 	return c, err
@@ -60,7 +60,7 @@ type GetEnvError error
 // Merge relevant environment variables for easy lookup.
 func (p *Project) getAllEnv(packageName *string) (map[string]string, error) {
 	env := p.Environment
-	err := errors.New("Could not find package/api")
+	err := errors.New("could not find package/api")
 
 	for _, pk := range p.Packages {
 		if pk.Name == *packageName {

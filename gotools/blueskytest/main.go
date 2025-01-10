@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/akamensky/argparse"
-	bSky "github.com/tailscale/go-bluesky"
+	blueSky "github.com/tailscale/go-bluesky"
 )
 
 func main() {
@@ -49,7 +49,7 @@ func main() {
 
 	ctx := context.Background()
 
-	bc, err := bSky.Dial(ctx, bSky.ServerBskySocial)
+	bc, err := blueSky.Dial(ctx, blueSky.ServerBskySocial)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(3)
