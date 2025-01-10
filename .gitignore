@@ -16,3 +16,4 @@ tools/twitchtest/twitchtest*
 *.zip
 bootstrap
 template.yml
+.aws-sam
