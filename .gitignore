@@ -13,3 +13,4 @@ virtualenv
 spaces*
 gotools/blueskytest/blueskytest*
 gotools/twitchtest/twitchtest*
+*.zip

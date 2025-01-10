@@ -18,4 +18,5 @@ type Response struct {
 	Body       map[string]any   `json:"body"`
 	StatusCode string           `json:"statusCode"`
 	Headers    *ResponseHeaders `json:"headers"`
+	// IsBase64Encoded bool             `json:"isBase64Encoded"`
 }

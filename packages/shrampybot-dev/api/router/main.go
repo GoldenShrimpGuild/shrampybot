@@ -67,18 +67,18 @@ func NewRouter(ctx *context.Context, event *Event) Router {
 }
 
 func (r *Router) AddRoute(match_path string, action func(route *Route) Response) {
-	q, _ := url.ParseQuery(r.event.Http.QueryString)
+	q, _ := url.ParseQuery(r.event.RawQueryString)
 
-	path := strings.Split(r.event.Http.Path, "/")
+	path := strings.Split(r.event.RawPath, "/")
 	if len(path) > 1 {
 		path = path[1:]
 	}
 
 	new_route := Route{
 		match_path: match_path,
-		Body:       r.event.Http.Body,
+		Body:       r.event.Body,
 		Path:       path,
-		Method:     r.event.Http.Method,
+		Method:     r.event.RequestContext.Http.Method,
 		Query:      q,
 		action:     action,
 		Router:     r,
@@ -88,7 +88,7 @@ func (r *Router) AddRoute(match_path string, action func(route *Route) Response)
 }
 
 func (r *Router) Route() Response {
-	if r.event.Http.HttpHeaders.ContentType != "application/json" {
+	if r.event.Headers.ContentType != "application/json" {
 		return Response{
 			Body: map[string]any{
 				"status": map[string]any{

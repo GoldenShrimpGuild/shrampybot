@@ -31,6 +31,15 @@ func (c *Client) isReady(s *discordgo.Session, r *discordgo.Ready) {
 	c.ready = true
 }
 
-func (c *Client) Post(msg string, image []byte) (string, error) {
+// discordgo seems to only want to deal with URLs rather than bytes
+func (c *Client) Post(msg string, imageUrl string) (string, error) {
+	// discordgo.MessageEmbed{
+	// 	Image: &discordgo.MessageEmbedImage{
 
+	// 	}
+	// }
+
+	// c.dc.ChannelMessageSendEmbed()
+
+	return "", nil
 }
