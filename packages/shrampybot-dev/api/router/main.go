@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 )
@@ -28,10 +29,10 @@ var (
 	}
 )
 
-type Body struct {
-	Status *Status `json:"status"`
-	Count  int     `json:"count"`
-	Data   []any   `json:"data"`
+type GenericBody struct {
+	Status *Status `json:"status,omitempty"`
+	Count  int     `json:"count,omitempty"`
+	Data   []any   `json:"data,omitempty"`
 }
 
 type Status struct {
@@ -50,6 +51,8 @@ type Route struct {
 
 	action func(route *Route) Response
 	Router *Router
+
+	views map[string]any
 }
 
 type Router struct {
@@ -66,7 +69,7 @@ func NewRouter(ctx *context.Context, event *Event) Router {
 	}
 }
 
-func (r *Router) AddRoute(match_path string, action func(route *Route) Response) {
+func (r *Router) AddRoute(matchPath string, action func(route *Route) Response, requireAuth bool) *Route {
 	q, _ := url.ParseQuery(r.event.RawQueryString)
 
 	path := strings.Split(r.event.RawPath, "/")
@@ -75,7 +78,7 @@ func (r *Router) AddRoute(match_path string, action func(route *Route) Response)
 	}
 
 	new_route := Route{
-		match_path: match_path,
+		match_path: matchPath,
 		Body:       r.event.Body,
 		Path:       path,
 		Method:     r.event.RequestContext.Http.Method,
@@ -85,16 +88,25 @@ func (r *Router) AddRoute(match_path string, action func(route *Route) Response)
 	}
 
 	r.routes = append(r.routes, new_route)
+
+	return &new_route
 }
 
 func (r *Router) Route() Response {
+	context := map[string]string{
+		"environment": lambdacontext.FunctionName,
+	}
+
+	bodyBasic := map[string]any{
+		"status": map[string]any{
+			"msg": "Error processing request.",
+		},
+		"context": context,
+	}
+
 	if r.event.Headers.ContentType != "application/json" {
 		return Response{
-			Body: map[string]any{
-				"status": map[string]any{
-					"msg": "Error processing request.",
-				},
-			},
+			Body:       bodyBasic,
 			StatusCode: "400",
 			Headers:    &DefaultResponseHeaders,
 		}
@@ -102,16 +114,20 @@ func (r *Router) Route() Response {
 
 	for i := 0; i < len(r.routes); i++ {
 		if r.routes[i].Path[0] == r.routes[i].match_path {
-			return r.routes[i].action(&r.routes[i])
+			routeResp := r.routes[i].action(&r.routes[i])
+			if routeResp.Body != nil {
+				routeResp.Body["context"] = context
+			} else {
+				routeResp.Body = map[string]any{
+					"context": context,
+				}
+			}
+			return routeResp
 		}
 	}
 
 	return Response{
-		Body: map[string]any{
-			"status": map[string]any{
-				"msg": "Error processing request.",
-			},
-		},
+		Body:       bodyBasic,
 		StatusCode: "400",
 		Headers:    &DefaultResponseHeaders,
 	}
@@ -124,7 +140,7 @@ func (r *Router) ErrorBody(errorCode int, msg string) map[string]any {
 		errMsg = ErrorMap[errorCode]
 	}
 
-	body, err := json.Marshal(Body{
+	body, err := json.Marshal(GenericBody{
 		Status: &Status{
 			Msg:       msg,
 			ErrorMsg:  errMsg,
