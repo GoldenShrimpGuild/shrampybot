@@ -1,7 +1,0 @@
-urllib3<2
-boto3
-requests==2.32.0
-Mastodon.py>=1.8.1
-twitchAPI==4.4.0
-hikari==2.1.0
-async-timeout
