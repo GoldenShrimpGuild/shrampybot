@@ -14,7 +14,56 @@ import (
 	blueSky "github.com/tailscale/go-bluesky"
 )
 
-func testPost(ctx *context.Context, bc *blueSky.Client) error {
+func blueskyMain(testCase *string, env *map[string]string) {
+	var (
+		blueskyLogin    = (*env)["BLUESKY_LOGIN"]
+		blueskyPassword = (*env)["BLUESKY_PASSWORD"]
+	)
+
+	ctx := context.Background()
+
+	bc, err := blueSky.Dial(ctx, blueSky.ServerBskySocial)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(3)
+	}
+	defer bc.Close()
+
+	err = bc.Login(ctx, blueskyLogin, blueskyPassword)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(4)
+	}
+
+	switch *testCase {
+	case "profile":
+		err = blueskyTestProfile(&ctx, bc)
+	case "post":
+		err = blueskyTestPost(&ctx, bc)
+	}
+
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(5)
+	}
+}
+
+func blueskyTestProfile(ctx *context.Context, bc *blueSky.Client) error {
+	profile, err := bc.FetchProfile(*ctx, "litui.ca")
+	if err != nil {
+		return err
+	}
+
+	output, err := json.MarshalIndent(profile, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(output))
+	return nil
+}
+
+func blueskyTestPost(ctx *context.Context, bc *blueSky.Client) error {
 	now := time.Now()
 
 	fh, err := os.Open("assets/adi-goldstein-unsplash.jpg")

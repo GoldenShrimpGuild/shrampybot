@@ -15,7 +15,7 @@ func NewCollection() *Collection {
 	return &c
 }
 
-// Get should return summary stats for our collection of data.
+// Get should return a summary of our data.
 func (c *Collection) Get(route *router.Route) *router.Response {
 	body := router.GenericBody{
 		Count: 0,
@@ -29,65 +29,33 @@ func (c *Collection) Get(route *router.Route) *router.Response {
 // A PATCH call will gather, assemble, and update all the user data required
 // to do other Shrampy tasks. This is the linchpin of Shrampybot.
 func (c *Collection) Patch(route *router.Route) *router.Response {
+	var response *router.Response
+
 	body := router.GenericBody{
-		Status: &router.Status{
-			Msg: "Collection Patch!",
-		},
 		Count: 0,
 		Data:  []any{},
 	}
 
-	// Fetch team member logins from Twitch
-	th, err := twitch.NewClient()
-	if err != nil {
-		body.Status.Msg = "Failed to connect to Twitch."
-		response := router.NewResponse(body, "500")
-		return response
-	}
-	teamMembers, err := th.GetTeamMembers()
-	if err != nil {
-		body.Status.Msg = "Failed to retrieve team members from Twitch."
-		response := router.NewResponse(body, "500")
-		return response
-	}
-	loginList := []string{}
-	for _, tm := range *teamMembers {
-		loginList = append(loginList, tm.UserLogin)
-	}
-
-	// Fetch user records for logins on our list
-	users, err := th.GetUsers(&loginList)
-	if err != nil {
-		body.Status.Msg = "Failed to retrieve users from Twitch."
-		response := router.NewResponse(body, "500")
+	users, err := getTwitchUsers()
+	if err != nil || len(*users) == 0 {
+		route.Router.ErrorBody(2, "")
+		response = router.NewResponse(body, "500")
 		return response
 	}
 
-	// Instantiate DynamoDB
-	n, err := nosqldb.NewClient()
+	err = saveTwitchUsers(users)
 	if err != nil {
-		body.Status.Msg = "Failed to connect to db."
-		response := router.NewResponse(body, "500")
+		route.Router.ErrorBody(3, "")
+		response = router.NewResponse(body, "500")
 		return response
 	}
-	_ = n
-	// TODO: complete working out batch write operations for DynamoDB
 
-	// Update our user records
-	// users, err := n.GetTwitchUsers()
-	// if err != nil {
-	// 	body.Status.Msg = "Could not retrieve data."
-	// 	response := router.NewResponse(body, "500")
-	// 	return response
-	// }
-
-	// Munge users into usable format
+	// Munge users into displayable format
 	for _, u := range *users {
-		body.Data = append(body.Data, u)
+		body.Data = append(body.Data, u["login"])
 	}
 	body.Count = int64(len(*users))
-
-	response := router.NewResponse(body, "200")
+	response = router.NewResponse(body, "200")
 	return response
 }
 
@@ -106,4 +74,45 @@ func (v *Collection) CallMethod(route *router.Route) *router.Response {
 	}
 
 	return router.NewResponse(router.GenericBody{}, "500")
+}
+
+func getTwitchUsers() (*[]map[string]string, error) {
+	var err error
+	var users *[]map[string]string
+	var loginList []string
+
+	// connect to Twitch
+	th, _ := twitch.NewClient()
+
+	// Preparing to parallelize assembling the logins list
+	// from multiple sources
+	ch := make(chan string)
+	go th.GetTeamMemberLoginsThreaded(ch)
+	// TODO: Add threaded mastodon queries
+	for login := range ch {
+		loginList = append(loginList, login)
+	}
+
+	// Fetch user records for logins on our list
+	users, err = th.GetUsers(&loginList)
+	if err != nil {
+		return users, err
+	}
+
+	return users, nil
+}
+
+func saveTwitchUsers(users *[]map[string]string) error {
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		return err
+	}
+
+	err = n.PutTwitchUsers(users)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -3,6 +3,8 @@ package nosqldb
 import (
 	"context"
 	"fmt"
+	"log"
+	"slices"
 
 	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -10,6 +12,10 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+)
+
+const (
+	batchSize = 25
 )
 
 type NoSqlDb struct {
@@ -94,4 +100,40 @@ func (n *NoSqlDb) GetTwitchUsers() ([]map[string]any, error) {
 	}
 
 	return output, nil
+}
+
+func (n *NoSqlDb) PutTwitchUsers(users *[]map[string]string) error {
+	var err error
+	var item map[string]types.AttributeValue
+
+	fullTableName := n.prefix + "twitch_users"
+
+	for subList := range slices.Chunk(*users, batchSize) {
+		var writeReqs []types.WriteRequest
+
+		for _, user := range subList {
+			item, err = attributevalue.MarshalMap(user)
+			if err != nil {
+				log.Printf("Couldn't marshal user %v for batch writing because: %v\n", user["login"], err)
+				continue
+			}
+
+			writeReqs = append(
+				writeReqs,
+				types.WriteRequest{
+					PutRequest: &types.PutRequest{
+						Item: item,
+					},
+				},
+			)
+		}
+
+		_, err = n.db.BatchWriteItem(n.ctx, &dynamodb.BatchWriteItemInput{
+			RequestItems: map[string][]types.WriteRequest{fullTableName: writeReqs},
+		})
+		if err != nil {
+			log.Printf("Couldn't batch-submit users to %v because: %v\n", fullTableName, err)
+		}
+	}
+	return err
 }

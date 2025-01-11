@@ -11,8 +11,7 @@ virtualenv
 .vscode
 *.http
 spaces*
-tools/blueskytest/blueskytest*
-tools/twitchtest/twitchtest*
+tools/services_test/services_test*
 *.zip
 bootstrap
 template.yml

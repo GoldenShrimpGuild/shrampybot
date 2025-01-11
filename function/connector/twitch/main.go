@@ -1,6 +1,7 @@
 package twitch
 
 import (
+	"encoding/json"
 	"shrampybot/config"
 	"slices"
 
@@ -31,22 +32,35 @@ func NewClient() (*Client, error) {
 	}, err
 }
 
-func (c *Client) GetTeamMembers() (*[]helix.TeamUser, error) {
+func (c *Client) GetTeamMembers() (*[]map[string]string, error) {
 	resp, err := c.tc.GetTeams(&helix.TeamsParams{
 		Name: config.TwitchTeamName,
 	})
 	if err != nil {
-		return &[]helix.TeamUser{}, err
+		return &[]map[string]string{}, err
 	}
 
-	if len(resp.Data.Teams) > 0 {
-		return &resp.Data.Teams[0].Users, err
-	}
+	// if len(resp.Data.Teams) < 1 {
+	// 	return &[]map[string]any{}, nil
+	// }
 
-	return &[]helix.TeamUser{}, nil
+	usersMap := []map[string]string{}
+	uByte, _ := json.Marshal(resp.Data.Teams[0].Users)
+	json.Unmarshal(uByte, &usersMap)
+
+	return &usersMap, nil
 }
 
-func (c *Client) GetUsers(logins *[]string) (*[]helix.User, error) {
+func (c *Client) GetTeamMemberLoginsThreaded(ch chan string) {
+	tms, _ := c.GetTeamMembers()
+
+	for _, tm := range *tms {
+		ch <- tm["user_login"]
+	}
+	close(ch)
+}
+
+func (c *Client) GetUsers(logins *[]string) (*[]map[string]string, error) {
 	users := []helix.User{}
 
 	// 100 item maximum for each call to GetUsers
@@ -55,10 +69,14 @@ func (c *Client) GetUsers(logins *[]string) (*[]helix.User, error) {
 			Logins: subList,
 		})
 		if err != nil {
-			return &users, err
+			return &[]map[string]string{}, err
 		}
 		users = append(users, resp.Data.Users...)
 	}
 
-	return &users, nil
+	usersMap := []map[string]string{}
+	uByte, _ := json.Marshal(users)
+	json.Unmarshal(uByte, &usersMap)
+
+	return &usersMap, nil
 }

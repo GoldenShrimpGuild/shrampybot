@@ -17,6 +17,9 @@ var (
 	}
 
 	ErrorMap = map[int]string{
+		1:  "Wrong content type.",
+		2:  "Data retrieval error.",
+		3:  "Data storage error.",
 		5:  "Unhandled exception occurred while routing.",
 		10: "No arguments to route.",
 		11: "No route provided.",
@@ -97,27 +100,17 @@ func (r *Router) Route() Response {
 		"environment": lambdacontext.FunctionName,
 	}
 
-	bodyBasic := map[string]any{
-		"status": map[string]string{
-			"msg": "Error processing request.",
-		},
-		"context": context,
-	}
-
 	if r.event.Headers.ContentType != "application/json" {
 		return Response{
-			Body:       bodyBasic,
+			Body:       r.ErrorBody(1, ""),
 			StatusCode: "400",
 			Headers:    &DefaultResponseHeaders,
 		}
 	}
 
 	if !r.event.CheckAuthorization() {
-		bodyBasic["status"] = map[string]string{
-			"msg": "Unauthorized access. Attempt logged.",
-		}
 		return Response{
-			Body:       bodyBasic,
+			Body:       r.ErrorBody(14, ""),
 			StatusCode: "401",
 			Headers:    &DefaultResponseHeaders,
 		}
@@ -138,7 +131,7 @@ func (r *Router) Route() Response {
 	}
 
 	return Response{
-		Body:       bodyBasic,
+		Body:       r.ErrorBody(12, ""),
 		StatusCode: "400",
 		Headers:    &DefaultResponseHeaders,
 	}

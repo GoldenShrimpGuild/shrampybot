@@ -11,6 +11,8 @@ func AdminController(route *router.Route) router.Response {
 		Headers:    &router.DefaultResponseHeaders,
 	}
 	if len(route.Path) < 2 {
+		resp.Body = route.Router.ErrorBody(10, "")
+		resp.StatusCode = "400"
 		return resp
 	}
 	switch route.Path[1] {
