@@ -31,7 +31,7 @@ var (
 
 type GenericBody struct {
 	Status *Status `json:"status,omitempty"`
-	Count  int     `json:"count,omitempty"`
+	Count  int64   `json:"count,omitempty"`
 	Data   []any   `json:"data,omitempty"`
 }
 
@@ -98,7 +98,7 @@ func (r *Router) Route() Response {
 	}
 
 	bodyBasic := map[string]any{
-		"status": map[string]any{
+		"status": map[string]string{
 			"msg": "Error processing request.",
 		},
 		"context": context,
@@ -108,6 +108,17 @@ func (r *Router) Route() Response {
 		return Response{
 			Body:       bodyBasic,
 			StatusCode: "400",
+			Headers:    &DefaultResponseHeaders,
+		}
+	}
+
+	if !r.event.CheckAuthorization() {
+		bodyBasic["status"] = map[string]string{
+			"msg": "Unauthorized access. Attempt logged.",
+		}
+		return Response{
+			Body:       bodyBasic,
+			StatusCode: "401",
 			Headers:    &DefaultResponseHeaders,
 		}
 	}

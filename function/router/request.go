@@ -3,6 +3,7 @@ package router
 type Headers struct {
 	Accept          string `json:"accept"`
 	AcceptEncoding  string `json:"accept-encoding"`
+	Authorization   string `json:"authorization"`
 	ContentLength   string `json:"content-length"`
 	ContentType     string `json:"content-type"`
 	Host            string `json:"host"`

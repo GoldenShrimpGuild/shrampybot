@@ -2,6 +2,7 @@ package twitch
 
 import (
 	"shrampybot/config"
+	"slices"
 
 	"github.com/litui/helix/v3"
 )
@@ -30,7 +31,7 @@ func NewClient() (*Client, error) {
 	}, err
 }
 
-func (c *Client) GetTeamUsers() (*[]helix.TeamUser, error) {
+func (c *Client) GetTeamMembers() (*[]helix.TeamUser, error) {
 	resp, err := c.tc.GetTeams(&helix.TeamsParams{
 		Name: config.TwitchTeamName,
 	})
@@ -43,4 +44,21 @@ func (c *Client) GetTeamUsers() (*[]helix.TeamUser, error) {
 	}
 
 	return &[]helix.TeamUser{}, nil
+}
+
+func (c *Client) GetUsers(logins *[]string) (*[]helix.User, error) {
+	users := []helix.User{}
+
+	// 100 item maximum for each call to GetUsers
+	for subList := range slices.Chunk(*logins, 100) {
+		resp, err := c.tc.GetUsers(&helix.UsersParams{
+			Logins: subList,
+		})
+		if err != nil {
+			return &users, err
+		}
+		users = append(users, resp.Data.Users...)
+	}
+
+	return &users, nil
 }

@@ -11,15 +11,12 @@ import (
 )
 
 func Main(ctx context.Context, ev router.Event) (router.AWSResponse, error) {
-	// lc, _ := lambdacontext.FromContext(ctx)
-
 	router := router.NewRouter(&ctx, &ev)
 	router.AddRoute("admin", admin.AdminController, true)
 	router.AddRoute("event", event.EventController, false)
 	router.AddRoute("user", user.UserController, true)
 
 	routeResp := router.Route()
-
 	return routeResp.FormatAWS(), nil
 }
 
