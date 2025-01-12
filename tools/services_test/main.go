@@ -42,6 +42,10 @@ func main() {
 	switch *serviceName {
 	case "bluesky":
 		blueskyMain(testCase, &env)
+	case "discord":
+		discordMain(testCase, &env)
+	case "mastodon":
+		mastodonMain(testCase, &env)
 	case "twitch":
 		twitchMain(testCase, &env)
 	}

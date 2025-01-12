@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"shrampybot/config"
 	"slices"
+	"strings"
 
 	"github.com/litui/helix/v3"
 )
@@ -55,7 +56,7 @@ func (c *Client) GetTeamMemberLoginsThreaded(ch chan string) {
 	tms, _ := c.GetTeamMembers()
 
 	for _, tm := range *tms {
-		ch <- tm["user_login"]
+		ch <- strings.ToLower(tm["user_login"])
 	}
 	close(ch)
 }

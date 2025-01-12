@@ -2,7 +2,7 @@ name: Deploy ShrampyBot-Dev (Go)
 
 on:
   push:
-    branches: [main, "feature/go-rewrite"]
+    branches: [main]
 
 jobs:
   deploy-dev:

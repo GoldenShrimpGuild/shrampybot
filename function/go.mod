@@ -10,9 +10,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.39.2
 	github.com/bluesky-social/indigo v0.0.0-20250109200452-eab52046f680
 	github.com/bwmarrin/discordgo v0.28.1
+	github.com/litui/go-mastodon v0.0.15
 	github.com/litui/helix/v3 v3.0.1
 	github.com/tailscale/go-bluesky v0.0.0-20241120102717-59cb59520339
-	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948
+	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8
 )
 
 require (
