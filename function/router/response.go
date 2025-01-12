@@ -19,7 +19,7 @@ type ResponseHeaders struct {
 // }
 
 type Response struct {
-	Body       map[string]any   `json:"body"`
+	Body       string           `json:"body"`
 	StatusCode string           `json:"statusCode"`
 	Headers    *ResponseHeaders `json:"headers"`
 }
@@ -46,20 +46,10 @@ func NewResponse(body GenericBody, statusCode string) *Response {
 }
 
 func (r *Response) FormatAWS() AWSResponse {
-	response := AWSResponse{
-		Body:            "",
-		StatusCode:      "500",
-		Headers:         &ResponseHeaders{},
+	return AWSResponse{
+		Body:            r.Body,
+		StatusCode:      r.StatusCode,
+		Headers:         r.Headers,
 		IsBase64Encoded: "false",
 	}
-
-	bodyBytes, err := json.Marshal(r.Body)
-	if err != nil {
-		return response
-	}
-	response.Body = string(bodyBytes)
-	response.StatusCode = r.StatusCode
-	response.Headers = r.Headers
-
-	return response
 }

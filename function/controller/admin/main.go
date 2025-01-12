@@ -4,8 +4,8 @@ import (
 	"shrampybot/router"
 )
 
-func AdminController(route *router.Route) router.Response {
-	resp := router.Response{
+func AdminController(route *router.Route) *router.Response {
+	resp := &router.Response{
 		Body:       route.Router.ErrorBody(5, ""),
 		StatusCode: "500",
 		Headers:    &router.DefaultResponseHeaders,
@@ -17,8 +17,8 @@ func AdminController(route *router.Route) router.Response {
 	}
 	switch route.Path[1] {
 	case "collection":
-		c := NewCollection()
-		return *c.CallMethod(route)
+		c := NewCollectionView()
+		return c.CallMethod(route)
 	}
 
 	return resp

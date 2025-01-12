@@ -65,13 +65,13 @@ func discordTestPost(channel *string, dc *discordgo.Session) error {
 	if err != nil {
 		return err
 	}
+	defer fh.Close()
 	var files []*discordgo.File
 	files = append(files, &discordgo.File{
 		Name:        "image.jpg",
 		ContentType: "image/jpeg",
 		Reader:      fh,
 	})
-	defer fh.Close()
 
 	res, err := dc.ChannelMessageSendComplex(*channel, &discordgo.MessageSend{
 		Content: "**Yui** is now streaming **Music** on Twitch:\nlol ADHD. A challenger appears!!!\n\nhttps://www.tbs.co.jp/anime/k-on/",

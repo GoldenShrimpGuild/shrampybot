@@ -10,17 +10,33 @@ import (
 	"sort"
 )
 
-type Collection struct {
+type CollectionView struct {
 	router.View
 }
 
-func NewCollection() *Collection {
-	c := Collection{}
+func NewCollectionView() *CollectionView {
+	c := CollectionView{}
 	return &c
 }
 
-// TODO: get should return a summary of our data.
-func (c *Collection) Get(route *router.Route) *router.Response {
+func (v *CollectionView) CallMethod(route *router.Route) *router.Response {
+	switch route.Method {
+	case "GET":
+		return v.Get(route)
+	case "POST":
+		return v.Post(route)
+	case "PUT":
+		return v.Put(route)
+	case "PATCH":
+		return v.Patch(route)
+	case "DELETE":
+		return v.Delete(route)
+	}
+
+	return router.NewResponse(router.GenericBody{}, "500")
+}
+
+func (c *CollectionView) Get(route *router.Route) *router.Response {
 	log.Println("Entered route: Collection.Get")
 	var response *router.Response
 	var logins *[]map[string]any
@@ -53,7 +69,7 @@ func (c *Collection) Get(route *router.Route) *router.Response {
 
 // A PATCH call will gather, assemble, and update all the user data required
 // to do other Shrampy tasks. This is the linchpin of Shrampybot.
-func (c *Collection) Patch(route *router.Route) *router.Response {
+func (c *CollectionView) Patch(route *router.Route) *router.Response {
 	log.Println("Entered route: Collection.Patch")
 	var response *router.Response
 
@@ -86,23 +102,6 @@ func (c *Collection) Patch(route *router.Route) *router.Response {
 	response = router.NewResponse(body, "200")
 	log.Println("Exited route: Collection.Patch")
 	return response
-}
-
-func (v *Collection) CallMethod(route *router.Route) *router.Response {
-	switch route.Method {
-	case "GET":
-		return v.Get(route)
-	case "POST":
-		return v.Post(route)
-	case "PUT":
-		return v.Put(route)
-	case "PATCH":
-		return v.Patch(route)
-	case "DELETE":
-		return v.Delete(route)
-	}
-
-	return router.NewResponse(router.GenericBody{}, "500")
 }
 
 func getTwitchUsers() (*[]map[string]string, error) {

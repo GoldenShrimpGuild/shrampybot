@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/url"
 	"strings"
 
@@ -52,42 +53,43 @@ type Route struct {
 	Query  url.Values
 	Path   []string
 
-	action func(route *Route) Response
+	action func(route *Route) *Response
 	Router *Router
 
-	views map[string]any
+	RequireAuth bool
 }
 
 type Router struct {
-	ctx   *context.Context
-	event *Event
+	Event *Event
 
+	ctx    *context.Context
 	routes []Route
 }
 
 func NewRouter(ctx *context.Context, event *Event) Router {
 	return Router{
 		ctx:   ctx,
-		event: event,
+		Event: event,
 	}
 }
 
-func (r *Router) AddRoute(matchPath string, action func(route *Route) Response, requireAuth bool) *Route {
-	q, _ := url.ParseQuery(r.event.RawQueryString)
+func (r *Router) AddRoute(matchPath string, action func(route *Route) *Response, requireAuth bool) *Route {
+	q, _ := url.ParseQuery(r.Event.RawQueryString)
 
-	path := strings.Split(r.event.RawPath, "/")
+	path := strings.Split(r.Event.RawPath, "/")
 	if len(path) > 1 {
 		path = path[1:]
 	}
 
 	new_route := Route{
-		match_path: matchPath,
-		Body:       r.event.Body,
-		Path:       path,
-		Method:     r.event.RequestContext.Http.Method,
-		Query:      q,
-		action:     action,
-		Router:     r,
+		match_path:  matchPath,
+		Body:        r.Event.Body,
+		Path:        path,
+		Method:      r.Event.RequestContext.Http.Method,
+		Query:       q,
+		action:      action,
+		Router:      r,
+		RequireAuth: requireAuth,
 	}
 
 	r.routes = append(r.routes, new_route)
@@ -95,49 +97,64 @@ func (r *Router) AddRoute(matchPath string, action func(route *Route) Response, 
 	return &new_route
 }
 
-func (r *Router) Route() Response {
+func (r *Router) Route() *Response {
+	log.Println("Started routing...")
 	context := map[string]string{
 		"environment": lambdacontext.FunctionName,
 	}
 
-	if r.event.Headers.ContentType != "application/json" {
-		return Response{
+	if r.Event.Headers.ContentType != "application/json" {
+		return &Response{
 			Body:       r.ErrorBody(1, ""),
 			StatusCode: "400",
 			Headers:    &DefaultResponseHeaders,
 		}
 	}
 
-	if !r.event.CheckAuthorization() {
-		return Response{
-			Body:       r.ErrorBody(14, ""),
-			StatusCode: "401",
-			Headers:    &DefaultResponseHeaders,
-		}
-	}
-
 	for i := 0; i < len(r.routes); i++ {
 		if r.routes[i].Path[0] == r.routes[i].match_path {
-			routeResp := r.routes[i].action(&r.routes[i])
-			if routeResp.Body != nil {
-				routeResp.Body["context"] = context
-			} else {
-				routeResp.Body = map[string]any{
-					"context": context,
+			if r.routes[i].RequireAuth {
+				log.Printf("Authentication required for endpoint %v\n", r.routes[i].match_path)
+
+				if !r.Event.CheckAuthorization() {
+					log.Println("Authentication failed!")
+					return &Response{
+						Body:       r.ErrorBody(14, ""),
+						StatusCode: "401",
+						Headers:    &DefaultResponseHeaders,
+					}
 				}
+
+				log.Println("Authentication succeeded!")
+			} else {
+				log.Printf("No authentication required for endpoint %v\n", r.routes[i].match_path)
+			}
+
+			responseBody := map[string]any{}
+			// Continue routing post-authentication or lack thereof.
+			routeResp := r.routes[i].action(&r.routes[i])
+			log.Printf("Body post-route: %v", routeResp.Body)
+
+			// Fill in a nice happy json body if there is no existing body data
+			if routeResp.Body == "" {
+				responseBody["context"] = context
+				json.Unmarshal([]byte(routeResp.Body), &responseBody)
+				responseBytes, _ := json.Marshal(responseBody)
+				routeResp.Body = string(responseBytes)
 			}
 			return routeResp
 		}
 	}
 
-	return Response{
+	// Failed to route
+	return &Response{
 		Body:       r.ErrorBody(12, ""),
 		StatusCode: "400",
 		Headers:    &DefaultResponseHeaders,
 	}
 }
 
-func (r *Router) ErrorBody(errorCode int, msg string) map[string]any {
+func (r *Router) ErrorBody(errorCode int, msg string) string {
 	errCodes := maps.Keys(ErrorMap)
 	errMsg := ""
 	if slices.Contains(errCodes, errorCode) {
@@ -154,14 +171,8 @@ func (r *Router) ErrorBody(errorCode int, msg string) map[string]any {
 		Data:  []any{},
 	})
 	if err != nil {
-		return map[string]any{}
+		return ""
 	}
 
-	retmap := map[string]any{}
-	err = json.Unmarshal(body, &retmap)
-	if err != nil {
-		return map[string]any{}
-	}
-
-	return retmap
+	return string(body)
 }

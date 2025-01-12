@@ -39,7 +39,7 @@ func (c *Client) GetMappedTwitchLoginsThreaded(ch chan string) {
 	for {
 		acct, err := c.mh.AdminViewAccounts(c.ctx, &mast.AdminViewAccountsInput{}, &pg)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			break
 		}
 		accounts = append(accounts, acct...)

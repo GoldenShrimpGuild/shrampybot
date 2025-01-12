@@ -1,6 +1,8 @@
 package discord
 
 import (
+	"bytes"
+	"log"
 	"shrampybot/config"
 
 	"github.com/bwmarrin/discordgo"
@@ -31,15 +33,25 @@ func (c *Client) isReady(s *discordgo.Session, r *discordgo.Ready) {
 	c.ready = true
 }
 
-// discordgo seems to only want to deal with URLs rather than bytes
-func (c *Client) Post(msg string, imageUrl string) (string, error) {
-	// discordgo.MessageEmbed{
-	// 	Image: &discordgo.MessageEmbedImage{
+func (c *Client) Post(msg string, image []byte) (string, error) {
+	var files []*discordgo.File
+	imageReader := bytes.NewReader(image)
 
-	// 	}
-	// }
+	files = append(files, &discordgo.File{
+		Name:        "image.jpg",
+		ContentType: "image/jpeg",
+		Reader:      imageReader,
+	})
 
-	// c.dc.ChannelMessageSendEmbed()
+	log.Printf("Sending Discord message...")
+	res, err := c.dc.ChannelMessageSendComplex(config.DiscordChannel, &discordgo.MessageSend{
+		Content: msg,
+		Files:   files,
+		Flags:   discordgo.MessageFlagsSuppressEmbeds | discordgo.MessageFlagsCrossPosted,
+	})
+	if err != nil {
+		return "", err
+	}
 
-	return "", nil
+	return res.ID, nil
 }
