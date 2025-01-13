@@ -5,10 +5,15 @@ import (
 	"log"
 	"regexp"
 	"shrampybot/config"
+	"shrampybot/utility"
 	"strings"
 	"time"
 
 	mast "github.com/litui/go-mastodon"
+)
+
+const (
+	PlatformName = "mastodon"
 )
 
 type Client struct {
@@ -26,6 +31,37 @@ func NewClient() (*Client, error) {
 	c.mh = mast.NewClient(conf)
 
 	return &c, nil
+}
+
+func (c *Client) Post(msg string, thumb utility.Image) (*utility.PostResponse, error) {
+	var mediaIds []mast.ID
+
+	log.Println("Uploading image attachment to Mastodon...")
+	attachment, err := c.mh.UploadMediaFromReader(c.ctx, thumb.GetReader())
+
+	// Attach media to post only if there was no error uploading media
+	if err == nil {
+		mediaIds = append(mediaIds, attachment.ID)
+	}
+
+	postResponse := &utility.PostResponse{}
+
+	log.Println("Posting to Mastodon...")
+	status, err := c.mh.PostStatus(c.ctx, &mast.Toot{
+		Status:     msg,
+		Visibility: config.MastodonPostMode,
+		MediaIDs:   mediaIds,
+		Sensitive:  false,
+	})
+	if err != nil {
+		return postResponse, err
+	}
+
+	postResponse.Platform = PlatformName
+	postResponse.Id = string(status.ID)
+	postResponse.Url = status.URL
+
+	return postResponse, nil
 }
 
 func (c *Client) GetMappedTwitchLoginsThreaded(ch chan string) {

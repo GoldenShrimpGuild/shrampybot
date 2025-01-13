@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"encoding/json"
 	"log"
 	"shrampybot/connector/mastodon"
 	"shrampybot/connector/twitch"
@@ -33,80 +34,84 @@ func (v *CollectionView) CallMethod(route *router.Route) *router.Response {
 		return v.Delete(route)
 	}
 
-	return router.NewResponse(router.GenericBody{}, "500")
+	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
 }
 
 func (c *CollectionView) Get(route *router.Route) *router.Response {
-	log.Println("Entered route: Collection.Get")
-	var response *router.Response
-	var logins *[]map[string]any
-	body := router.GenericBody{
-		Count: 0,
-		Data:  []any{},
-	}
+	log.Println("Entered route: Admin.Collection.Get")
+	response := &router.Response{}
+	response.Headers = &router.DefaultResponseHeaders
+	var logins *[]string
 
 	// Instantiate DynamoDB
 	n, err := nosqldb.NewClient()
 	if err != nil {
 		log.Println("Could not instantiate dynamodb.")
+		response.StatusCode = "500"
+		return response
 	}
 
 	// Fetch login names from our stored Twitch users
 	logins, err = n.GetActiveTwitchLogins()
 	if err != nil {
 		log.Println("Could not get saved Twitch logins.")
+		response.StatusCode = "500"
+		return response
 	}
 
-	// Munge users into displayable format
-	for _, u := range *logins {
-		body.Data = append(body.Data, u["login"])
-	}
-	body.Count = int64(len(*logins))
-	response = router.NewResponse(body, "200")
-	log.Println("Exited route: Collection.Get")
+	body := map[string]any{}
+	body["count"] = len(*logins)
+	body["data"] = logins
+	bodyBytes, _ := json.Marshal(body)
+
+	response.StatusCode = "200"
+	response.Body = string(bodyBytes)
+
+	log.Println("Exited route: Admin.Collection.Get")
 	return response
 }
 
 // A PATCH call will gather, assemble, and update all the user data required
 // to do other Shrampy tasks. This is the linchpin of Shrampybot.
 func (c *CollectionView) Patch(route *router.Route) *router.Response {
-	log.Println("Entered route: Collection.Patch")
-	var response *router.Response
-
-	body := router.GenericBody{
-		Count: 0,
-		Data:  []any{},
-	}
+	log.Println("Entered route: Admin.Collection.Patch")
+	response := &router.Response{}
+	response.Headers = &router.DefaultResponseHeaders
 
 	users, err := getTwitchUsers()
 	if err != nil || len(*users) == 0 {
-		route.Router.ErrorBody(2, "")
-		response = router.NewResponse(body, "500")
 		log.Println("Exited route abnormally: Collection.Patch")
+		response.StatusCode = "500"
 		return response
 	}
 
 	err = saveActiveTwitchUsers(users)
 	if err != nil {
-		route.Router.ErrorBody(3, "")
-		response = router.NewResponse(body, "500")
 		log.Println("Exited route abnormally: Collection.Patch")
+		response.StatusCode = "500"
 		return response
 	}
 
+	body := map[string]any{}
+	body["count"] = len(*users)
+	data := []string{}
+
 	// Munge users into displayable format
 	for _, u := range *users {
-		body.Data = append(body.Data, u["login"])
+		data = append(data, u.Login)
 	}
-	body.Count = int64(len(*users))
-	response = router.NewResponse(body, "200")
-	log.Println("Exited route: Collection.Patch")
+	body["data"] = data
+	bodyBytes, _ := json.Marshal(body)
+
+	response.StatusCode = "200"
+	response.Body = string(bodyBytes)
+
+	log.Println("Exited route: Admin.Collection.Patch")
 	return response
 }
 
-func getTwitchUsers() (*[]map[string]string, error) {
+func getTwitchUsers() (*[]nosqldb.TwitchUserDatum, error) {
 	var err error
-	var users *[]map[string]string
 	var loginList []string
 
 	// connect to Twitch
@@ -130,15 +135,18 @@ func getTwitchUsers() (*[]map[string]string, error) {
 	loginList = slices.Compact(loginList)
 
 	// Fetch user records for logins on our list
-	users, err = th.GetUsers(&loginList)
+	output := []nosqldb.TwitchUserDatum{}
+	users, err := th.GetUsers(&loginList)
 	if err != nil {
-		return users, err
+		return &output, err
 	}
+	userBytes, _ := json.Marshal(users)
+	json.Unmarshal(userBytes, &output)
 
-	return users, nil
+	return &output, nil
 }
 
-func saveActiveTwitchUsers(users *[]map[string]string) error {
+func saveActiveTwitchUsers(users *[]nosqldb.TwitchUserDatum) error {
 	// Instantiate DynamoDB
 	n, err := nosqldb.NewClient()
 	if err != nil {
@@ -154,14 +162,14 @@ func saveActiveTwitchUsers(users *[]map[string]string) error {
 		foundMatch := false
 
 		for _, newUser := range *users {
-			if pastUser["id"] == newUser["id"] {
+			if pastUser == newUser.ID {
 				foundMatch = true
 				break
 			}
 		}
 
 		if !foundMatch {
-			disableIds = append(disableIds, pastUser["id"].(string))
+			disableIds = append(disableIds, pastUser)
 		}
 	}
 

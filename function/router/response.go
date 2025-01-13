@@ -31,7 +31,7 @@ type AWSResponse struct {
 	IsBase64Encoded string           `json:"isBase64Encoded"`
 }
 
-func NewResponse(body GenericBody, statusCode string) *Response {
+func NewResponse(body GenericBodyDataFlat, statusCode string) *Response {
 	response := Response{
 		StatusCode: statusCode,
 		Headers:    &DefaultResponseHeaders,

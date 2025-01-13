@@ -16,7 +16,7 @@ lint = true
 [default.deploy.parameters]
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
-s3_bucket = "shrampybot-prod"
+s3_bucket = "shrampybot-prod-deployment"
 
 [default.package.parameters]
 resolve_s3 = true

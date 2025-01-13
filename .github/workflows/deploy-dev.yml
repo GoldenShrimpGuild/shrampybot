@@ -14,7 +14,7 @@ jobs:
         with: 
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
+          aws-region: ca-central-1
       - name: Setup Go 1.23.4
         uses: actions/setup-go@v5
         with:
@@ -29,5 +29,5 @@ jobs:
         run: sam build
         working-directory: ./deploy-dev
       - name: Deploy shrampybot-dev
-        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --region eu-central-1
+        run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --region ca-central-1
         working-directory: ./deploy-dev

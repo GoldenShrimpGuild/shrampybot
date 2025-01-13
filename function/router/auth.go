@@ -1,8 +1,8 @@
 package router
 
 import (
-	"crypto"
 	"crypto/hmac"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
 	"log"
@@ -40,8 +40,12 @@ func (e *Event) calculateSHA256Signature() string {
 		e.Headers.TwitchEventsubMessageTimestamp +
 		e.Body
 
-	h := hmac.New(crypto.SHA256.HashFunc().New, []byte(config.TwitchEventSecret))
-	return "sha256=" + hex.EncodeToString(h.Sum([]byte(combined)))
+	h := hmac.New(sha256.New, []byte(config.TwitchEventSecret))
+	_, err := h.Write([]byte(combined))
+	if err != nil {
+		return ""
+	}
+	return "sha256=" + hex.EncodeToString(h.Sum(nil))
 }
 
 // Function for handling Twitch Webhook notification authorization
@@ -58,6 +62,9 @@ func (e *Event) CheckTwitchAuthorization() bool {
 	log.Println("Comparing SHA256 signature values...")
 	our_digest := []byte(e.calculateSHA256Signature())
 	their_digest := []byte(e.Headers.TwitchEventsubMessageSignature)
+
+	log.Printf("Their digest: %v\n", their_digest)
+	log.Printf("Our digest  : %v\n", our_digest)
 
 	// Use constant time comparison functions
 	if subtle.ConstantTimeEq(int32(len(our_digest)), int32(len(their_digest))) == 0 {

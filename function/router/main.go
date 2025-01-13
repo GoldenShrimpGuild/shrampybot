@@ -21,7 +21,9 @@ var (
 		1:  "Wrong content type.",
 		2:  "Data retrieval error.",
 		3:  "Data storage error.",
+		4:  "Database connection error.",
 		5:  "Unhandled exception occurred while routing.",
+		6:  "Request data parsing error.",
 		10: "No arguments to route.",
 		11: "No route provided.",
 		12: "Invalid route.",
@@ -33,7 +35,7 @@ var (
 	}
 )
 
-type GenericBody struct {
+type GenericBodyDataFlat struct {
 	Status *Status `json:"status,omitempty"`
 	Count  int64   `json:"count,omitempty"`
 	Data   []any   `json:"data,omitempty"`
@@ -105,7 +107,7 @@ func (r *Router) Route() *Response {
 
 	if r.Event.Headers.ContentType != "application/json" {
 		return &Response{
-			Body:       r.ErrorBody(1, ""),
+			Body:       r.ErrorBody(1),
 			StatusCode: "400",
 			Headers:    &DefaultResponseHeaders,
 		}
@@ -119,7 +121,7 @@ func (r *Router) Route() *Response {
 				if !r.Event.CheckAuthorization() {
 					log.Println("Authentication failed!")
 					return &Response{
-						Body:       r.ErrorBody(14, ""),
+						Body:       r.ErrorBody(14),
 						StatusCode: "401",
 						Headers:    &DefaultResponseHeaders,
 					}
@@ -148,22 +150,21 @@ func (r *Router) Route() *Response {
 
 	// Failed to route
 	return &Response{
-		Body:       r.ErrorBody(12, ""),
+		Body:       r.ErrorBody(12),
 		StatusCode: "400",
 		Headers:    &DefaultResponseHeaders,
 	}
 }
 
-func (r *Router) ErrorBody(errorCode int, msg string) string {
+func (r *Router) ErrorBody(errorCode int) string {
 	errCodes := maps.Keys(ErrorMap)
 	errMsg := ""
 	if slices.Contains(errCodes, errorCode) {
 		errMsg = ErrorMap[errorCode]
 	}
 
-	body, err := json.Marshal(GenericBody{
+	body, err := json.Marshal(GenericBodyDataFlat{
 		Status: &Status{
-			Msg:       msg,
 			ErrorMsg:  errMsg,
 			ErrorCode: errorCode,
 		},

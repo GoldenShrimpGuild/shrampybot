@@ -1,11 +1,16 @@
 package discord
 
 import (
-	"bytes"
+	"fmt"
 	"log"
 	"shrampybot/config"
+	"shrampybot/utility"
 
 	"github.com/bwmarrin/discordgo"
+)
+
+const (
+	PlatformName = "discord"
 )
 
 type Client struct {
@@ -33,15 +38,16 @@ func (c *Client) isReady(s *discordgo.Session, r *discordgo.Ready) {
 	c.ready = true
 }
 
-func (c *Client) Post(msg string, image []byte) (string, error) {
+func (c *Client) Post(msg string, image utility.Image) (*utility.PostResponse, error) {
 	var files []*discordgo.File
-	imageReader := bytes.NewReader(image)
 
 	files = append(files, &discordgo.File{
 		Name:        "image.jpg",
 		ContentType: "image/jpeg",
-		Reader:      imageReader,
+		Reader:      image.GetReader(),
 	})
+
+	postResponse := &utility.PostResponse{}
 
 	log.Printf("Sending Discord message...")
 	res, err := c.dc.ChannelMessageSendComplex(config.DiscordChannel, &discordgo.MessageSend{
@@ -50,8 +56,19 @@ func (c *Client) Post(msg string, image []byte) (string, error) {
 		Flags:   discordgo.MessageFlagsSuppressEmbeds | discordgo.MessageFlagsCrossPosted,
 	})
 	if err != nil {
-		return "", err
+		return postResponse, err
 	}
 
-	return res.ID, nil
+	log.Printf("Discord message sent: %v\n", res.ID)
+
+	postResponse.Platform = PlatformName
+	postResponse.Id = res.ID
+	postResponse.Url = fmt.Sprintf(
+		"https://discord.com/channels/%v/%v/%v",
+		config.DiscordGuild,
+		config.DiscordChannel,
+		res.ID,
+	)
+
+	return postResponse, nil
 }
