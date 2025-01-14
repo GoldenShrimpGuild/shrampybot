@@ -15,17 +15,21 @@ import (
 )
 
 const (
-	ActiveUserField = "shrampybot_active"
+	activeUserField      = "shrampybot_active"
+	twitchUsersTableName = "twitch_users"
 )
 
 type TwitchUserDatum struct {
 	helix.User
-	ShrampybotActive bool `json:"shrampybot_active,omitempty"`
+	ShrampybotActive bool   `json:"shrampybot_active,omitempty"`
+	MastodonUserId   string `json:"mastodon_user_id,omitempty"`
+	DiscordUserId    string `json:"discord_user_id,omitempty"`
+	BlueskyUserId    string `json:"bluesky_user_id,omitempty"`
 }
 
 func (n *NoSqlDb) DisableTwitchIds(ids *[]string) error {
 	var err error
-	fullTableName := n.prefix + "twitch_users"
+	fullTableName := n.prefix + twitchUsersTableName
 
 	for subList := range slices.Chunk(*ids, batchSize) {
 		var writeReqs []types.WriteRequest
@@ -33,7 +37,7 @@ func (n *NoSqlDb) DisableTwitchIds(ids *[]string) error {
 		for _, id := range subList {
 			item := map[string]types.AttributeValue{}
 			item["id"] = &types.AttributeValueMemberS{Value: id}
-			item[ActiveUserField] = &types.AttributeValueMemberBOOL{Value: false}
+			item[activeUserField] = &types.AttributeValueMemberBOOL{Value: false}
 
 			writeReqs = append(
 				writeReqs,
@@ -56,7 +60,7 @@ func (n *NoSqlDb) DisableTwitchIds(ids *[]string) error {
 
 func (n *NoSqlDb) GetTwitchUser(id string) (*TwitchUserDatum, error) {
 	var err error
-	fullTableName := n.prefix + "twitch_users"
+	fullTableName := n.prefix + twitchUsersTableName
 
 	keyMap := map[string]types.AttributeValue{}
 	keyMap["id"] = &types.AttributeValueMemberS{Value: id}
@@ -66,16 +70,22 @@ func (n *NoSqlDb) GetTwitchUser(id string) (*TwitchUserDatum, error) {
 		TableName: &fullTableName,
 	})
 	if err != nil {
+		fmt.Printf("Could not retrieve Twitch user %v: %v\n", id, err)
 		return &TwitchUserDatum{}, err
 	}
 	output := TwitchUserDatum{}
-	attributevalue.UnmarshalMap(result.Item, &output)
+
+	tempRes := map[string]any{}
+	attributevalue.UnmarshalMap(result.Item, &tempRes)
+	tempBytes, _ := json.Marshal(tempRes)
+	json.Unmarshal(tempBytes, &output)
+
 	return &output, nil
 }
 
 func (n *NoSqlDb) GetActiveTwitchIds() (*[]string, error) {
 	var err error
-	fullTableName := n.prefix + "twitch_users"
+	fullTableName := n.prefix + twitchUsersTableName
 	statement := aws.String(
 		fmt.Sprintf("SELECT id FROM \"%v\" WHERE shrampybot_active=true", fullTableName),
 	)
@@ -95,9 +105,9 @@ func (n *NoSqlDb) GetActiveTwitchIds() (*[]string, error) {
 
 func (n *NoSqlDb) GetActiveTwitchLogins() (*[]string, error) {
 	var err error
-	fullTableName := n.prefix + "twitch_users"
+	fullTableName := n.prefix + twitchUsersTableName
 	statement := aws.String(
-		fmt.Sprintf("SELECT login FROM \"%v\" WHERE %v=true", fullTableName, ActiveUserField),
+		fmt.Sprintf("SELECT login FROM \"%v\" WHERE %v=true", fullTableName, activeUserField),
 	)
 	output := []string{}
 	result, err := n.QueryDB(statement)
@@ -115,9 +125,9 @@ func (n *NoSqlDb) GetActiveTwitchLogins() (*[]string, error) {
 
 func (n *NoSqlDb) GetActiveTwitchUsers() (*[]TwitchUserDatum, error) {
 	var err error
-	fullTableName := n.prefix + "twitch_users"
+	fullTableName := n.prefix + twitchUsersTableName
 	statement := aws.String(
-		fmt.Sprintf("SELECT * FROM \"%v\" WHERE %v=true", fullTableName, ActiveUserField),
+		fmt.Sprintf("SELECT * FROM \"%v\" WHERE %v=true", fullTableName, activeUserField),
 	)
 	output := []TwitchUserDatum{}
 	results, err := n.QueryDB(statement)
@@ -138,7 +148,7 @@ func (n *NoSqlDb) GetActiveTwitchUsers() (*[]TwitchUserDatum, error) {
 func (n *NoSqlDb) PutTwitchUsers(users *[]TwitchUserDatum) error {
 	var err error
 
-	fullTableName := n.prefix + "twitch_users"
+	fullTableName := n.prefix + twitchUsersTableName
 
 	for subList := range slices.Chunk(*users, batchSize) {
 		var writeReqs []types.WriteRequest

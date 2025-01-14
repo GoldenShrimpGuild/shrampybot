@@ -120,15 +120,17 @@ func getTwitchUsers() (*[]nosqldb.TwitchUserDatum, error) {
 	mh, _ := mastodon.NewClient()
 
 	// Parallelize assembling the logins list from multiple sources
-	ch_th := make(chan string)
-	ch_mh := make(chan string)
-	go th.GetTeamMemberLoginsThreaded(ch_th)
-	go mh.GetMappedTwitchLoginsThreaded(ch_mh)
+	chTh := make(chan string)
+	chMh := make(chan map[string]string)
+	go th.GetTeamMemberLoginsThreaded(chTh)
+	go mh.GetMappedTwitchLoginsThreaded(chMh)
 
-	for login := range ch_mh {
-		loginList = append(loginList, login)
+	mastodonMap := <-chMh
+	for t := range mastodonMap {
+		loginList = append(loginList, t)
 	}
-	for login := range ch_th {
+
+	for login := range chTh {
 		loginList = append(loginList, login)
 	}
 	sort.Strings(loginList)
@@ -140,8 +142,14 @@ func getTwitchUsers() (*[]nosqldb.TwitchUserDatum, error) {
 	if err != nil {
 		return &output, err
 	}
+
 	userBytes, _ := json.Marshal(users)
 	json.Unmarshal(userBytes, &output)
+
+	// Add mastodon IDs to the retrieved users
+	for i, u := range output {
+		output[i].MastodonUserId = mastodonMap[u.Login]
+	}
 
 	return &output, nil
 }

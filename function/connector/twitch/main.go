@@ -81,3 +81,17 @@ func (c *Client) GetUsers(logins *[]string) (*[]map[string]string, error) {
 
 	return &usersMap, nil
 }
+
+func (c *Client) GetStreamByUserId(userId string) (*helix.Stream, error) {
+	userIds := append([]string{}, userId)
+
+	resp, err := c.tc.GetStreams(&helix.StreamsParams{
+		UserIDs: userIds,
+		Type:    "live",
+	})
+	if err != nil || len(resp.Data.Streams) == 0 {
+		return &helix.Stream{}, err
+	}
+
+	return &resp.Data.Streams[0], nil
+}

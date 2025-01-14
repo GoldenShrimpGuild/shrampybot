@@ -33,7 +33,7 @@ func NewClient() (*Client, error) {
 	return &c, nil
 }
 
-func (c *Client) Post(msg string, thumb utility.Image) (*utility.PostResponse, error) {
+func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, error) {
 	var mediaIds []mast.ID
 
 	log.Println("Uploading image attachment to Mastodon...")
@@ -64,7 +64,7 @@ func (c *Client) Post(msg string, thumb utility.Image) (*utility.PostResponse, e
 	return postResponse, nil
 }
 
-func (c *Client) GetMappedTwitchLoginsThreaded(ch chan string) {
+func (c *Client) GetMappedTwitchLoginsThreaded(ch chan map[string]string) {
 	log.Println("Entered function: GetMappedTwitchLoginsThreaded")
 	var twitchMatch = regexp.MustCompile(`(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([A-Za-z0-9_-]+)\/?`)
 	var accounts []*mast.AdminAccount
@@ -86,18 +86,22 @@ func (c *Client) GetMappedTwitchLoginsThreaded(ch chan string) {
 	}
 
 	log.Println("Matching regex to Twitch URLs in profiles...")
+
+	mastodonMap := map[string]string{}
+
 	for _, acct := range accounts {
 		for _, field := range acct.Account.Fields {
 			if twitchMatch.MatchString(field.Value) {
 				values := twitchMatch.FindStringSubmatch(field.Value)
 				if len(values) == 2 {
-					ch <- strings.ToLower(values[1])
-					break
+					// Map: [twitch ID] mastodon ID
+					mastodonMap[strings.ToLower(values[1])] = string(acct.Account.Acct)
 				}
-
 			}
 		}
 	}
+	// Pass back entire map
+	ch <- mastodonMap
 	close(ch)
 	log.Println("Exiting function: GetMappedTwitchLoginsThreaded")
 }

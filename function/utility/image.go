@@ -3,6 +3,7 @@ package utility
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -14,13 +15,13 @@ type Image struct {
 	Url      string
 	MimeType string
 	AltText  string
-	Width    uint16
-	Height   uint16
+	Width    int
+	Height   int
 }
 
 // Creates a new Image by substituting width/height in a twitch url string
 // and fetching the bytes.
-func NewFromThumbnailURL(url string, width uint16, height uint16, altText string) (*Image, error) {
+func NewFromThumbnailURL(url string, width int, height int, altText string) (*Image, error) {
 	image := &Image{
 		Url:     strings.Replace(url, "{width}x{height}", fmt.Sprintf("%vx%v", width, height), 1),
 		Width:   width,
@@ -29,17 +30,19 @@ func NewFromThumbnailURL(url string, width uint16, height uint16, altText string
 	}
 
 	resp, err := http.Get(image.Url)
-	if err != nil || resp.StatusCode != 200 {
+	if err != nil || resp.StatusCode > 299 {
 		return &Image{}, err
 	}
 
 	image.MimeType = resp.Header.Get("Content-type")
-	image.Length, err = resp.Body.Read(image.Data)
+
+	image.Data, err = io.ReadAll(resp.Body)
 	if err != nil {
 		log.Printf("Could not retrieve stream preview image: %v\n", url)
+		resp.Body.Close()
 		return &Image{}, err
 	}
-
+	resp.Body.Close()
 	return image, nil
 }
 

@@ -38,7 +38,17 @@ func (c *Client) isReady(s *discordgo.Session, r *discordgo.Ready) {
 	c.ready = true
 }
 
-func (c *Client) Post(msg string, image utility.Image) (*utility.PostResponse, error) {
+func (c *Client) FormatMsg(userName string, category string, title string, url string) string {
+	return fmt.Sprintf(
+		"**%v** is now streaming **%v** on Twitch:\n%v\n\n%v",
+		userName,
+		category,
+		title,
+		url,
+	)
+}
+
+func (c *Client) Post(msg string, image *utility.Image) (*utility.PostResponse, error) {
 	var files []*discordgo.File
 
 	files = append(files, &discordgo.File{

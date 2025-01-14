@@ -13,6 +13,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	categoryTableName = "category_map"
+)
+
 type CategoryDatum struct {
 	Id             string   `json:"id,omitempty"`
 	TwitchCategory string   `json:"twitch_category"`
@@ -22,7 +26,7 @@ type CategoryDatum struct {
 
 func (n *NoSqlDb) GetCategory(id string) (*CategoryDatum, error) {
 	var err error
-	fullTableName := n.prefix + "category_map"
+	fullTableName := n.prefix + categoryTableName
 
 	keyMap := map[string]types.AttributeValue{}
 	keyMap["id"] = &types.AttributeValueMemberS{Value: id}
@@ -35,37 +39,49 @@ func (n *NoSqlDb) GetCategory(id string) (*CategoryDatum, error) {
 		return &CategoryDatum{}, err
 	}
 	output := CategoryDatum{}
+	attributevalue.UnmarshalMap(result.Item, &output)
 	rCat := map[string]any{}
 	attributevalue.UnmarshalMap(result.Item, &rCat)
-	output.Id = rCat["id"].(string)
-	output.TwitchCategory = rCat["twitch_category"].(string)
-	json.Unmarshal([]byte(rCat["mastodon_tags"].(string)), &output.MastodonTags)
-	json.Unmarshal([]byte(rCat["bluesky_tags"].(string)), &output.BlueskyTags)
+
+	// output.Id = rCat["id"].(string)
+	// output.TwitchCategory = rCat["twitch_category"].(string)
+
+	if rCat["mastodon_tags"] != nil {
+		json.Unmarshal([]byte(rCat["mastodon_tags"].(string)), &output.MastodonTags)
+	}
+	if rCat["bluesky_tags"] != nil {
+		json.Unmarshal([]byte(rCat["bluesky_tags"].(string)), &output.BlueskyTags)
+	}
 
 	return &output, nil
 }
 
 func (n *NoSqlDb) GetCategoryByName(name string) (*CategoryDatum, error) {
+	var results *[]map[string]any
 	var err error
-	fullTableName := n.prefix + "category_map"
 
-	keyMap := map[string]types.AttributeValue{}
-	keyMap["twitch_category"] = &types.AttributeValueMemberS{Value: name}
-
-	result, err := n.db.GetItem(n.ctx, &dynamodb.GetItemInput{
-		Key:       keyMap,
-		TableName: &fullTableName,
-	})
+	fullTableName := n.prefix + categoryTableName
+	statement := aws.String(
+		fmt.Sprintf("SELECT * FROM \"%v\" WHERE twitch_category='%v'", fullTableName, name),
+	)
+	results, err = n.QueryDB(statement)
 	if err != nil {
 		return &CategoryDatum{}, err
 	}
-	output := CategoryDatum{}
-	rCat := map[string]any{}
-	attributevalue.UnmarshalMap(result.Item, &rCat)
-	attributevalue.UnmarshalMap(result.Item, &output)
 
-	json.Unmarshal([]byte(rCat["mastodon_tags"].(string)), &output.MastodonTags)
-	json.Unmarshal([]byte(rCat["bluesky_tags"].(string)), &output.BlueskyTags)
+	output := CategoryDatum{}
+	// Manual marshalling to expand tags
+	for _, rCat := range *results {
+		output.Id = rCat["id"].(string)
+		output.TwitchCategory = rCat["twitch_category"].(string)
+
+		if rCat["mastodon_tags"] != nil {
+			json.Unmarshal([]byte(rCat["mastodon_tags"].(string)), &output.MastodonTags)
+		}
+		if rCat["bluesky_tags"] != nil {
+			json.Unmarshal([]byte(rCat["bluesky_tags"].(string)), &output.BlueskyTags)
+		}
+	}
 
 	return &output, nil
 }
@@ -75,7 +91,7 @@ func (n *NoSqlDb) GetCategoryMap() (*[]CategoryDatum, error) {
 	var err error
 	output := []CategoryDatum{}
 
-	fullTableName := n.prefix + "category_map"
+	fullTableName := n.prefix + categoryTableName
 	statement := aws.String(
 		fmt.Sprintf("SELECT * FROM \"%v\"", fullTableName),
 	)
@@ -90,8 +106,12 @@ func (n *NoSqlDb) GetCategoryMap() (*[]CategoryDatum, error) {
 		tempCat.Id = rCat["id"].(string)
 		tempCat.TwitchCategory = rCat["twitch_category"].(string)
 
-		json.Unmarshal([]byte(rCat["mastodon_tags"].(string)), &tempCat.MastodonTags)
-		json.Unmarshal([]byte(rCat["bluesky_tags"].(string)), &tempCat.BlueskyTags)
+		if rCat["mastodon_tags"] != nil {
+			json.Unmarshal([]byte(rCat["mastodon_tags"].(string)), &tempCat.MastodonTags)
+		}
+		if rCat["bluesky_tags"] != nil {
+			json.Unmarshal([]byte(rCat["bluesky_tags"].(string)), &tempCat.BlueskyTags)
+		}
 
 		output = append(output, tempCat)
 	}
@@ -102,7 +122,7 @@ func (n *NoSqlDb) GetCategoryMap() (*[]CategoryDatum, error) {
 func (n *NoSqlDb) PutCategories(categories *[]CategoryDatum) error {
 	var err error
 
-	fullTableName := n.prefix + "category_map"
+	fullTableName := n.prefix + categoryTableName
 
 	// Manually remap categories to flatten tags fields
 	mapCategories := []map[string]string{}
@@ -127,7 +147,6 @@ func (n *NoSqlDb) PutCategories(categories *[]CategoryDatum) error {
 		var writeReqs []types.WriteRequest
 
 		for _, cat := range subList {
-			log.Printf("Cat: %v\n", cat)
 			var item map[string]types.AttributeValue
 			item, err = attributevalue.MarshalMap(cat)
 			if err != nil {
@@ -158,7 +177,7 @@ func (n *NoSqlDb) PutCategories(categories *[]CategoryDatum) error {
 func (n *NoSqlDb) RemoveCategory(ids *[]string) error {
 	var err error
 
-	fullTableName := n.prefix + "category_map"
+	fullTableName := n.prefix + categoryTableName
 
 	for _, id := range *ids {
 		keyMap := map[string]types.AttributeValue{}

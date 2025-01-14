@@ -42,7 +42,7 @@ func NewClient() (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Post(msg string, thumb utility.Image) (*utility.PostResponse, error) {
+func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, error) {
 	var err error
 	now := time.Now()
 
