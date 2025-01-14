@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"shrampybot/config"
+	"shrampybot/connector/bluesky"
 	"shrampybot/connector/discord"
 	"shrampybot/connector/mastodon"
 	"shrampybot/connector/twitch"
@@ -229,18 +230,22 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 	postChan := make(chan utility.PostResponse)
 	go discordPostRoutine(stream, previewImage, postChan)
 	go mastodonPostRoutine(user, stream, category, previewImage, postChan)
+	go blueskyPostRoutine(stream, category, previewImage, postChan)
 
-	postRoutines := 2 // increase based on number of goroutines above
+	postRoutines := 3 // increase based on number of goroutines above
 	for i := 0; i < postRoutines; i++ {
 		resp := <-postChan
 		switch resp.Platform {
-		case "discord":
+
+		case discord.PlatformName:
 			stream.DiscordPostId = resp.Id
 			stream.DiscordPostUrl = resp.Url
-		case "bluesky":
+
+		case bluesky.PlatformName:
 			stream.BlueskyPostId = resp.Id
 			stream.BlueskyPostUrl = resp.Url
-		case "mastodon":
+
+		case mastodon.PlatformName:
 			stream.MastodonPostId = resp.Id
 			stream.MastodonPostUrl = resp.Url
 		}
@@ -287,6 +292,27 @@ func discordPostRoutine(stream *nosqldb.StreamHistoryDatum, image *utility.Image
 	), image)
 	if err != nil {
 		log.Printf("Error posting to discord: %v\n", err)
+	}
+
+	c <- *resp
+}
+
+func blueskyPostRoutine(stream *nosqldb.StreamHistoryDatum, category *nosqldb.CategoryDatum, image *utility.Image, c chan utility.PostResponse) {
+	bc, _ := bluesky.NewClient()
+	streamUrl := fmt.Sprintf("https://twitch.tv/%v", stream.UserLogin)
+
+	msg := fmt.Sprintf(
+		"%v is now streaming %v on Twitch: %v\n\n%v\n\n%v",
+		stream.UserName,
+		stream.GameName,
+		streamUrl,
+		stream.Title,
+		strings.Join(category.BlueskyTags, " "),
+	)
+
+	resp, err := bc.Post(msg, image)
+	if err != nil {
+		log.Printf("Error posting to bluesky: %v\n", err)
 	}
 
 	c <- *resp

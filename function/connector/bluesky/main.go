@@ -3,6 +3,7 @@ package bluesky
 import (
 	"context"
 	"log"
+	"regexp"
 	"time"
 
 	"shrampybot/config"
@@ -20,7 +21,8 @@ const (
 )
 
 type Client struct {
-	bc *blueSky.Client
+	bc  *blueSky.Client
+	ctx context.Context
 }
 
 func NewClient() (*Client, error) {
@@ -38,7 +40,8 @@ func NewClient() (*Client, error) {
 	}
 
 	return &Client{
-		bc: bc,
+		bc:  bc,
+		ctx: ctx,
 	}, nil
 }
 
@@ -51,10 +54,9 @@ func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, 
 	log.Println("Uploading image blob to Bluesky.")
 	// Pre-upload the image "blob"
 	err = c.bc.CustomCall(func(api *xrpc.Client) error {
-		ctx := context.Background()
-
-		resp, err := atproto.RepoUploadBlob(ctx, api, thumb.GetReader())
+		resp, err := atproto.RepoUploadBlob(c.ctx, api, thumb.GetReader())
 		if err != nil {
+			log.Printf("Issue uploading image blob: %v\n", err)
 			return err
 		}
 		imageBlob = resp.Blob
@@ -84,8 +86,8 @@ func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, 
 		Text:      msg,
 		CreatedAt: now.Format(time.RFC3339),
 		Embed:     &embed,
-		Facets:    []*bsky.RichtextFacet{},
-		Reply:     &bsky.FeedPost_ReplyRef{},
+		Facets:    compileFacets(msg),
+		// Reply: &bsky.FeedPost_ReplyRef{},
 	}
 
 	postResponse := &utility.PostResponse{}
@@ -93,8 +95,7 @@ func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, 
 	log.Println("Posting message to Bluesky.")
 	// Gotta use the CustomCall API to post since the library is minimal
 	err = c.bc.CustomCall(func(api *xrpc.Client) error {
-		ctx := context.Background()
-		record, err := atproto.RepoCreateRecord(ctx, api, &atproto.RepoCreateRecord_Input{
+		record, err := atproto.RepoCreateRecord(c.ctx, api, &atproto.RepoCreateRecord_Input{
 			Repo:       api.Auth.Did,
 			Collection: "app.bsky.feed.post",
 			Record: &util.LexiconTypeDecoder{
@@ -102,6 +103,7 @@ func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, 
 			},
 		})
 		if err != nil {
+			log.Printf("Error posting to Bluesky: %v\n", err)
 			return err
 		}
 
@@ -114,4 +116,53 @@ func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, 
 	})
 
 	return postResponse, err
+}
+
+func compileFacets(msg string) []*bsky.RichtextFacet {
+	facets := []*bsky.RichtextFacet{}
+
+	urlRegex := regexp.MustCompile(`https?://[A-Za-z0-9._\-/]+`)
+	hashTagRegex := regexp.MustCompile(`#([A-Za-z0-9]([^ \n]*[A-Za-z0-9]{1}))`)
+	// atUserRegex := regexp.MustCompile(`@([A-Za-z0-9\-.]+)`)
+
+	urlIndices := urlRegex.FindAllIndex([]byte(msg), 10)
+	urlMatches := urlRegex.FindAllStringSubmatch(msg, 10)
+	for i, indices := range urlIndices {
+		facet := bsky.RichtextFacet{
+			Index: &bsky.RichtextFacet_ByteSlice{
+				ByteStart: int64(indices[0]),
+				ByteEnd:   int64(indices[1]),
+			},
+			Features: []*bsky.RichtextFacet_Features_Elem{{
+				RichtextFacet_Link: &bsky.RichtextFacet_Link{
+					LexiconTypeID: "app.bsky.richtext.facet#link",
+					Uri:           urlMatches[i][0],
+				},
+			}},
+		}
+		facets = append(facets, &facet)
+	}
+
+	hashTagIndices := hashTagRegex.FindAllIndex([]byte(msg), 10)
+	hashTagMatches := hashTagRegex.FindAllStringSubmatch(msg, 10)
+	for i, indices := range hashTagIndices {
+		facet := bsky.RichtextFacet{
+			Index: &bsky.RichtextFacet_ByteSlice{
+				ByteStart: int64(indices[0]),
+				ByteEnd:   int64(indices[1]),
+			},
+			Features: []*bsky.RichtextFacet_Features_Elem{{
+				RichtextFacet_Tag: &bsky.RichtextFacet_Tag{
+					LexiconTypeID: "app.bsky.richtext.facet#tag",
+					Tag:           hashTagMatches[i][1],
+				},
+			}},
+		}
+		facets = append(facets, &facet)
+	}
+
+	// atUserIndices := atUserRegex.FindAllIndex([]byte(msg), 10)
+	// atUserMatches := atUserRegex.FindAllStringSubmatch(msg, 10)
+
+	return facets
 }
