@@ -63,8 +63,13 @@ func (c *Client) Post(msg string, image *utility.Image) (*utility.PostResponse, 
 	res, err := c.dc.ChannelMessageSendComplex(config.DiscordChannel, &discordgo.MessageSend{
 		Content: msg,
 		Files:   files,
-		Flags:   discordgo.MessageFlagsSuppressEmbeds | discordgo.MessageFlagsCrossPosted,
+		Flags:   discordgo.MessageFlagsSuppressEmbeds,
 	})
+	if err != nil {
+		return postResponse, err
+	}
+
+	_, err = c.dc.ChannelMessageCrosspost(config.DiscordChannel, res.ID)
 	if err != nil {
 		return postResponse, err
 	}
