@@ -12,6 +12,7 @@ virtualenv
 *.http
 spaces*
 tools/services_test/services_test*
+tools/shrampysubs/shrampysubs*
 *.zip
 bootstrap
 template.yml
