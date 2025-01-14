@@ -15,6 +15,7 @@ import (
 	"shrampybot/utility/nosqldb"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/litui/helix/v3"
 )
@@ -261,14 +262,36 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 }
 
 func streamOfflineCallback(sub *twitch.Subscription, eventMap *map[string]string) error {
-	log.Println("Entered streamOnlineCallback")
+	var err error
+	log.Println("Entered streamOfflineCallback")
 
 	// Unmarshal event data into helix struct
 	event := helix.EventSubStreamOfflineEvent{}
 	evBytes, _ := json.Marshal(eventMap)
 	json.Unmarshal(evBytes, &event)
 
-	// TODO: Log stream offline time in eventsub_notice_history
+	// Connect to DynamoDB
+	n, _ := nosqldb.NewClient()
+
+	// Fetch latest stream for user from db
+	stream, err := n.GetLatestStreamByUserId(event.BroadcasterUserID)
+	if err != nil {
+		log.Printf("Error getting recent history record for user %v: %v\n", event.BroadcasterUserLogin, err)
+		return err
+	}
+	if stream == nil || stream.ID == "" {
+		log.Printf("We don't have a record of a recent stream for %v.\n", event.BroadcasterUserLogin)
+		return nil
+	}
+
+	// Write end time on the stream entry and output back to the db record.
+	stream.EndedAt = time.Now()
+
+	err = n.PutStream(stream)
+	if err != nil {
+		log.Printf("Error writing to stream %v.\n", stream.ID)
+		return err
+	}
 
 	return nil
 }

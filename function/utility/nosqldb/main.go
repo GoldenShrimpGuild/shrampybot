@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsC "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
@@ -91,6 +92,55 @@ func (n *NoSqlDb) QueryDB(statement *string) (*[]map[string]any, error) {
 		output = append(output, pageOutput...)
 		nextToken = result.NextToken
 		moreData = nextToken != nil
+	}
+
+	return &output, nil
+}
+
+// Safe query using expression builder
+// Query requires the table be indexed correctly to prevent a full scan
+func (n *NoSqlDb) QueryDBWithExpr(tableName *string, expr *expression.Expression, indexName *string) (*[]map[string]any, error) {
+	var output []map[string]any
+
+	result, err := n.db.Query(n.ctx, &dynamodb.QueryInput{
+		TableName:                 tableName,
+		KeyConditionExpression:    expr.KeyCondition(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		IndexName:                 indexName,
+	})
+	if err != nil {
+		return &output, err
+	}
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &output)
+	if err != nil {
+		return &output, err
+	}
+
+	return &output, nil
+}
+
+// Safe scan using expression builder
+// Scan will always parse the entire table. Try to avoid.
+func (n *NoSqlDb) ScanDBWithExpr(tableName *string, expr *expression.Expression, indexName *string) (*[]map[string]any, error) {
+	var output []map[string]any
+
+	result, err := n.db.Scan(n.ctx, &dynamodb.ScanInput{
+		TableName:                 tableName,
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		FilterExpression:          expr.Filter(),
+		ProjectionExpression:      expr.Projection(),
+		IndexName:                 indexName,
+	})
+	if err != nil {
+		return &output, err
+	}
+	err = attributevalue.UnmarshalListOfMaps(result.Items, &output)
+	if err != nil {
+		return &output, err
 	}
 
 	return &output, nil
