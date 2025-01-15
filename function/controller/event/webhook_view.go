@@ -165,6 +165,23 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 	}
 	log.Printf("UserID %v matches user %v\n", userId, user.Login)
 
+	// Retrieve most recent logged stream for user (debounce check)
+	rStream, err := n.GetLatestStreamByUserId(userId)
+	if err != nil {
+		log.Printf("Couldn't retrieve latest stream: %v\n", err)
+		return err
+	}
+	if rStream != nil && rStream.ID != "" {
+		debounceInterval, _ := strconv.Atoi(config.StreamupDebounceInterval)
+		debounceTime := time.Now().Add(-(time.Duration(debounceInterval) * time.Second))
+
+		// Check if the last stream ended less than n seconds ago
+		if rStream.EndedAt.After(debounceTime) {
+			log.Printf("Last stream ended less than %v seconds ago. Stopping processing.\n", config.StreamupDebounceInterval)
+			return nil
+		}
+	}
+
 	// Contact Twitch for actual stream info
 	// (Done in this order because the twitch cli mock client sucks at setting event ID)
 	log.Printf("Fetching stream from twitch for user %v\n", user.Login)
