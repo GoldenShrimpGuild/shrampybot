@@ -3,8 +3,14 @@ package nosqldb
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"slices"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/google/uuid"
 )
 
 const (
@@ -38,4 +44,82 @@ func (n *NoSqlDb) GetFilterKeywords() (*[]FilterDatum, error) {
 	}
 
 	return &output, nil
+}
+
+func (n *NoSqlDb) PutFilterKeywords(filterKeywords *[]FilterDatum) error {
+	var err error
+	fullTableName := n.prefix + filterTableName
+
+	mapFilterKeywords := []map[string]any{}
+	for _, fk := range *filterKeywords {
+		tempMap := map[string]any{}
+
+		fkBytes, _ := json.Marshal(fk)
+		err := json.Unmarshal(fkBytes, &tempMap)
+		if err != nil {
+			log.Println("Error unmarshaling FilterKeyword data into temporary map")
+			return err
+		}
+
+		if fk.Id != "" {
+			tempMap["id"] = fk.Id
+		} else {
+			tempMap["id"] = uuid.NewString()
+		}
+
+		mapFilterKeywords = append(mapFilterKeywords, tempMap)
+	}
+
+	// Iterate through batch chunks, 25 items at a time.
+	for subList := range slices.Chunk(mapFilterKeywords, batchSize) {
+		var writeReqs []types.WriteRequest
+
+		for _, fk := range subList {
+			var item map[string]types.AttributeValue
+			item, err = attributevalue.MarshalMap(fk)
+			if err != nil {
+				log.Printf("Couldn't marshal filter keyword %v for batch writing because: %v\n", fk["keyword"], err)
+				continue
+			}
+
+			writeReqs = append(
+				writeReqs,
+				types.WriteRequest{
+					PutRequest: &types.PutRequest{
+						Item: item,
+					},
+				},
+			)
+		}
+
+		_, err = n.db.BatchWriteItem(n.ctx, &dynamodb.BatchWriteItemInput{
+			RequestItems: map[string][]types.WriteRequest{fullTableName: writeReqs},
+		})
+		if err != nil {
+			log.Printf("Couldn't batch-submit categories to %v because: %v\n", fullTableName, err)
+		}
+	}
+	return err
+}
+
+func (n *NoSqlDb) RemoveFilterKeyword(ids *[]string) error {
+	var err error
+
+	fullTableName := n.prefix + filterTableName
+
+	for _, id := range *ids {
+		keyMap := map[string]types.AttributeValue{}
+		keyMap["id"] = &types.AttributeValueMemberS{Value: id}
+
+		_, err = n.db.DeleteItem(n.ctx, &dynamodb.DeleteItemInput{
+			Key:       keyMap,
+			TableName: &fullTableName,
+		})
+		if err != nil {
+			log.Printf("Couldn't delete filter keyword item id %v\n", id)
+			continue
+		}
+	}
+
+	return nil
 }
