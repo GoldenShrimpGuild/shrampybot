@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"shrampybot/config"
 	"shrampybot/connector/bluesky"
 	"shrampybot/connector/discord"
@@ -209,6 +210,14 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		return nil
 	}
 
+	// Add/update stream information in table
+	// We do this ASAP so that we can debounce if duplicate notices come in
+	err = n.PutStream(stream)
+	if err != nil {
+		log.Println("Could not save stream information to table. Stopping processing.")
+		return err
+	}
+
 	category, err := n.GetCategoryByName(stream.GameName)
 	if err != nil {
 		log.Printf("Error looking for category %v in table: %v\n", stream.GameName, err)
@@ -219,14 +228,20 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		return nil
 	}
 
-	// TODO: Add description exclusion filter logic here
+	// Stop processing if keyword matches
+	// This is AFTER saving to the stream table because it prevents an update edge case from occurring
+	// when the stream goes offline
+	if checkKeywordFilter(tStream.Title, n) {
+		log.Printf("Found banned keyword in title \"%v\". Stopping processing.\n", tStream.Title)
+		return nil
+	}
 
-	// Add/update stream information in table
-	// We do this ASAP so that we can debounce if duplicate notices come in
-	err = n.PutStream(stream)
-	if err != nil {
-		log.Println("Could not save stream information to table. Stopping processing.")
-		return err
+	// Search through tags for keyword matches as well
+	for _, tag := range tStream.Tags {
+		if checkKeywordFilter(tag, n) {
+			log.Printf("Found banned keyword in tag \"%v\". Stopping processing.\n", tag)
+			return nil
+		}
 	}
 
 	// Fetch image data to use in each social media post
@@ -384,4 +399,43 @@ func mastodonPostRoutine(user *nosqldb.TwitchUserDatum, stream *nosqldb.StreamHi
 	}
 
 	c <- *resp
+}
+
+func checkKeywordFilter(title string, db *nosqldb.NoSqlDb) bool {
+	// Filter out streams based on banned keywords
+	lcaseTitle := strings.ToLower(title)
+
+	filterKeywords, err := db.GetFilterKeywords()
+	if err != nil {
+		log.Printf("Error trying to retrieve filter keywords: %v\n", err)
+	} else {
+		for _, filterItem := range *filterKeywords {
+
+			// Matching regexp item
+			if filterItem.IsRegex {
+				re, err := regexp.Compile(filterItem.Keyword)
+				if err != nil {
+					continue
+				}
+
+				if re.FindAllStringIndex(title, 1) != nil {
+					return true
+				}
+
+				// Matching keyword item
+			} else {
+				if filterItem.CaseInsensitive {
+					if strings.Contains(lcaseTitle, strings.ToLower(filterItem.Keyword)) {
+						return true
+					}
+				} else {
+					if strings.Contains(title, filterItem.Keyword) {
+						return true
+					}
+				}
+			}
+		}
+	}
+
+	return false
 }

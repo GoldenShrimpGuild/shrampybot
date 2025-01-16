@@ -23,6 +23,9 @@ func AdminController(route *router.Route) *router.Response {
 	case "collection":
 		c := NewCollectionView()
 		return c.CallMethod(route)
+	case "filter":
+		c := NewFilterView()
+		return c.CallMethod(route)
 	}
 
 	return resp
