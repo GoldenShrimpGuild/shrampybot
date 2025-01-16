@@ -394,12 +394,14 @@ func mastodonPostRoutine(user *nosqldb.TwitchUserDatum, stream *nosqldb.StreamHi
 
 func checkKeywordFilter(title string, db *nosqldb.NoSqlDb) bool {
 	// Filter out streams based on banned keywords
+	lcaseTitle := strings.ToLower(title)
+
 	filterKeywords, err := db.GetFilterKeywords()
 	if err != nil {
 		log.Printf("Error trying to retrieve filter keywords: %v\n", err)
 	} else {
 		for _, filterItem := range *filterKeywords {
-			if strings.Contains(title, filterItem.Keyword) {
+			if strings.Contains(lcaseTitle, strings.ToLower(filterItem.Keyword)) {
 				return true
 			}
 		}
