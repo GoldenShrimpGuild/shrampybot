@@ -12,8 +12,10 @@ const (
 )
 
 type FilterDatum struct {
-	Id      string `json:"id"`
-	Keyword string `json:"keyword"`
+	Id              string `json:"id"`
+	Keyword         string `json:"keyword"`
+	CaseInsensitive bool   `json:"case_insensitive"`
+	IsRegex         bool   `json:"is_regex"`
 }
 
 func (n *NoSqlDb) GetFilterKeywords() (*[]FilterDatum, error) {

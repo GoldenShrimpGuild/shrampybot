@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"shrampybot/config"
 	"shrampybot/connector/bluesky"
 	"shrampybot/connector/discord"
@@ -235,6 +236,14 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		return nil
 	}
 
+	// Search through tags for keyword matches as well
+	for _, tag := range tStream.Tags {
+		if checkKeywordFilter(tag, n) {
+			log.Printf("Found banned keyword in tag \"%v\". Stopping processing.\n", tag)
+			return nil
+		}
+	}
+
 	// Fetch image data to use in each social media post
 	previewImage := &utility.Image{}
 	altText := fmt.Sprintf("Preview of %v's stream on Twitch.", user.DisplayName)
@@ -401,8 +410,29 @@ func checkKeywordFilter(title string, db *nosqldb.NoSqlDb) bool {
 		log.Printf("Error trying to retrieve filter keywords: %v\n", err)
 	} else {
 		for _, filterItem := range *filterKeywords {
-			if strings.Contains(lcaseTitle, strings.ToLower(filterItem.Keyword)) {
-				return true
+
+			// Matching regexp item
+			if filterItem.IsRegex {
+				re, err := regexp.Compile(filterItem.Keyword)
+				if err != nil {
+					continue
+				}
+
+				if re.FindAllStringIndex(title, 1) != nil {
+					return true
+				}
+
+				// Matching keyword item
+			} else {
+				if filterItem.CaseInsensitive {
+					if strings.Contains(lcaseTitle, strings.ToLower(filterItem.Keyword)) {
+						return true
+					}
+				} else {
+					if strings.Contains(title, filterItem.Keyword) {
+						return true
+					}
+				}
 			}
 		}
 	}
