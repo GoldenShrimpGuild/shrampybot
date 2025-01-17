@@ -1,5 +1,0 @@
-twitch_client_id: YOURCLIENTIDHERE
-twitch_secret_key: YOURSECRETKEYHERE
-twitch_event_secret: YOUREVENTSECRETHERE
-shrampybot_url: https://YOURLAMBDAFUNCTIONIDHERE.lambda-url.ca-central-1.on.aws/
-shrampybot_admin_token: YOURADMINTOKENHERE
