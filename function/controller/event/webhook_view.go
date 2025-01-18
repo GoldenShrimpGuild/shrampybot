@@ -344,7 +344,7 @@ func messageIsDuplicate(messageId string) bool {
 }
 
 func discordPostRoutine(stream *nosqldb.StreamHistoryDatum, image *utility.Image, c chan utility.PostResponse) {
-	dc, _ := discord.NewClient()
+	dc, _ := discord.NewBotClient()
 	streamUrl := fmt.Sprintf("https://twitch.tv/%v", stream.UserLogin)
 	resp, err := dc.Post(dc.FormatMsg(
 		stream.UserName,

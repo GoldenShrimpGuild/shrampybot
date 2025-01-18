@@ -30,4 +30,6 @@ var (
 	DiscordToken   = os.Getenv("DISCORD_TOKEN")
 	DiscordGuild   = os.Getenv("DISCORD_GUILD")
 	DiscordChannel = os.Getenv("DISCORD_CHANNEL")
+
+	DBCryptKey = os.Getenv("DB_CRYPT_KEY")
 )

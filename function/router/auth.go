@@ -5,19 +5,18 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
+	"fmt"
 	"log"
 	"shrampybot/config"
+	"shrampybot/utility/nosqldb"
 	"strings"
+	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
-/*
-For now I'm just going to somewhat replicate the original
-shrampybot behaviour, but this should be enhanced for security
-down the road.  - Aria
-*/
-
-func (e *Event) CheckAuthorization() bool {
-	log.Println("Checking Bearer Authorization...")
+func (e *Event) CheckAuthorizationStatic() bool {
+	log.Println("Checking Bearer Authorization (Static)...")
 	if e.Headers.Authorization == "" {
 		return false
 	}
@@ -32,6 +31,69 @@ func (e *Event) CheckAuthorization() bool {
 	}
 
 	log.Println("Bearer Auth Succeeded.")
+	return true
+}
+
+func (e *Event) CheckAuthorizationJWT() bool {
+	var oAuth *nosqldb.OAuthDatum
+	var claims jwt.MapClaims
+
+	log.Println("Checking Bearer Authorization (JWT)...")
+	if e.Headers.Authorization == "" {
+		return false
+	}
+
+	bearer := strings.Split(e.Headers.Authorization, " ")
+	if len(bearer) < 2 || strings.ToLower(bearer[0]) != "bearer" {
+		return false
+	}
+
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		return false
+	}
+
+	token, err := jwt.Parse(bearer[1], func(token *jwt.Token) (interface{}, error) {
+		_, res := token.Method.(*jwt.SigningMethodHMAC)
+		if !res {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// Use kid claim as key to retrieve the OAuth secret from DynamoDB
+		claims, res := token.Claims.(jwt.MapClaims)
+		if !res {
+			return nil, fmt.Errorf("Could not retrieve token claims.")
+		}
+		oAuth, err = n.GetOAuth(claims["kid"].(string))
+		if err != nil {
+			return nil, err
+		}
+
+		return oAuth.SecretKey, nil
+	})
+	if err != nil {
+		log.Println("Signature check for JWT failed.")
+		return false
+	}
+	if !token.Valid {
+		return false
+	}
+
+	claims, res := token.Claims.(jwt.MapClaims)
+	if !res {
+		return false
+	}
+	if claims["iss"] != config.BotName {
+		return false
+	}
+	if claims["sub"] != "access" {
+		return false
+	}
+	if time.Unix(claims["exp"].(int64), 0).Before(time.Now()) {
+		return false
+	}
+
 	return true
 }
 

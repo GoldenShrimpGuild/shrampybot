@@ -19,6 +19,7 @@ type Headers struct {
 	XForwardedPort                    string `json:"x-forwarded-port"`
 	XForwardedProto                   string `json:"x-forwarded-proto"`
 	XRequestId                        string `json:"x-request-id"`
+	Referer                           string `json:"referer"`
 	TwitchEventsubMessageId           string `json:"twitch-eventsub-message-id"`
 	TwitchEventsubMessageRetry        string `json:"twitch-eventsub-message-retry"`
 	TwitchEventsubMessageTimestamp    string `json:"twitch-eventsub-message-timestamp"`

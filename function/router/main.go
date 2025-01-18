@@ -118,12 +118,17 @@ func (r *Router) Route() *Response {
 			if r.routes[i].RequireAuth {
 				log.Printf("Authentication required for endpoint %v\n", r.routes[i].match_path)
 
-				if !r.Event.CheckAuthorization() {
-					log.Println("Authentication failed!")
-					return &Response{
-						Body:       r.ErrorBody(14),
-						StatusCode: "401",
-						Headers:    &DefaultResponseHeaders,
+				if !r.Event.CheckAuthorizationJWT() {
+					log.Println("JWT authentication failed, trying static...")
+
+					if !r.Event.CheckAuthorizationStatic() {
+						log.Println("Static authentication failed!")
+
+						return &Response{
+							Body:       r.ErrorBody(14),
+							StatusCode: "401",
+							Headers:    &DefaultResponseHeaders,
+						}
 					}
 				}
 

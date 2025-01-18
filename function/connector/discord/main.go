@@ -13,19 +13,19 @@ const (
 	PlatformName = "discord"
 )
 
-type Client struct {
+type BotClient struct {
 	dc    *discordgo.Session
 	ready bool
 }
 
-func NewClient() (*Client, error) {
+func NewBotClient() (*BotClient, error) {
 	dc, err := discordgo.New("Bot " + config.DiscordToken)
 	if err != nil {
 		return nil, err
 	}
 	defer dc.Close()
 
-	client := Client{
+	client := BotClient{
 		dc:    dc,
 		ready: false,
 	}
@@ -34,11 +34,11 @@ func NewClient() (*Client, error) {
 	return &client, nil
 }
 
-func (c *Client) isReady(s *discordgo.Session, r *discordgo.Ready) {
+func (c *BotClient) isReady(s *discordgo.Session, r *discordgo.Ready) {
 	c.ready = true
 }
 
-func (c *Client) FormatMsg(userName string, category string, title string, url string) string {
+func (c *BotClient) FormatMsg(userName string, category string, title string, url string) string {
 	return fmt.Sprintf(
 		"**%v** is now streaming **%v** on Twitch:\n%v\n\n%v",
 		userName,
@@ -48,7 +48,7 @@ func (c *Client) FormatMsg(userName string, category string, title string, url s
 	)
 }
 
-func (c *Client) Post(msg string, image *utility.Image) (*utility.PostResponse, error) {
+func (c *BotClient) Post(msg string, image *utility.Image) (*utility.PostResponse, error) {
 	var files []*discordgo.File
 
 	files = append(files, &discordgo.File{

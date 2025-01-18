@@ -17,7 +17,7 @@ const (
 )
 
 type StreamHistoryDatum struct {
-	helix.Stream
+	helix.Stream    `tstype:",extends,required"`
 	DiscordPostId   string    `json:"discord_post_id,omitempty"`
 	DiscordPostUrl  string    `json:"discord_post_url,omitempty"`
 	MastodonPostId  string    `json:"mastodon_post_id,omitempty"`
