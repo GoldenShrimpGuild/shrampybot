@@ -26,9 +26,14 @@ func AuthController(route *router.Route) *router.Response {
 	switch route.Path[1] {
 	case "refresh":
 		// Request a refreshed set of tokens
+		c := NewRefreshView()
+		return c.CallMethod(route)
 	case "validate":
 		// Validate discord oAuth and produce new access & refresh tokens
 		c := NewValidateView()
+		return c.CallMethod(route)
+	case "self":
+		c := NewSelfView()
 		return c.CallMethod(route)
 	}
 
@@ -75,20 +80,20 @@ func validateRefreshToken(refreshToken string) *jwt.Token {
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		_, res := token.Method.(*jwt.SigningMethodHMAC)
 		if !res {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		// Use kid claim as key to retrieve the OAuth secret from DynamoDB
 		claims, res := token.Claims.(jwt.MapClaims)
 		if !res {
-			return nil, fmt.Errorf("Could not retrieve token claims.")
+			return nil, fmt.Errorf("could not retrieve token claims")
 		}
 		oAuth, err = n.GetOAuth(claims["kid"].(string))
 		if err != nil {
 			return nil, err
 		}
 
-		return oAuth.SecretKey, nil
+		return []byte(oAuth.SecretKey), nil
 	})
 	if err != nil {
 		log.Println("Signature check for JWT failed.")
@@ -108,7 +113,7 @@ func validateRefreshToken(refreshToken string) *jwt.Token {
 	if claims["sub"] != "refresh" {
 		return nil
 	}
-	if time.Unix(claims["exp"].(int64), 0).Before(time.Now()) {
+	if time.Unix(int64(claims["exp"].(float64)), 0).Before(time.Now()) {
 		return nil
 	}
 

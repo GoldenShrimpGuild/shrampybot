@@ -57,23 +57,24 @@ func (e *Event) CheckAuthorizationJWT() bool {
 	token, err := jwt.Parse(bearer[1], func(token *jwt.Token) (interface{}, error) {
 		_, res := token.Method.(*jwt.SigningMethodHMAC)
 		if !res {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		// Use kid claim as key to retrieve the OAuth secret from DynamoDB
 		claims, res := token.Claims.(jwt.MapClaims)
 		if !res {
-			return nil, fmt.Errorf("Could not retrieve token claims.")
+			return nil, fmt.Errorf("could not retrieve token claims")
 		}
 		oAuth, err = n.GetOAuth(claims["kid"].(string))
 		if err != nil {
+			log.Printf("Could not retrieve OAuth detail for kid %v\n", claims["kid"])
 			return nil, err
 		}
 
-		return oAuth.SecretKey, nil
+		return []byte(oAuth.SecretKey), nil
 	})
 	if err != nil {
-		log.Println("Signature check for JWT failed.")
+		log.Printf("Signature check for JWT failed: %v\n", err)
 		return false
 	}
 	if !token.Valid {
@@ -90,7 +91,7 @@ func (e *Event) CheckAuthorizationJWT() bool {
 	if claims["sub"] != "access" {
 		return false
 	}
-	if time.Unix(claims["exp"].(int64), 0).Before(time.Now()) {
+	if time.Unix(int64(claims["exp"].(float64)), 0).Before(time.Now()) {
 		return false
 	}
 

@@ -64,8 +64,8 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 	}
 
 	token := validateRefreshToken(reqBody.RefreshToken)
-	if !token.Valid {
-		response.StatusCode = "403"
+	if token == nil || !token.Valid {
+		response.StatusCode = "401"
 		return response
 	}
 	claims, res := token.Claims.(jwt.MapClaims)

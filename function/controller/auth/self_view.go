@@ -44,20 +44,22 @@ func (v *SelfView) CallMethod(route *router.Route) *router.Response {
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
 }
 
-func (v *RefreshView) Get(route *router.Route) *router.Response {
+func (v *SelfView) Get(route *router.Route) *router.Response {
 	log.Println("Entered route: Auth.Self.Get")
 	var err error
 	response := &router.Response{}
 	response.Headers = &router.DefaultResponseHeaders
 
 	if !route.Router.Event.CheckAuthorizationJWT() {
-		response.StatusCode = "403"
+		log.Println("Failed JWT Auth check.")
+		response.StatusCode = "401"
 		return response
 	}
 	// Get token object, defined when CheckingAuthorizationJWT above
 	token := route.Router.Event.Token
 	claims, res := token.Claims.(jwt.MapClaims)
 	if !res {
+		log.Println("Failed to map JWT claims.")
 		response.StatusCode = "500"
 		return response
 	}
@@ -79,7 +81,7 @@ func (v *RefreshView) Get(route *router.Route) *router.Response {
 	d, err := discord.NewOAuthClient(dOAuth.AccessToken)
 	if err != nil {
 		log.Println("Could not create new Discord oauth client.")
-		response.StatusCode = "403"
+		response.StatusCode = "500"
 		return response
 	}
 
@@ -99,17 +101,20 @@ func (v *RefreshView) Get(route *router.Route) *router.Response {
 	body := SelfResponseBody{}
 	selfBytes, err := json.Marshal(self)
 	if err != nil {
+		log.Println("Failed to marshal self JSON")
 		response.StatusCode = "500"
 		return response
 	}
 	err = json.Unmarshal(selfBytes, &body)
 	if err != nil {
+		log.Println("Failed to unmarshal self JSON")
 		response.StatusCode = "500"
 		return response
 	}
 
 	member, err := dc.GetGuildMember(self.ID)
 	if err != nil {
+		log.Println("Failed to get Discord guild membership")
 		response.StatusCode = "500"
 		return response
 	}
