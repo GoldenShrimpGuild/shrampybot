@@ -40,11 +40,13 @@
     import type { AxiosInstance } from 'axios'
     import { useAuthStore } from '../../stores/auth'
     import { useUserStore } from '../../stores/user'
+    import { useGlobalStore } from '../../stores/global-store'
     import { isString } from 'lodash'
     import axios from 'axios'
   
     const AuthStore = useAuthStore()
     const UserStore = useUserStore()
+    const GlobalStore = useGlobalStore()
   
     // const axios = inject('axios') as AxiosInstance
   
@@ -79,18 +81,21 @@
         encountered_error('This is not a useful page.')
         return false
       }
-      let path = '/api/services/twitch?action=verify_user'
+      let path = '/auth/validate'
   
       await axios
         .post(path, {
           code: code,
+        },
+        {
+          baseURL: GlobalStore.getApiBaseUrl()
         })
         .then(async (response) => {
           oauth_progress.value = 100
           progress_title.value = t('auth.title_oauth_synchronizing')
           AuthStore.$state.accessToken = response.data.access
           AuthStore.$state.refreshToken = response.data.refresh
-          router.push({ name: 'dashboard' })
+          router.push({ name: 'streams' })
         })
         .catch((reason) => {
           encountered_error(reason)
@@ -108,7 +113,7 @@
       }
   
       show_error_modal.value = false
-      router.replace({ name: 'login' })
+      // router.replace({ name: 'login' })
     }
   
     // const jwt_authenticate = async (user: string, password: string) => {

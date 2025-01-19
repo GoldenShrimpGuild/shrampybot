@@ -24,15 +24,12 @@ export const useAuthStore = defineStore('auth', {
     async testAndRefreshToken() {
       const GlobalStore = useGlobalStore()
 
-      const path = '/auth/verify'
+      const path = '/auth/self'
       const axiosConfig = this.getAxiosConfig()
 
       try {
-        const bearerResponse = await axios.post(
+        const bearerResponse = await axios.get(
           path,
-          {
-            token: this.$state.accessToken,
-          },
           axiosConfig,
         )
         console.log(bearerResponse)

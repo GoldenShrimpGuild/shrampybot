@@ -9,7 +9,7 @@
 
     <nav class="flex items-center">
       <VaBreadcrumbs>
-        <VaBreadcrumbsItem label="Home" :to="{ name: 'dashboard' }" />
+        <VaBreadcrumbsItem label="Home" :to="{ name: 'streams' }" />
         <VaBreadcrumbsItem
           v-for="item in items"
           :key="item.label"
@@ -29,7 +29,7 @@ import { useColors } from 'vuestic-ui'
 import VaIconMenuCollapsed from '../icons/VaIconMenuCollapsed.vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
-import NavigationRoutes from '../sidebar/NavigationRoutes'
+import * as NavigationRoutes from '../../router'
 
 const { isSidebarMinimized } = storeToRefs(useGlobalStore())
 
@@ -59,7 +59,7 @@ const findRouteName = (name: string) => {
     return ''
   }
 
-  return traverse(NavigationRoutes.routes)
+  return traverse(NavigationRoutes.navRoutes)
 }
 
 const items = computed(() => {

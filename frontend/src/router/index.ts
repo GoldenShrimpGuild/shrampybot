@@ -11,12 +11,12 @@ import RouteViewComponent from '../layouts/RouterBypass.vue'
 export interface INavigationRoute {
   name?: string
   path: string
-  meta?: {
-    nav?: {
+  meta: {
+    nav: {
       icon?: string
-      displayName?: string
-      disabled?: boolean
-      hidden?: boolean
+      displayName: string
+      disabled: boolean
+      hidden: boolean
     }
     perms?: {
       requiresAuth?: boolean
@@ -31,14 +31,14 @@ export interface INavigationRoute {
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '/:pathMatch(.*)*',
-    redirect: { name: 'dashboard' },
+    path: '/',
+    redirect: { name: 'streams' },
     meta: {
       nav: {
-        icon: 'vuestic-iconset-dashboard',
-        displayName: 'menu.activeStreams',
-        disabled: true,
-        hidden: true,
+        icon: 'home',
+        displayName: 'menu.home',
+        disabled: false,
+        hidden: false,
       },
       perms: {
         requiresAuth: false,
@@ -46,32 +46,14 @@ const routes: Array<RouteRecordRaw> = [
         requiresAdmin: false,
       },
     },
-  },
-  {
-    name: 'gsg',
-    path: '/gsg',
-    meta: {
-      nav: {
-        icon: 'vuestic-iconset-dashboard',
-        displayName: 'menu.dashboard',
-        disabled: false,
-        hidden: false,
-      },
-      perms: {
-        requiresAuth: true,
-        requiresStaff: false,
-        requiresAdmin: false,
-      },
-    },
     component: AppLayout,
-    redirect: { name: 'dashboard' },
     children: [
       {
-        name: 'dashboard',
-        path: 'dashboard',
+        name: 'streams',
+        path: '/streams',
         meta: {
           nav: {
-            icon: 'vuestic-iconset-dashboard',
+            icon: '',
             displayName: 'menu.activeStreams',
             disabled: false,
             hidden: false,
@@ -82,8 +64,26 @@ const routes: Array<RouteRecordRaw> = [
             requiresAdmin: false,
           },
         },
-        component: () => import('../pages/admin/dashboard/Dashboard.vue'),
+        component: () => import('../pages/public/ActiveStreams.vue'),
       },
+      // {
+      //   name: 'dashboard',
+      //   path: '/dashboard',
+      //   meta: {
+      //     nav: {
+      //       icon: '',
+      //       displayName: 'menu.dashboard',
+      //       disabled: false,
+      //       hidden: false,
+      //     },
+      //     perms: {
+      //       requiresAuth: true,
+      //       requiresStaff: false,
+      //       requiresAdmin: false,
+      //     },
+      //   },
+      //   component: () => import('../pages/admin/dashboard/Dashboard.vue'),
+      // },
     ],
   },
   {
@@ -91,7 +91,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       nav: {
         icon: 'vuestic-iconset-dashboard',
-        displayName: 'menu.activeStreams',
+        displayName: 'menu.auth',
         disabled: true,
         hidden: true,
       },
@@ -109,7 +109,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           nav: {
             icon: 'vuestic-iconset-dashboard',
-            displayName: 'menu.activeStreams',
+            displayName: 'menu.login',
             disabled: true,
             hidden: false,
           },
@@ -178,6 +178,8 @@ const routes: Array<RouteRecordRaw> = [
   },
 ]
 
+export const navRoutes = routes as INavigationRoute[]
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   // scrollBehavior(to, from, savedPosition) {
@@ -198,7 +200,7 @@ router.beforeEach(async (to: any, from: any, next) => {
   const AuthStore = useAuthStore()
   const UserStore = useUserStore()
 
-  if (AuthStore.accessToken !== '' && UserStore.self.is_authenticated === true) {
+  if (AuthStore.accessToken !== '') {
     next()
     return
   }
@@ -224,7 +226,7 @@ export const validateAndFetchRoute = async (route_path: any) => {
   const UserStore = useUserStore()
   const GlobalStore = useGlobalStore()
 
-  const path = '/streamers/self'
+  const path = '/auth/self'
 
   const axiosConfig = AuthStore.getAxiosConfig()
 
@@ -252,10 +254,6 @@ export const validateAndFetchRoute = async (route_path: any) => {
         AuthStore.$state.accessToken = refreshResponse.data.access
         route_path = await validateAndFetchRoute(route_path)
       } catch (refreshError: any) {
-        UserStore.$state.self = {
-          username: '',
-          is_authenticated: false,
-        }
         AuthStore.$state.refreshToken = ''
         AuthStore.$state.accessToken = ''
         route_path = {
@@ -264,10 +262,6 @@ export const validateAndFetchRoute = async (route_path: any) => {
         } as RouteRecordRaw
       }
     } else if (error.response.status == 500) {
-      UserStore.$state.self = {
-        username: '',
-        is_authenticated: false,
-      }
       AuthStore.$state.refreshToken = ''
       AuthStore.$state.accessToken = ''
       route_path = {

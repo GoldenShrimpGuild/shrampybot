@@ -80,7 +80,7 @@ const submit = () => {
       message: "You've successfully signed up",
       color: 'success',
     })
-    push({ name: 'dashboard' })
+    push({ name: 'streams' })
   }
 }
 

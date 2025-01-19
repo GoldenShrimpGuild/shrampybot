@@ -1,5 +1,5 @@
 <template>
-  <VaLayout v-if="breakpoint.lgUp" class="h-screen bg-[var(--va-background-secondary)]">
+  <VaLayout class="h-screen bg-[var(--va-background-secondary)]">
     <template #left>
       <RouterLink
         class="bg-primary h-full flex items-center justify-center"
@@ -17,7 +17,7 @@
     </template>
   </VaLayout>
 
-  <VaLayout v-else class="h-screen bg-[var(--va-background-secondary)]">
+  <!-- <VaLayout v-else class="h-screen bg-[var(--va-background-secondary)]">
     <template #content>
       <div class="p-4">
         <main class="h-full flex flex-row items-center justify-start mx-auto max-w-[420px]">
@@ -28,7 +28,7 @@
         </main>
       </div>
     </template>
-  </VaLayout>
+  </VaLayout> -->
 </template>
 
 <script lang="ts" setup>

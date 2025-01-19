@@ -1,15 +1,13 @@
 <template>
-  <VaLayout
-    :top="{ fixed: true, order: 2 }"
+  <VaLayout :top="{ fixed: true, order: 2 }"
     :left="{ fixed: true, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
-    @leftOverlayClick="isSidebarMinimized = true"
-  >
+    @leftOverlayClick="isSidebarMinimized = true">
     <template #top>
       <AppNavbar :is-mobile="isMobile" />
     </template>
 
     <template #left>
-      <AppSidebar :minimized="isSidebarMinimized" :animated="!isMobile" :mobile="isMobile" />
+      <Sidebar :minimized="isSidebarMinimized" :animated="!isMobile" :mobile="isMobile" />
     </template>
 
     <template #content>
@@ -29,17 +27,20 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
+import { onBeforeUnmount, onMounted, ref, computed, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 import { onBeforeRouteUpdate } from 'vue-router'
 import { useBreakpoint } from 'vuestic-ui'
+import { useTimer } from 'vue-timer-hook'
 
+import { useAuthStore } from '../stores/auth'
 import { useGlobalStore } from '../stores/global-store'
 
 import AppLayoutNavigation from '../components/app-layout-navigation/AppLayoutNavigation.vue'
 import AppNavbar from '../components/navbar/AppNavbar.vue'
-import AppSidebar from '../components/sidebar/AppSidebar.vue'
+import Sidebar from '../components/sidebar/Sidebar.vue'
 
+const AuthStore = useAuthStore()
 const GlobalStore = useGlobalStore()
 
 const breakpoints = useBreakpoint()
@@ -59,7 +60,23 @@ const onResize = () => {
   sidebarWidth.value = isTablet.value ? '100%' : '16rem'
 }
 
+const time = Date.now()
+const timer = useTimer(time)
+const heartbeatTimerRestart = async () => {
+  // Monitor the current state of the websocket connection and refresh if it needs it
+  await AuthStore.testAndRefreshToken()
+
+  const time = Date.now()
+  timer.restart(time + 60000)
+}
+
 onMounted(() => {
+  watchEffect(async () => {
+    if (timer.isExpired.value) {
+      await heartbeatTimerRestart()
+    }
+  })
+
   window.addEventListener('resize', onResize)
   onResize()
 })

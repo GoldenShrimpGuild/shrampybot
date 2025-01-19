@@ -9,15 +9,15 @@ import axiosPlugin from './plugins/axios'
 import stores from './stores'
 import router from './router'
 import vuesticGlobalConfig from './services/vuestic-ui/global-config'
-import { createPinia } from 'pinia'
+// import { createPinia } from 'pinia'
 
-const pinia = createPinia()
+// const pinia = createPinia()
 const app = createApp(App)
 
 app.use(stores)
 app.use(router)
 app.use(i18n)
-app.use(pinia)
+// app.use(pinia)
 app.use(axiosPlugin, {
   baseUrl: '/api',
 })

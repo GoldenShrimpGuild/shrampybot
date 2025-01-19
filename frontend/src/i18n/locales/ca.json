@@ -40,7 +40,9 @@
   },
   "menu": {
     "auth": "Auth",
+    "activeStreams": "Active Streams",
     "buttons": "Buttons",
+    "home": "Home",
     "timelines": "Timelines",
     "dashboard": "Dashboard",
     "billing": "Billing",
