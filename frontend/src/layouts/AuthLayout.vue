@@ -7,7 +7,7 @@
         to="/"
         aria-label="Visit homepage"
       >
-        <VuesticLogo :height="28" start="#FFF" />
+        <GSGShrimp />
       </RouterLink>
     </template>
     <template #content>
@@ -22,9 +22,7 @@
       <div class="p-4">
         <main class="h-full flex flex-row items-center justify-start mx-auto max-w-[420px]">
           <div class="flex flex-col items-start">
-            <RouterLink class="py-4" to="/" aria-label="Visit homepage">
-              <VuesticLogo class="mb-2" start="#0E41C9" />
-            </RouterLink>
+            <RouterLink class="py-4" to="/" aria-label="Visit homepage"> </RouterLink>
             <RouterView />
           </div>
         </main>
@@ -35,7 +33,9 @@
 
 <script lang="ts" setup>
 import { useBreakpoint } from 'vuestic-ui'
-import VuesticLogo from '../components/VuesticLogo.vue'
+import VuesticLogo from '../components/logos/VuesticLogo.vue'
+import GSGShrimp from '../components/logos/GSGShrimp.vue'
+import ShrampybotLogo from '../components/logos/ShrampybotLogo.vue'
 
 const breakpoint = useBreakpoint()
 </script>

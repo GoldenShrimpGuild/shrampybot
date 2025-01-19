@@ -1,18 +1,19 @@
 <template>
-  <VaForm ref="form" @submit.prevent="submit">
-    <h1 class="font-semibold text-4xl mb-4">Log in</h1>
+  <VaForm ref="form">
+    <!-- <h1 class="font-semibold text-4xl mb-4"></h1> -->
     <p class="text-base mb-4 leading-5">
-      New to Vuestic?
-      <RouterLink :to="{ name: 'signup' }" class="font-semibold text-primary">Sign up</RouterLink>
+      <ShrampybotLogo />
+      <!-- New to Vuestic? -->
+      <!-- <RouterLink :to="{ name: 'signup' }" class="font-semibold text-primary">Sign up</RouterLink> -->
     </p>
-    <VaInput
+    <!-- <VaInput
       v-model="formData.email"
       :rules="[validators.required, validators.email]"
       class="mb-4"
       label="Email"
       type="email"
-    />
-    <VaValue v-slot="isPasswordVisible" :default-value="false">
+    /> -->
+    <!-- <VaValue v-slot="isPasswordVisible" :default-value="false">
       <VaInput
         v-model="formData.password"
         :rules="[validators.required]"
@@ -29,41 +30,64 @@
           />
         </template>
       </VaInput>
-    </VaValue>
+    </VaValue> -->
 
-    <div class="auth-layout__options flex flex-col sm:flex-row items-start sm:items-center justify-between">
+    <!-- <div class="auth-layout__options flex flex-col sm:flex-row items-start sm:items-center justify-between">
       <VaCheckbox v-model="formData.keepLoggedIn" class="mb-2 sm:mb-0" label="Keep me signed in on this device" />
       <RouterLink :to="{ name: 'recover-password' }" class="mt-2 sm:mt-0 sm:ml-1 font-semibold text-primary">
         Forgot password?
       </RouterLink>
-    </div>
+    </div> -->
 
     <div class="flex justify-center mt-4">
-      <VaButton class="w-full" @click="submit"> Login</VaButton>
+      <VaButton class="w-full" color="discordBlurple" 
+        :href="GlobalStore.getDiscordOAuthUrl()"
+      >
+        <VaIcon :component="VaIconDiscord" />
+        <span style="padding-left: 0.3rem">{{ t('auth.discordSignIn') }}</span>
+      </VaButton>
+    </div>
+    <div class="auth-layout__options flex flex-col sm:flex-row items-start sm:items-center justify-between" style="margin-top: 1rem;">
+      <VaCollapse
+        class="min-w-96"
+        :header="t('auth.developerOptions')"
+      >
+        <VaRadio
+          v-model="environment"
+          :options="[t('devTestEnvironment'), t('prodEnvironment')]"
+        />
+      </VaCollapse>
     </div>
   </VaForm>
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useForm, useToast } from 'vuestic-ui'
 import { validators } from '../../services/utils'
+import { useI18n } from 'vue-i18n'
+import ShrampybotLogo from '../../components/logos/ShrampybotLogo.vue'
+import VaIconDiscord from '../../components/icons/VaIconDiscord.vue'
+import { useAuthStore } from '../../stores/auth'
+import { useUserStore } from '../../stores/user'
+import { useGlobalStore } from '../../stores/global-store'
 
-const { validate } = useForm('form')
+const GlobalStore = useGlobalStore()
+
+const { t } = useI18n()
+
 const { push } = useRouter()
 const { init } = useToast()
 
-const formData = reactive({
-  email: '',
-  password: '',
-  keepLoggedIn: false,
+const environment = ref(GlobalStore.isDevEnvironment ? t('devTestEnvironment') : t('prodEnvironment'))
+
+watch(environment, async (newVal) => {
+  if (newVal === t('devTestEnvironment')) {
+    GlobalStore.$state.isDevEnvironment = true
+  } else {
+    GlobalStore.$state.isDevEnvironment = false
+  }
 })
 
-const submit = () => {
-  if (validate()) {
-    init({ message: "You've successfully logged in", color: 'success' })
-    push({ name: 'dashboard' })
-  }
-}
 </script>

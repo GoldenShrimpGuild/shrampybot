@@ -12,7 +12,9 @@
           />
         </Transition>
         <RouterLink to="/" aria-label="Visit home page">
-          <VuesticLogo />
+          <div>
+            <ShrampybotLogo />
+          </div>
         </RouterLink>
       </div>
     </template>
@@ -26,7 +28,7 @@
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
 import AppNavbarActions from './components/AppNavbarActions.vue'
-import VuesticLogo from '../VuesticLogo.vue'
+import ShrampybotLogo from '../logos/ShrampybotLogo.vue'
 
 defineProps({
   isMobile: { type: Boolean, default: false },

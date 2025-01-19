@@ -10,7 +10,9 @@
     "sign_up": "Sign Up",
     "keep_logged_in": "Keep me logged in",
     "termsOfUse": "Terms of Use.",
-    "reset_password": "Reset password"
+    "reset_password": "Reset password",
+    "discordSignIn": "Sign in with Discord",
+    "developerOptions": "Developer options"
   },
   "404": {
     "title": "This page’s gone fishing.",
@@ -241,5 +243,7 @@
     "inputField": "Input field",
     "fileTypeIncorrect": "File type is incorrect",
     "select": "Select an option"
-  }
+  },
+  "devTestEnvironment": "Dev/Test Environment",
+  "prodEnvironment": "Production Environment"
 }
