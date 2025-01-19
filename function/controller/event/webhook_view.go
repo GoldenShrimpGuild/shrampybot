@@ -202,7 +202,14 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		log.Println("No stream found in our history, loading from Twitch.")
 		// Convert to our stream history type
 		tsBytes, _ := json.Marshal(tStream)
-		json.Unmarshal(tsBytes, &stream)
+		err = json.Unmarshal(tsBytes, &stream)
+		if err != nil {
+			log.Println("Couldn't unmarshal data from twitch stream into stream.")
+		}
+
+		// Explicitly assign tStream ID to stream as it seems to be getting missed sometimes.
+		stream.ID = tStream.ID
+		log.Printf("Show the stream object after populating from Twitch data: %v\n", stream)
 	} else {
 		// If stream is already in our history then we've received a notice
 		// for it already. Stop processing.
