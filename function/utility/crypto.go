@@ -66,9 +66,9 @@ func DecryptSecret(ciphertext string, iv string) (string, error) {
 		return "", err
 	}
 
-	plaintext := make([]byte, len(cipherbytes)-aes.BlockSize)
+	plaintext := make([]byte, len(cipherbytes))
 	dec := cipher.NewCBCDecrypter(block, ivbytes)
-	dec.CryptBlocks(plaintext, cipherbytes[aes.BlockSize:])
+	dec.CryptBlocks(plaintext, cipherbytes)
 	plaintext = unpad(plaintext)
 
 	return string(plaintext), nil

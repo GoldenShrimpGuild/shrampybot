@@ -38,6 +38,10 @@ func (c *BotClient) isReady(s *discordgo.Session, r *discordgo.Ready) {
 	c.ready = true
 }
 
+func (c *BotClient) GetGuildMember(id string) (*discordgo.Member, error) {
+	return c.dc.GuildMember(config.DiscordGuild, id)
+}
+
 func (c *BotClient) FormatMsg(userName string, category string, title string, url string) string {
 	return fmt.Sprintf(
 		"**%v** is now streaming **%v** on Twitch:\n%v\n\n%v",

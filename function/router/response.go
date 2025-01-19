@@ -6,7 +6,11 @@ import (
 
 type ResponseHeaders struct {
 	// SetCookie   string `json:"Set-Cookie"`
-	ContentType string `json:"Content-Type"`
+	ContentType                   string `json:"Content-Type"`
+	AccessControlAllowOrigin      string `json:"Access-Control-Allow-Origin"`
+	AccessControlAllowMethods     string `json:"Access-Control-Allow-Methods"`
+	AccessControlAllowCredentials string `json:"Access-Control-Allow-Credentials"`
+	AccessControlAllowHeaders     string `json:"Access-Control-Allow-Headers"`
 }
 
 // type ResponseStatus struct {

@@ -14,7 +14,11 @@ import (
 
 var (
 	DefaultResponseHeaders = ResponseHeaders{
-		ContentType: "application/json",
+		AccessControlAllowOrigin:      "*",
+		AccessControlAllowMethods:     "*",
+		AccessControlAllowCredentials: "true",
+		AccessControlAllowHeaders:     "Content-type, Authorization",
+		ContentType:                   "application/json",
 	}
 
 	ErrorMap = map[int]string{
@@ -105,13 +109,13 @@ func (r *Router) Route() *Response {
 		"environment": lambdacontext.FunctionName,
 	}
 
-	if r.Event.Headers.ContentType != "application/json" {
-		return &Response{
-			Body:       r.ErrorBody(1),
-			StatusCode: "400",
-			Headers:    &DefaultResponseHeaders,
-		}
-	}
+	// if r.Event.Headers.ContentType != "application/json" {
+	// 	return &Response{
+	// 		Body:       r.ErrorBody(1),
+	// 		StatusCode: "400",
+	// 		Headers:    &DefaultResponseHeaders,
+	// 	}
+	// }
 
 	for i := 0; i < len(r.routes); i++ {
 		if r.routes[i].Path[0] == r.routes[i].match_path {

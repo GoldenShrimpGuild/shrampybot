@@ -1,5 +1,7 @@
 package router
 
+import "github.com/golang-jwt/jwt/v5"
+
 // const (
 // 	EVENTSUB_MESSAGE_ID        = "twitch-eventsub-message-id"
 // 	EVENTSUB_MESSAGE_TIMESTAMP = "twitch-eventsub-message-timestamp"
@@ -55,4 +57,5 @@ type Event struct {
 	Name            string          `json:"name"`
 	Body            string          `json:"body"`
 	RawQueryString  string          `json:"rawQueryString"`
+	Token           *jwt.Token      `json:"-"`
 }

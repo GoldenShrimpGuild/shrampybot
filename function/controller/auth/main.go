@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"fmt"
+	"log"
 	"shrampybot/config"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
@@ -43,7 +45,7 @@ func generateAccessToken(oauth *nosqldb.OAuthDatum) (string, error) {
 		// Access token lasts for 10 minutes
 		"exp": time.Now().Add(10 * time.Minute).Unix(),
 	})
-	return accessTokenRaw.SignedString(oauth.SecretKey)
+	return accessTokenRaw.SignedString([]byte(oauth.SecretKey))
 }
 
 func generateRefreshToken(oauth *nosqldb.OAuthDatum) (string, error) {
@@ -57,5 +59,58 @@ func generateRefreshToken(oauth *nosqldb.OAuthDatum) (string, error) {
 		"exp": time.Now().Add(336 * time.Hour),
 		"jti": oauth.RefreshUID,
 	})
-	return refreshTokenRaw.SignedString(oauth.SecretKey)
+	return refreshTokenRaw.SignedString([]byte(oauth.SecretKey))
+}
+
+func validateRefreshToken(refreshToken string) *jwt.Token {
+	var oAuth *nosqldb.OAuthDatum
+	var claims jwt.MapClaims
+
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		return nil
+	}
+
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		_, res := token.Method.(*jwt.SigningMethodHMAC)
+		if !res {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// Use kid claim as key to retrieve the OAuth secret from DynamoDB
+		claims, res := token.Claims.(jwt.MapClaims)
+		if !res {
+			return nil, fmt.Errorf("Could not retrieve token claims.")
+		}
+		oAuth, err = n.GetOAuth(claims["kid"].(string))
+		if err != nil {
+			return nil, err
+		}
+
+		return oAuth.SecretKey, nil
+	})
+	if err != nil {
+		log.Println("Signature check for JWT failed.")
+		return nil
+	}
+	if !token.Valid {
+		return nil
+	}
+
+	claims, res := token.Claims.(jwt.MapClaims)
+	if !res {
+		return nil
+	}
+	if claims["iss"] != config.BotName {
+		return nil
+	}
+	if claims["sub"] != "refresh" {
+		return nil
+	}
+	if time.Unix(claims["exp"].(int64), 0).Before(time.Now()) {
+		return nil
+	}
+
+	return token
 }

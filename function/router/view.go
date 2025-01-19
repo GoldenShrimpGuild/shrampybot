@@ -22,3 +22,8 @@ func (v *View) Patch(route *Route) *Response {
 func (v *View) Delete(route *Route) *Response {
 	return NewResponse(GenericBodyDataFlat{}, "500")
 }
+
+func (v *View) Options(route *Route) *Response {
+	// Default to returning a 200 for options as a CORS test.
+	return NewResponse(GenericBodyDataFlat{}, "200")
+}

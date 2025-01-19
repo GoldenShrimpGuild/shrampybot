@@ -27,9 +27,11 @@ var (
 	BlueskyLogin    = os.Getenv("BLUESKY_LOGIN")
 	BlueskyPassword = os.Getenv("BLUESKY_PASSWORD")
 
-	DiscordToken   = os.Getenv("DISCORD_TOKEN")
-	DiscordGuild   = os.Getenv("DISCORD_GUILD")
-	DiscordChannel = os.Getenv("DISCORD_CHANNEL")
+	DiscordToken        = os.Getenv("DISCORD_TOKEN")
+	DiscordClientId     = os.Getenv("DISCORD_CLIENT_ID")
+	DiscordClientSecret = os.Getenv("DISCORD_CLIENT_SECRET")
+	DiscordGuild        = os.Getenv("DISCORD_GUILD")
+	DiscordChannel      = os.Getenv("DISCORD_CHANNEL")
 
 	DBCryptKey = os.Getenv("DB_CRYPT_KEY")
 )

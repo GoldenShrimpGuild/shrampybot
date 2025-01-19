@@ -17,14 +17,14 @@ type DiscordOAuthDatum struct {
 	Id       string `json:"id"`
 	Username string `json:"username,omitempty"`
 	// Raw, unencrypted value of access token; never gets stored
-	AccessToken string
+	AccessToken string `json:"-"`
 	// Encrypted value of access token
 	AccessTokenIV  string `json:"access_token_iv,omitempty"`
 	AccessTokenEnc string `json:"access_token_enc,omitempty"`
 	TokenType      string `json:"token_type,omitempty"`
 	ExpiresIn      int    `json:"expires_in,omitempty"`
 	// Raw, unencrypted value of refresh token; never gets stored
-	RefreshToken string
+	RefreshToken string `json:"-"`
 	// Encrypted value of refresh token
 	RefreshTokenIV  string `json:"refresh_token_iv,omitempty"`
 	RefreshTokenEnc string `json:"refresh_token_enc,omitempty"`

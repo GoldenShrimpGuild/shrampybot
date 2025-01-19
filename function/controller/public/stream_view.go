@@ -8,12 +8,12 @@ import (
 )
 
 type StreamView struct {
-	router.View
+	router.View `tstype:",extends,required"`
 }
 
 type StreamBody struct {
-	router.GenericBodyDataFlat
-	Data *[]nosqldb.StreamHistoryDatum `json:"data"`
+	router.GenericBodyDataFlat `tstype:",extends,required"`
+	Data                       *[]nosqldb.StreamHistoryDatum `json:"data" tstype:"nosqldb.StreamHistoryDatum[]"`
 }
 
 func NewStreamView() *StreamView {
@@ -33,6 +33,8 @@ func (v *StreamView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
+	case "OPTIONS":
+		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")

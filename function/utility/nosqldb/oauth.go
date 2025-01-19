@@ -16,7 +16,7 @@ const (
 type OAuthDatum struct {
 	Id string `json:"id"`
 	// Raw, unencrypted value of secret key; never gets stored
-	SecretKey    string
+	SecretKey    string `json:"-"`
 	SecretKeyIV  string `json:"secret_key_iv,omitempty"`
 	SecretKeyEnc string `json:"secret_key_enc,omitempty"`
 	RefreshUID   string `json:"refresh_uid,omitempty"`
@@ -43,8 +43,10 @@ func (n *NoSqlDb) GetOAuth(id string) (*OAuthDatum, error) {
 	oBytes, _ := json.Marshal(rOAuth)
 	json.Unmarshal(oBytes, &output)
 
-	// Decrypt secret values
-	output.SecretKey, _ = utility.DecryptSecret(output.SecretKeyEnc, output.SecretKeyIV)
+	if output.Id != "" && output.SecretKeyEnc != "" && output.SecretKeyIV != "" {
+		// Decrypt secret values
+		output.SecretKey, _ = utility.DecryptSecret(output.SecretKeyEnc, output.SecretKeyIV)
+	}
 
 	return &output, nil
 }

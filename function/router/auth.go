@@ -94,6 +94,7 @@ func (e *Event) CheckAuthorizationJWT() bool {
 		return false
 	}
 
+	e.Token = token
 	return true
 }
 

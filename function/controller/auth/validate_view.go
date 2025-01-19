@@ -8,21 +8,26 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"shrampybot/config"
 	"shrampybot/connector/discord"
 	"shrampybot/router"
 	"shrampybot/utility"
 	"shrampybot/utility/nosqldb"
 	"strings"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/google/uuid"
 )
 
 type ValidateView struct {
-	router.View
+	router.View `tstype:",extends,required"`
 }
 
-type ValidateBody struct {
+type ValidateRequestBody struct {
+	Code      string `json:"code"`
+	GrantType string `json:"grant_type"`
+}
+
+type ValidateResponseBody struct {
 	UserID       string `json:"user_id"`
 	Username     string `json:"username"`
 	AccessToken  string `json:"access"`
@@ -46,6 +51,8 @@ func (v *ValidateView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
+	case "OPTIONS":
+		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
@@ -63,12 +70,15 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	code := route.Query.Get("code")
-	if code == "" {
-		log.Println("No code provided in post query.")
-		response.StatusCode = "403"
-		return response
-	}
+	// code := route.Query.Get("code")
+	// if code == "" {
+	// 	log.Println("No code provided in post query.")
+	// 	response.StatusCode = "403"
+	// 	return response
+	// }
+	reqBody := ValidateRequestBody{}
+	json.Unmarshal([]byte(route.Body), &reqBody)
+
 	referer := route.Router.Event.Headers.Referer
 	if referer == "" {
 		log.Println("No referer header.")
@@ -76,7 +86,7 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	dOAuth, err := discordTokenExchange(code, referer)
+	dOAuth, err := discordTokenExchange(reqBody.Code, referer)
 	if err != nil {
 		log.Println("Could not complete Discord token exchange.")
 		response.StatusCode = "403"
@@ -105,7 +115,7 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 	dOAuth.Username = user.Username
 	err = n.PutDiscordOAuth(dOAuth)
 	if err != nil {
-		log.Println("Could not store Discord OAuth record for %v to db.", dOAuth.Username)
+		log.Printf("Could not store Discord OAuth record for %v to db.\n", dOAuth.Username)
 		response.StatusCode = "500"
 		return response
 	}
@@ -120,21 +130,20 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 	sbOAuth.RefreshUID = uuid.NewString()
 	err = n.PutOAuth(sbOAuth)
 	if err != nil {
-		log.Println("Could not generate ")
+		log.Println("Could not store OAuth record.")
 		response.StatusCode = "500"
 		return response
 	}
 
-	// TODO: gen access token
 	accessToken, err := generateAccessToken(sbOAuth)
 	if err != nil {
-		log.Println("Could not generate access token.")
+		log.Printf("Could not generate access token: %v\n", err)
 		response.StatusCode = "500"
 		return response
 	}
 	refreshToken, err := generateRefreshToken(sbOAuth)
 	if err != nil {
-		log.Println("Could not generate refresh token.")
+		log.Printf("Could not generate refresh token: %v\n", err)
 		response.StatusCode = "500"
 		return response
 	}
@@ -142,9 +151,8 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 	// We already stored the RefreshUID but we won't be storing any detail
 	// about the tokens themselves. Shit's going to be handled dynamically yo.
 
-	body := ValidateBody{
-		UserID:       dOAuth.Id,
-		Username:     dOAuth.Username,
+	body := ValidateResponseBody{
+		UserID:       sbOAuth.Id,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
@@ -156,32 +164,46 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 	return response
 }
 
-func discordTokenExchange(code string, redirect_url string) (*nosqldb.DiscordOAuthDatum, error) {
+func discordTokenExchange(code string, redirect_base string) (*nosqldb.DiscordOAuthDatum, error) {
 	oAuthResponse := nosqldb.DiscordOAuthDatum{}
 
+	log.Printf("Code: %v\n", code)
+
 	query_data := url.Values{}
-	query_data.Set("code", code)
 	query_data.Set("grant_type", "authorization_code")
-	query_data.Set("redirect_uri", redirect_url)
+	query_data.Set("code", code)
+	query_data.Set("redirect_uri", fmt.Sprintf("%vshrampybot/auth/validate_oauth", redirect_base))
+	query_data.Set("client_id", config.DiscordClientId)
+	query_data.Set("client_secret", config.DiscordClientSecret)
 
 	client := &http.Client{}
-	request, err := http.NewRequest("POST", fmt.Sprintf("%voauth2/token", discordgo.EndpointAPI), strings.NewReader(query_data.Encode()))
+	request, err := http.NewRequest(http.MethodPost, "https://discord.com/api/v10/oauth2/token", strings.NewReader(query_data.Encode()))
 	if err != nil {
 		log.Println("Could not create new Discord token request.")
 		return &oAuthResponse, err
 	}
 	request.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	// request.SetBasicAuth(url.QueryEscape(string(client_id)), url.QueryEscape(client_secret))
 	resp, err := client.Do(request)
 	if err != nil {
 		log.Printf("Unsuccessful request to Discord for new token: %v\n", err)
 		return &oAuthResponse, err
 	}
 	if resp.StatusCode > 399 {
-		log.Println("Error when requesting new Discord token.")
-		return &oAuthResponse, nil
+		log.Printf("Error when requesting new Discord token: %v\n", resp.StatusCode)
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		log.Printf("New discord token response body: %v\n", string(bodyBytes))
+		return &oAuthResponse, fmt.Errorf("error when requesting new discord token")
 	}
+	responseMap := map[string]any{}
 	respBody, _ := io.ReadAll(resp.Body)
-	json.Unmarshal(respBody, &oAuthResponse)
+	json.Unmarshal(respBody, &responseMap)
+
+	oAuthResponse.TokenType = responseMap["token_type"].(string)
+	oAuthResponse.AccessToken = responseMap["access_token"].(string)
+	oAuthResponse.RefreshToken = responseMap["refresh_token"].(string)
+	oAuthResponse.ExpiresIn, _ = responseMap["expires_in"].(int)
+	oAuthResponse.Scope = responseMap["scope"].(string)
 
 	return &oAuthResponse, nil
 }

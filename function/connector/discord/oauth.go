@@ -30,3 +30,7 @@ func (c *OAuthClient) isReady(s *discordgo.Session, r *discordgo.Ready) {
 func (c *OAuthClient) GetSelf() (*discordgo.User, error) {
 	return c.dc.User("@me")
 }
+
+func (c *OAuthClient) GetConnections() ([]*discordgo.UserConnection, error) {
+	return c.dc.UserConnections()
+}
