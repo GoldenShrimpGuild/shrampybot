@@ -15,7 +15,7 @@ import (
 var (
 	allowedOrigins = []string{
 		"http://localhost:5173",
-		"https://shrampybot.github.io",
+		"https://goldenshrimpguild.github.io",
 	}
 
 	DefaultResponseHeaders = ResponseHeaders{

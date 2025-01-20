@@ -4,6 +4,10 @@ on:
   push:
     tags: [ 'v*.*.*' ]
 
+concurrency:
+  group: "backend"
+  cancel-in-progress: false
+
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
