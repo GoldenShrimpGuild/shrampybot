@@ -13,12 +13,18 @@ import (
 )
 
 var (
+	allowedOrigins = []string{
+		"http://localhost:5173",
+		"https://shrampybot.github.io",
+	}
+
 	DefaultResponseHeaders = ResponseHeaders{
-		AccessControlAllowOrigin:      "*",
-		AccessControlAllowMethods:     "*",
+		// AccessControlAllowOrigin:      "http://localhost:5173",
+		AccessControlAllowMethods:     "GET, HEAD, POST, PUT, DELETE",
 		AccessControlAllowCredentials: "true",
-		AccessControlAllowHeaders:     "Content-type, Authorization",
+		AccessControlAllowHeaders:     "Content-Type, Authorization",
 		ContentType:                   "application/json",
+		Vary:                          "Origin",
 	}
 
 	ErrorMap = map[int]string{
@@ -107,6 +113,11 @@ func (r *Router) Route() *Response {
 	log.Println("Started routing...")
 	context := map[string]string{
 		"environment": lambdacontext.FunctionName,
+	}
+
+	// Dynamically set allowed CORS origin in default headers based on allow list
+	if slices.Contains(allowedOrigins, r.Event.Headers.Origin) {
+		DefaultResponseHeaders.AccessControlAllowOrigin = r.Event.Headers.Origin
 	}
 
 	// if r.Event.Headers.ContentType != "application/json" {

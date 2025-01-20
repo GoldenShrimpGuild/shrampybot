@@ -61,7 +61,7 @@ func generateRefreshToken(oauth *nosqldb.OAuthDatum) (string, error) {
 		"kid": oauth.Id,
 		"iat": time.Now().Unix(),
 		// Refresh token lasts for 2 weeks
-		"exp": time.Now().Add(336 * time.Hour),
+		"exp": time.Now().Add(336 * time.Hour).Unix(),
 		"jti": oauth.RefreshUID,
 	})
 	return refreshTokenRaw.SignedString([]byte(oauth.SecretKey))

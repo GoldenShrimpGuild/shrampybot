@@ -15,12 +15,14 @@ type Headers struct {
 	Authorization                     string `json:"authorization"`
 	ContentLength                     string `json:"content-length"`
 	ContentType                       string `json:"content-type"`
+	Cookie                            string `json:"cookie,omitempty"`
 	Host                              string `json:"host"`
 	UserAgent                         string `json:"user-agent"`
 	XForwardedFor                     string `json:"x-forwarded-for"`
 	XForwardedPort                    string `json:"x-forwarded-port"`
 	XForwardedProto                   string `json:"x-forwarded-proto"`
 	XRequestId                        string `json:"x-request-id"`
+	Origin                            string `json:"origin"`
 	Referer                           string `json:"referer"`
 	TwitchEventsubMessageId           string `json:"twitch-eventsub-message-id"`
 	TwitchEventsubMessageRetry        string `json:"twitch-eventsub-message-retry"`

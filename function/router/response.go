@@ -5,12 +5,13 @@ import (
 )
 
 type ResponseHeaders struct {
-	// SetCookie   string `json:"Set-Cookie"`
+	SetCookie                     string `json:"Set-Cookie,omitempty"`
 	ContentType                   string `json:"Content-Type"`
 	AccessControlAllowOrigin      string `json:"Access-Control-Allow-Origin"`
 	AccessControlAllowMethods     string `json:"Access-Control-Allow-Methods"`
 	AccessControlAllowCredentials string `json:"Access-Control-Allow-Credentials"`
 	AccessControlAllowHeaders     string `json:"Access-Control-Allow-Headers"`
+	Vary                          string `json:"Vary"`
 }
 
 // type ResponseStatus struct {

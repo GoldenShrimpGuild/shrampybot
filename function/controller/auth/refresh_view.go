@@ -3,8 +3,10 @@ package auth
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -14,14 +16,13 @@ type RefreshView struct {
 	router.View `tstype:",extends,required"`
 }
 
-type RefreshRequestBody struct {
-	RefreshToken string `json:"refresh"`
-}
+// type RefreshRequestBody struct {
+// 	RefreshToken string `json:"refresh"`
+// }
 
 type RefreshResponseBody struct {
-	UserID       string `json:"user_id"`
-	AccessToken  string `json:"access"`
-	RefreshToken string `json:"refresh"`
+	UserID      string `json:"user_id"`
+	AccessToken string `json:"access"`
 }
 
 func NewRefreshView() *RefreshView {
@@ -53,8 +54,23 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 	response := &router.Response{}
 	response.Headers = &router.DefaultResponseHeaders
 
-	reqBody := RefreshRequestBody{}
-	json.Unmarshal([]byte(route.Body), &reqBody)
+	cookies, err := http.ParseCookie(route.Router.Event.Headers.Cookie)
+	if err != nil {
+		log.Printf("Issue parsing cookies from header: %v\n", err)
+		response.StatusCode = "500"
+		return response
+	}
+	var oldRefreshToken string
+	for _, c := range cookies {
+		if c.Name == "RefreshToken" {
+			oldRefreshToken = c.Value
+		}
+	}
+	if oldRefreshToken == "" {
+		log.Println("No RefreshToken provided.")
+		response.StatusCode = "500"
+		return response
+	}
 
 	// Instantiate DynamoDB
 	n, err := nosqldb.NewClient()
@@ -63,7 +79,7 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	token := validateRefreshToken(reqBody.RefreshToken)
+	token := validateRefreshToken(oldRefreshToken)
 	if token == nil || !token.Valid {
 		response.StatusCode = "401"
 		return response
@@ -104,11 +120,23 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 	// about the tokens themselves. Shit's going to be handled dynamically yo.
 
 	body := RefreshResponseBody{
-		UserID:       oAuth.Id,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		UserID:      oAuth.Id,
+		AccessToken: accessToken,
 	}
 	bodyBytes, _ := json.Marshal(body)
+
+	// RefreshToken in httponly cookie
+	cookie := http.Cookie{
+		Name:        "RefreshToken",
+		Value:       refreshToken,
+		HttpOnly:    true,
+		SameSite:    http.SameSiteNoneMode,
+		Secure:      true,
+		Partitioned: true,
+		Expires:     time.Now().Add(336 * time.Hour),
+	}
+	response.Headers.SetCookie = cookie.String()
+
 	response.Body = string(bodyBytes)
 
 	response.StatusCode = "200"

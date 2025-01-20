@@ -14,6 +14,7 @@ import (
 	"shrampybot/utility"
 	"shrampybot/utility/nosqldb"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -28,10 +29,11 @@ type ValidateRequestBody struct {
 }
 
 type ValidateResponseBody struct {
-	UserID       string `json:"user_id"`
-	Username     string `json:"username"`
-	AccessToken  string `json:"access"`
-	RefreshToken string `json:"refresh"`
+	UserID      string `json:"user_id"`
+	Username    string `json:"username"`
+	AccessToken string `json:"access"`
+	// Commenting out RefreshToken as it will be handled with httponly cookies
+	// RefreshToken string `json:"refresh"`
 }
 
 func NewValidateView() *ValidateView {
@@ -152,13 +154,24 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 	// about the tokens themselves. Shit's going to be handled dynamically yo.
 
 	body := ValidateResponseBody{
-		UserID:       sbOAuth.Id,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		UserID:      sbOAuth.Id,
+		AccessToken: accessToken,
 	}
 	bodyBytes, _ := json.Marshal(body)
-	response.Body = string(bodyBytes)
 
+	// RefreshToken in httponly cookie
+	cookie := http.Cookie{
+		Name:        "RefreshToken",
+		Value:       refreshToken,
+		HttpOnly:    true,
+		SameSite:    http.SameSiteNoneMode,
+		Secure:      true,
+		Partitioned: true,
+		Expires:     time.Now().Add(336 * time.Hour),
+	}
+	response.Headers.SetCookie = cookie.String()
+
+	response.Body = string(bodyBytes)
 	response.StatusCode = "200"
 	log.Println("Exiting route: Auth.Validate.Post")
 	return response
