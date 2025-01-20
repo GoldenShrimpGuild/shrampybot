@@ -45,8 +45,10 @@
         <span style="padding-left: 0.3rem">{{ t('auth.discordSignIn') }}</span>
       </VaButton>
     </div>
-    <div class="auth-layout__options flex flex-col sm:flex-row items-start sm:items-center justify-between"
-      style="margin-top: 1rem;">
+    <div
+      class="auth-layout__options flex flex-col sm:flex-row items-start sm:items-center justify-between"
+      style="margin-top: 1rem"
+    >
       <VaCollapse class="min-w-96" :header="t('auth.developerOptions')">
         <VaRadio v-model="environment" :options="[t('devTestEnvironment'), t('prodEnvironment')]" />
       </VaCollapse>
@@ -101,5 +103,4 @@ watch(environment, async (newVal) => {
     GlobalStore.$state.isDevEnvironment = false
   }
 })
-
 </script>

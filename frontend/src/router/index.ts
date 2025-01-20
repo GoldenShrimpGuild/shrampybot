@@ -250,7 +250,7 @@ export const validateAndFetchRoute = async (route_path: any) => {
           refresh_path,
           {},
           {
-            baseURL:  GlobalStore.getApiBaseUrl(),
+            baseURL: GlobalStore.getApiBaseUrl(),
             withCredentials: true,
             headers: {
               'Content-Type': 'application/json',

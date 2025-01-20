@@ -15,26 +15,20 @@ const time = Date.now()
 const timer = useTimer(time + 60)
 
 onBeforeMount(() => {
-  axios.get(
-    '/public/stream',
-    AuthStore.getAxiosConfig()
-  ).then(
-    response => {
-      streams.value = response.data.data
-      // console.log(response.data.data[0])
-      // console.log(resizeThumbnailUrl(response.data.data[0]["thumbnail_url"], 1280, 720))
-    }
-  )
+  axios.get('/public/stream', AuthStore.getAxiosConfig()).then((response) => {
+    streams.value = response.data.data
+    // console.log(response.data.data[0])
+    // console.log(resizeThumbnailUrl(response.data.data[0]["thumbnail_url"], 1280, 720))
+  })
 })
 
 const resizeThumbnailUrl = (url: string, width: number, height: number) => {
-  return url.replace("{width}", width.toString()).replace("{height}", height.toString())
+  return url.replace('{width}', width.toString()).replace('{height}', height.toString())
 }
-
 </script>
 
 <template>
-  <h1 class="page-title font-bold">{{ t("menu.activeStreams") }}</h1>
+  <h1 class="page-title font-bold">{{ t('menu.activeStreams') }}</h1>
   <div class="row">
     <div class="flex flex-wrap gap-5">
       <div v-for="stream in streams" class="item">
@@ -42,7 +36,7 @@ const resizeThumbnailUrl = (url: string, width: number, height: number) => {
           :streamer="stream['user_name']"
           :title="stream['title']"
           :image_url="resizeThumbnailUrl(stream['thumbnail_url'], 1280, 720)"
-          ></StreamCard>
+        ></StreamCard>
       </div>
     </div>
   </div>

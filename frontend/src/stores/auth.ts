@@ -5,7 +5,7 @@ import { useGlobalStore } from './global-store'
 
 export const useAuthStore = defineStore('auth', {
   state: () => {
-    const accessToken = ""
+    const accessToken = ''
     const userServicesStatus = useLocalStorage('uss', {} as Record<string, any>)
     return { accessToken, userServicesStatus }
   },
@@ -40,7 +40,6 @@ export const useAuthStore = defineStore('auth', {
         )
         this.$state.accessToken = refreshResponse.data.access
         return refreshResponse
-        
       } catch (refreshError: any) {
         this.$state.accessToken = ''
       }
@@ -52,10 +51,7 @@ export const useAuthStore = defineStore('auth', {
       const axiosConfig = this.getAxiosConfig()
 
       try {
-        const bearerResponse = await axios.get(
-          path,
-          axiosConfig,
-        )
+        const bearerResponse = await axios.get(path, axiosConfig)
         console.log(bearerResponse)
       } catch (error: any) {
         if (error.response.status == 401) {

@@ -26,12 +26,12 @@ export const useGlobalStore = defineStore('global', {
     },
     getDiscordOAuthUrl() {
       // TODO: Assemble this more sensibly
-      var client_id
-      var discord_seg1 = 'https://discord.com/oauth2/authorize?client_id='
-      var discord_seg2 = '&response_type=code&redirect_uri='
-      var discord_seg3 = '&scope=identify+connections'
+      let client_id
+      const discord_seg1 = 'https://discord.com/oauth2/authorize?client_id='
+      const discord_seg2 = '&response_type=code&redirect_uri='
+      const discord_seg3 = '&scope=identify+connections'
 
-      var this_url = encodeURIComponent(window.location.origin + '/shrampybot/auth/validate_oauth')
+      const this_url = encodeURIComponent(window.location.origin + '/shrampybot/auth/validate_oauth')
       if (this.isDevEnvironment) {
         client_id = '1043225123395739780'
       } else {
@@ -39,6 +39,6 @@ export const useGlobalStore = defineStore('global', {
       }
 
       return discord_seg1 + client_id + discord_seg2 + this_url + discord_seg3
-    }
+    },
   },
 })

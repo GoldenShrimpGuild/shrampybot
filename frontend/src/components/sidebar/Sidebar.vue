@@ -4,25 +4,44 @@
       <VaCollapse v-for="(route, index) in visibleNavRoutes(navRoutes)" :key="index">
         <template #header="{ value: isCollapsed }">
           <VaSidebarItem
-            :to="route.children ? undefined : { name: route.name }" :active="routeHasActiveChild(route)"
-            :active-color="activeColor" :text-color="textColor(route)"
-            :aria-label="`${visibleNavRoutes(route.children).length > 0 ? 'Open category ' : 'Visit'} ${t(route.meta.nav.displayName)}`" role="button"
-            hover-opacity="0.10">
+            :to="route.children ? undefined : { name: route.name }"
+            :active="routeHasActiveChild(route)"
+            :active-color="activeColor"
+            :text-color="textColor(route)"
+            :aria-label="`${visibleNavRoutes(route.children).length > 0 ? 'Open category ' : 'Visit'} ${t(route.meta.nav.displayName)}`"
+            role="button"
+            hover-opacity="0.10"
+          >
             <VaSidebarItemContent class="py-3 pr-2 pl-4">
-              <VaIcon v-if="route.meta.nav.icon" aria-hidden="true" :name="route.meta.nav.icon" size="20px"
-                :color="iconColor(route)" />
+              <VaIcon
+                v-if="route.meta.nav.icon"
+                aria-hidden="true"
+                :name="route.meta.nav.icon"
+                size="20px"
+                :color="iconColor(route)"
+              />
               <VaSidebarItemTitle class="flex justify-between items-center leading-5 font-semibold">
                 {{ t(route.meta.nav.displayName) }}
-                <VaIcon v-if="visibleNavRoutes(route.children).length > 0" :name="arrowDirection(isCollapsed)" size="20px" />
+                <VaIcon
+                  v-if="visibleNavRoutes(route.children).length > 0"
+                  :name="arrowDirection(isCollapsed)"
+                  size="20px"
+                />
               </VaSidebarItemTitle>
             </VaSidebarItemContent>
           </VaSidebarItem>
         </template>
         <template #body>
           <div v-for="(childRoute, index2) in visibleNavRoutes(route.children)" :key="index2">
-            <VaSidebarItem v-if="!childRoute.meta.nav.hidden && !childRoute.meta.nav.disabled" :to="{ name: childRoute.name }" :active="isActiveChildRoute(childRoute)"
-              :active-color="activeColor" :text-color="textColor(childRoute)"
-              :aria-label="`Visit ${t(route.meta.nav.displayName)}`" hover-opacity="0.10">
+            <VaSidebarItem
+              v-if="!childRoute.meta.nav.hidden && !childRoute.meta.nav.disabled"
+              :to="{ name: childRoute.name }"
+              :active="isActiveChildRoute(childRoute)"
+              :active-color="activeColor"
+              :text-color="textColor(childRoute)"
+              :aria-label="`Visit ${t(route.meta.nav.displayName)}`"
+              hover-opacity="0.10"
+            >
               <VaSidebarItemContent class="py-3 pr-2 pl-11">
                 <VaSidebarItemTitle class="leading-5 font-semibold">
                   {{ t(childRoute.meta.nav.displayName) }}
@@ -57,10 +76,10 @@ const props = defineProps({
   mobile: {
     type: Boolean,
     default: false,
-  }
+  },
 })
 
-const emit = defineEmits(["update:visible"])
+const emit = defineEmits(['update:visible'])
 
 const writableVisible = computed({
   get: () => props.visible,
@@ -80,8 +99,8 @@ const routeHasActiveChild = (section: INavigationRoute) => {
 const value = ref<boolean[]>([])
 
 const visibleNavRoutes = (items: INavigationRoute[] | undefined) => {
-  var viz = [] as INavigationRoute[]
-  
+  const viz = [] as INavigationRoute[]
+
   if (items) {
     items.forEach((item) => {
       if (!item.meta.nav.hidden && !item.meta.nav.disabled) {
@@ -89,12 +108,11 @@ const visibleNavRoutes = (items: INavigationRoute[] | undefined) => {
       }
     })
   }
-  
+
   return viz
 }
 
-const setActiveExpand = () =>
-  (value.value = navRoutes.map((route: INavigationRoute) => routeHasActiveChild(route)))
+const setActiveExpand = () => (value.value = navRoutes.map((route: INavigationRoute) => routeHasActiveChild(route)))
 
 const sidebarWidth = computed(() => (props.mobile ? '100vw' : '280px'))
 const color = computed(() => getColor('background-secondary'))
@@ -104,11 +122,7 @@ const iconColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'pr
 const textColor = (route: INavigationRoute) => (routeHasActiveChild(route) ? 'primary' : 'textPrimary')
 const arrowDirection = (state: boolean) => (state ? 'va-arrow-up' : 'va-arrow-down')
 
-watch(
-  () => route.fullPath,
-  setActiveExpand,
-  { immediate: true }
-)
+watch(() => route.fullPath, setActiveExpand, { immediate: true })
 
 const UserStore = useUserStore()
 
