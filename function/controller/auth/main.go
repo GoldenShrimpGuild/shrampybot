@@ -113,6 +113,13 @@ func validateRefreshToken(refreshToken string) *jwt.Token {
 	if claims["sub"] != "refresh" {
 		return nil
 	}
+
+	// Check jti for a match to UUID
+	if oAuth.RefreshUID != claims["jti"] {
+		log.Println("Invalid UUID for RefreshToken.")
+		return nil
+	}
+
 	if time.Unix(int64(claims["exp"].(float64)), 0).Before(time.Now()) {
 		return nil
 	}
