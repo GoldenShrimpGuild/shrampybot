@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "postbuild:ci": "node -e \"fs.copyFileSync('dist/index.html','dist/404.html')\""
   },
   "lint-staged": {
     "./src/**/*.{ts,js,vue}": [

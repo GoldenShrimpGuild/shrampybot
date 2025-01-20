@@ -31,7 +31,7 @@ export const useGlobalStore = defineStore('global', {
       const discord_seg2 = '&response_type=code&redirect_uri='
       const discord_seg3 = '&scope=identify+connections'
 
-      const this_url = encodeURIComponent(window.location.origin + '/shrampybot/#/auth/validate_oauth')
+      const this_url = encodeURIComponent(window.location.origin + '/shrampybot/auth/validate_oauth')
       if (this.isDevEnvironment) {
         client_id = '1043225123395739780'
       } else {

@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import { useGlobalStore } from '../stores/global-store'
 import { useAuthStore } from '../stores/auth'
 import { useUserStore } from '../stores/user'
@@ -181,8 +181,8 @@ const routes: Array<RouteRecordRaw> = [
 export const navRoutes = routes as INavigationRoute[]
 
 const router = createRouter({
-  // history: createWebHistory('/shrampybot/'),
-  history: createWebHashHistory('/shrampybot/'),
+  history: createWebHistory('/shrampybot/'),
+  // history: createWebHashHistory('/shrampybot/'),
   // scrollBehavior(to, from, savedPosition) {
   //   if (savedPosition) {
   //     return savedPosition
