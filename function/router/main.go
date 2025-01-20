@@ -13,8 +13,18 @@ import (
 )
 
 var (
+	allowedOrigins = []string{
+		"http://localhost:5173",
+		"https://goldenshrimpguild.github.io",
+	}
+
 	DefaultResponseHeaders = ResponseHeaders{
-		ContentType: "application/json",
+		// AccessControlAllowOrigin:      "http://localhost:5173",
+		AccessControlAllowMethods:     "GET, HEAD, POST, PUT, DELETE",
+		AccessControlAllowCredentials: "true",
+		AccessControlAllowHeaders:     "Content-Type, Authorization",
+		ContentType:                   "application/json",
+		Vary:                          "Origin",
 	}
 
 	ErrorMap = map[int]string{
@@ -105,25 +115,35 @@ func (r *Router) Route() *Response {
 		"environment": lambdacontext.FunctionName,
 	}
 
-	if r.Event.Headers.ContentType != "application/json" {
-		return &Response{
-			Body:       r.ErrorBody(1),
-			StatusCode: "400",
-			Headers:    &DefaultResponseHeaders,
-		}
+	// Dynamically set allowed CORS origin in default headers based on allow list
+	if slices.Contains(allowedOrigins, r.Event.Headers.Origin) {
+		DefaultResponseHeaders.AccessControlAllowOrigin = r.Event.Headers.Origin
 	}
+
+	// if r.Event.Headers.ContentType != "application/json" {
+	// 	return &Response{
+	// 		Body:       r.ErrorBody(1),
+	// 		StatusCode: "400",
+	// 		Headers:    &DefaultResponseHeaders,
+	// 	}
+	// }
 
 	for i := 0; i < len(r.routes); i++ {
 		if r.routes[i].Path[0] == r.routes[i].match_path {
 			if r.routes[i].RequireAuth {
 				log.Printf("Authentication required for endpoint %v\n", r.routes[i].match_path)
 
-				if !r.Event.CheckAuthorization() {
-					log.Println("Authentication failed!")
-					return &Response{
-						Body:       r.ErrorBody(14),
-						StatusCode: "401",
-						Headers:    &DefaultResponseHeaders,
+				if !r.Event.CheckAuthorizationJWT() {
+					log.Println("JWT authentication failed, trying static...")
+
+					if !r.Event.CheckAuthorizationStatic() {
+						log.Println("Static authentication failed!")
+
+						return &Response{
+							Body:       r.ErrorBody(14),
+							StatusCode: "401",
+							Headers:    &DefaultResponseHeaders,
+						}
 					}
 				}
 

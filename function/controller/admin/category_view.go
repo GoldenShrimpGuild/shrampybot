@@ -8,12 +8,12 @@ import (
 )
 
 type CategoryView struct {
-	router.View
+	router.View `tstype:",extends,required"`
 }
 
 type CategoryBody struct {
-	router.GenericBodyDataFlat
-	Data *[]nosqldb.CategoryDatum `json:"data"`
+	router.GenericBodyDataFlat `tstype:",extends,required"`
+	Data                       *[]nosqldb.CategoryDatum `json:"data" tstype:"nosqldb.CategoryDatum[]"`
 }
 
 func NewCategoryView() *CategoryView {
@@ -33,6 +33,8 @@ func (v *CategoryView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
+	case "OPTIONS":
+		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")

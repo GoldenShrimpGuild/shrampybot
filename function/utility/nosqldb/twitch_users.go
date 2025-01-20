@@ -20,7 +20,7 @@ const (
 )
 
 type TwitchUserDatum struct {
-	helix.User
+	helix.User       `tstype:",extends,required"`
 	ShrampybotActive bool   `json:"shrampybot_active,omitempty"`
 	MastodonUserId   string `json:"mastodon_user_id,omitempty"`
 	DiscordUserId    string `json:"discord_user_id,omitempty"`

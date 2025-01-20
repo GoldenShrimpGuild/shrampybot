@@ -29,7 +29,7 @@ var (
 )
 
 type WebhookView struct {
-	router.View
+	router.View `tstype:",extends,required"`
 }
 
 func NewWebhookView() *WebhookView {
@@ -49,6 +49,8 @@ func (v *WebhookView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
+	case "OPTIONS":
+		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
@@ -202,7 +204,14 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		log.Println("No stream found in our history, loading from Twitch.")
 		// Convert to our stream history type
 		tsBytes, _ := json.Marshal(tStream)
-		json.Unmarshal(tsBytes, &stream)
+		err = json.Unmarshal(tsBytes, &stream)
+		if err != nil {
+			log.Println("Couldn't unmarshal data from twitch stream into stream.")
+		}
+
+		// Explicitly assign tStream ID to stream as it seems to be getting missed sometimes.
+		stream.ID = tStream.ID
+		log.Printf("Show the stream object after populating from Twitch data: %v\n", stream)
 	} else {
 		// If stream is already in our history then we've received a notice
 		// for it already. Stop processing.
@@ -337,7 +346,7 @@ func messageIsDuplicate(messageId string) bool {
 }
 
 func discordPostRoutine(stream *nosqldb.StreamHistoryDatum, image *utility.Image, c chan utility.PostResponse) {
-	dc, _ := discord.NewClient()
+	dc, _ := discord.NewBotClient()
 	streamUrl := fmt.Sprintf("https://twitch.tv/%v", stream.UserLogin)
 	resp, err := dc.Post(dc.FormatMsg(
 		stream.UserName,

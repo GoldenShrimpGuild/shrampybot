@@ -1,0 +1,46 @@
+packages:
+  - path: github.com/litui/helix/v3
+    output_path: ../frontend/model/lib/helix/index.ts
+    type_mappings:
+      time.Time: string
+  - path: github.com/bwmarrin/discordgo
+    output_path: ../frontend/model/lib/discordgo/index.ts
+    type_mappings:
+      time.Time: string
+  - path: shrampybot/controller/admin
+    output_path: ../frontend/model/controller/admin/index.ts
+    type_mappings:
+      time.Time: string
+    frontmatter: |
+      import * as nosqldb from '../../utility/nosqldb'
+      import * as router from '../../router'
+  - path: shrampybot/controller/auth
+    output_path: ../frontend/model/controller/auth/index.ts
+    type_mappings:
+      time.Time: string
+    frontmatter: |
+      import * as router from '../../router'
+      import * as discordgo from '../../lib/discordgo'
+  - path: shrampybot/controller/event
+    output_path: ../frontend/model/controller/event/index.ts
+    type_mappings:
+      time.Time: string
+    frontmatter: |
+      import * as router from '../../router'
+  - path: shrampybot/controller/public
+    output_path: ../frontend/model/controller/public/index.ts
+    type_mappings:
+      time.Time: string
+    frontmatter: |
+      import * as nosqldb from '../../utility/nosqldb'
+      import * as router from '../../router'
+  - path: shrampybot/router
+    output_path: ../frontend/model/router/index.ts
+    type_mappings:
+      time.Time: string
+  - path: shrampybot/utility/nosqldb
+    output_path: ../frontend/model/utility/nosqldb/index.ts
+    type_mappings:
+      time.Time: string
+    frontmatter: |
+      import * as helix from '../../lib/helix'

@@ -1,5 +1,7 @@
 package router
 
+import "github.com/golang-jwt/jwt/v5"
+
 // const (
 // 	EVENTSUB_MESSAGE_ID        = "twitch-eventsub-message-id"
 // 	EVENTSUB_MESSAGE_TIMESTAMP = "twitch-eventsub-message-timestamp"
@@ -13,12 +15,15 @@ type Headers struct {
 	Authorization                     string `json:"authorization"`
 	ContentLength                     string `json:"content-length"`
 	ContentType                       string `json:"content-type"`
+	Cookie                            string `json:"cookie,omitempty"`
 	Host                              string `json:"host"`
 	UserAgent                         string `json:"user-agent"`
 	XForwardedFor                     string `json:"x-forwarded-for"`
 	XForwardedPort                    string `json:"x-forwarded-port"`
 	XForwardedProto                   string `json:"x-forwarded-proto"`
 	XRequestId                        string `json:"x-request-id"`
+	Origin                            string `json:"origin"`
+	Referer                           string `json:"referer"`
 	TwitchEventsubMessageId           string `json:"twitch-eventsub-message-id"`
 	TwitchEventsubMessageRetry        string `json:"twitch-eventsub-message-retry"`
 	TwitchEventsubMessageTimestamp    string `json:"twitch-eventsub-message-timestamp"`
@@ -54,4 +59,5 @@ type Event struct {
 	Name            string          `json:"name"`
 	Body            string          `json:"body"`
 	RawQueryString  string          `json:"rawQueryString"`
+	Token           *jwt.Token      `json:"-"`
 }

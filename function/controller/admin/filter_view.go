@@ -8,12 +8,12 @@ import (
 )
 
 type FilterView struct {
-	router.View
+	router.View `tstype:",extends,required"`
 }
 
 type FilterBody struct {
-	router.GenericBodyDataFlat
-	Data *[]nosqldb.FilterDatum `json:"data"`
+	router.GenericBodyDataFlat `tstype:",extends,required"`
+	Data                       *[]nosqldb.FilterDatum `json:"data"`
 }
 
 func NewFilterView() *FilterView {
@@ -33,6 +33,8 @@ func (v *FilterView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
+	case "OPTIONS":
+		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")

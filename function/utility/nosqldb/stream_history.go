@@ -17,7 +17,7 @@ const (
 )
 
 type StreamHistoryDatum struct {
-	helix.Stream
+	helix.Stream    `tstype:",extends,required"`
 	DiscordPostId   string    `json:"discord_post_id,omitempty"`
 	DiscordPostUrl  string    `json:"discord_post_url,omitempty"`
 	MastodonPostId  string    `json:"mastodon_post_id,omitempty"`
@@ -53,6 +53,34 @@ func (n *NoSqlDb) GetStream(id string) (*StreamHistoryDatum, error) {
 	}
 	if rStream["tags"] != nil {
 		json.Unmarshal([]byte(rStream["tags"].(string)), &output.Tags)
+	}
+
+	return &output, nil
+}
+
+func (n *NoSqlDb) GetActiveStreams() (*[]StreamHistoryDatum, error) {
+	var err error
+	fullTableName := n.prefix + streamHistoryTableName
+	indexName := fullTableName + ".ended_at-index"
+
+	filt := expression.Key("ended_at").Equal(expression.Value("0001-01-01T00:00:00Z"))
+	expr, err := expression.NewBuilder().WithKeyCondition(filt).Build()
+	if err != nil {
+		return &[]StreamHistoryDatum{}, err
+	}
+
+	results, err := n.QueryDBWithExpr(&fullTableName, &expr, &indexName)
+	if err != nil {
+		return &[]StreamHistoryDatum{}, err
+	}
+
+	output := []StreamHistoryDatum{}
+	// Manual marshalling to expand tags
+	for _, result := range *results {
+		tempDat := StreamHistoryDatum{}
+		tempBytes, _ := json.Marshal(result)
+		json.Unmarshal(tempBytes, &tempDat)
+		output = append(output, tempDat)
 	}
 
 	return &output, nil
