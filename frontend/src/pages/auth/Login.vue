@@ -77,11 +77,6 @@ const { init } = useToast()
 
 const environment = ref(GlobalStore.isDevEnvironment ? t('devTestEnvironment') : t('prodEnvironment'))
 
-onBeforeMount(() => {
-  AuthStore.$state.accessToken = ''
-  AuthStore.$state.refreshToken = ''
-})
-
 onMounted(() => {
   const { init, close, closeAll } = useToast()
 

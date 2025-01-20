@@ -12,7 +12,10 @@
     "termsOfUse": "Terms of Use.",
     "reset_password": "Reset password",
     "discordSignIn": "Sign in with Discord",
-    "developerOptions": "Developer options"
+    "developerOptions": "Developer options",
+    "error": "Authentication Error",
+    "title_oauth_validating": "Validating OAuth",
+    "title_oauth_synchronizing": "Synchronizing OAuth"
   },
   "404": {
     "title": "This page’s gone fishing.",

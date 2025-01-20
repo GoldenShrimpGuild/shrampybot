@@ -212,7 +212,15 @@ router.beforeEach(async (to: any, from: any, next) => {
       next()
       // next(await validateAndFetchRoute(to))
     } else {
-      next('/auth/login')
+      // Try refreshing if no accessToken is set.
+      await AuthStore.callRefresh()
+
+      // If there's still no accessToken set after calling refresh, route to auth screen
+      if (AuthStore.accessToken === '') {
+        next('/auth/login')
+      } else {
+        next()
+      }
     }
     return
     // this route requires auth, check if logged in
@@ -235,17 +243,15 @@ export const validateAndFetchRoute = async (route_path: any) => {
     UserStore.$state.self = bearerResponse.data.self
   } catch (error: any) {
     if (error.response.status in [400, 401]) {
-      const refresh_token = AuthStore.$state.refreshToken
       const refresh_path = '/token/refresh/'
 
       try {
         const refreshResponse = await axios.post(
           refresh_path,
-          {
-            refresh: refresh_token,
-          },
+          {},
           {
             baseURL:  GlobalStore.getApiBaseUrl(),
+            withCredentials: true,
             headers: {
               'Content-Type': 'application/json',
             },
@@ -254,7 +260,6 @@ export const validateAndFetchRoute = async (route_path: any) => {
         AuthStore.$state.accessToken = refreshResponse.data.access
         route_path = await validateAndFetchRoute(route_path)
       } catch (refreshError: any) {
-        AuthStore.$state.refreshToken = ''
         AuthStore.$state.accessToken = ''
         route_path = {
           name: 'login',
@@ -262,7 +267,6 @@ export const validateAndFetchRoute = async (route_path: any) => {
         } as RouteRecordRaw
       }
     } else if (error.response.status == 500) {
-      AuthStore.$state.refreshToken = ''
       AuthStore.$state.accessToken = ''
       route_path = {
         name: 'login',

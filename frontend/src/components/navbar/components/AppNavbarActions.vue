@@ -1,5 +1,6 @@
 <template>
   <div class="app-navbar-actions">
+    <VaButton :onclick="AuthStore.callRefresh()">Call Refresh</VaButton>
     <VaButton
       v-if="!isMobile"
       preset="secondary"
@@ -43,6 +44,9 @@ import ProfileDropdown from './dropdowns/ProfileDropdown.vue'
 import NotificationDropdown from './dropdowns/NotificationDropdown.vue'
 import GithubButton from './GitHubButton.vue'
 import VaIconDiscord from '../../icons/VaIconDiscord.vue'
+import { useAuthStore } from '../../../stores/auth'
+
+const AuthStore = useAuthStore()
 
 defineProps({
   isMobile: { type: Boolean, default: false },
