@@ -32,6 +32,8 @@ var (
 	DiscordClientSecret = os.Getenv("DISCORD_CLIENT_SECRET")
 	DiscordGuild        = os.Getenv("DISCORD_GUILD")
 	DiscordChannel      = os.Getenv("DISCORD_CHANNEL")
+	DiscordAdminRole    = os.Getenv("DISCORD_ADMIN_ROLE")
+	DiscordDevRole      = os.Getenv("DISCORD_DEV_ROLE")
 
 	DBCryptKey = os.Getenv("DB_CRYPT_KEY")
 )

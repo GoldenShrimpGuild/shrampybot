@@ -17,7 +17,8 @@ type SelfView struct {
 
 type SelfResponseBody struct {
 	discordgo.User `tstype:",extends,required"`
-	Member         *discordgo.Member `json:"member,omitempty" tstype:"discordgo.Member"`
+	Member         *discordgo.Member           `json:"member,omitempty" tstype:"discordgo.Member"`
+	Connections    []*discordgo.UserConnection `json:"connections,omitempty" tstype:"discordgo.UserConnection"`
 }
 
 func NewSelfView() *SelfView {
@@ -77,12 +78,18 @@ func (v *SelfView) Get(route *router.Route) *router.Response {
 		response.StatusCode = "500"
 		return response
 	}
-
-	d, err := discord.NewOAuthClient(dOAuth.AccessToken)
+	d, err := discord.NewOAuthClient(dOAuth)
 	if err != nil {
 		log.Println("Could not create new Discord oauth client.")
 		response.StatusCode = "500"
 		return response
+	}
+	if dOAuth.Refreshed {
+		err = n.PutDiscordOAuth(dOAuth)
+		if err != nil {
+			log.Println("Couldn't save refreshed discord oauth.")
+			// Continue on anyway, for now.
+		}
 	}
 
 	self, err := d.GetSelf()
@@ -91,6 +98,12 @@ func (v *SelfView) Get(route *router.Route) *router.Response {
 		response.StatusCode = "500"
 		return response
 	}
+
+	// // Update discord connections in table whenever self is called.
+	// err = mapDiscordConnections(self.ID, self.Username, n, d)
+	// if err != nil {
+	// 	log.Println("Could not map Discord connections.")
+	// }
 
 	dc, err := discord.NewBotClient()
 	if err != nil {
@@ -115,10 +128,15 @@ func (v *SelfView) Get(route *router.Route) *router.Response {
 	member, err := dc.GetGuildMember(self.ID)
 	if err != nil {
 		log.Println("Failed to get Discord guild membership")
-		response.StatusCode = "500"
-		return response
 	}
 	body.Member = member
+
+	connections, err := d.GetConnections()
+	if err != nil {
+		log.Println("Failed to get Discord connections")
+	}
+	body.Connections = connections
+
 	bodyBytes, _ := json.Marshal(body)
 	response.Body = string(bodyBytes)
 

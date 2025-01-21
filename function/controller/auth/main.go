@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"shrampybot/config"
+	"shrampybot/connector/discord"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
 	"time"
@@ -133,4 +134,65 @@ func validateRefreshToken(refreshToken string) *jwt.Token {
 	}
 
 	return token
+}
+
+func mapDiscordConnections(discordId string, discordUsername string, n *nosqldb.NoSqlDb, d *discord.OAuthClient) error {
+	// Look up user connections and map to Twitch table if an entry exists
+	connections, err := d.GetConnections()
+	if err != nil {
+		log.Println("Failed to get Discord connections")
+		return err
+	}
+	var tu *nosqldb.TwitchUserDatum
+	for _, conn := range connections {
+		if conn.Type == "twitch" {
+			tu, err = n.GetTwitchUser(conn.ID)
+			if err != nil {
+				log.Printf("Error looking up twitch ID: %v", conn.ID)
+				return err
+			}
+		}
+	}
+	if tu != nil && tu.ID != "" {
+		tu.DiscordUserId = discordId
+		tu.DiscordUsername = discordUsername
+
+		for _, conn := range connections {
+			switch conn.Type {
+			case "bluesky":
+				tu.BlueskyUserId = conn.ID
+				tu.BlueskyUsername = conn.Name
+			case "github":
+				tu.GithubUserId = conn.ID
+				tu.GithubUsername = conn.Name
+			case "steam":
+				tu.SteamUserId = conn.ID
+				tu.SteamUsername = conn.Name
+			case "youtube":
+				tu.YoutubeUserId = conn.ID
+				tu.YoutubeUsername = conn.Name
+			case "twitter":
+				tu.XUserId = conn.ID
+				tu.XUsername = conn.Name
+			case "instagram":
+				tu.InstagramUserId = conn.ID
+				tu.InstagramUserName = conn.Name
+			case "tiktok":
+				tu.TiktokUserId = conn.ID
+				tu.TiktokUsername = conn.Name
+			case "spotify":
+				tu.SpotifyUserId = conn.ID
+				tu.SpotifyUsername = conn.Name
+			case "facebook":
+				tu.FacebookUserId = conn.ID
+				tu.FacebookUsername = conn.Name
+			}
+		}
+		err = n.PutTwitchUser(tu)
+		if err != nil {
+			log.Printf("Couldn't write updates to Twitch User table.")
+			return err
+		}
+	}
+	return nil
 }
