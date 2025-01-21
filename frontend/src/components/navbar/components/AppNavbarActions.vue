@@ -1,47 +1,24 @@
 <template>
   <div class="app-navbar-actions">
-    <VaButton :onclick="AuthStore.callRefresh()">Call Refresh</VaButton>
-    <VaButton
-      v-if="!isMobile"
-      preset="secondary"
-      href="https://ui.vuestic.dev/support/consulting"
-      target="_blank"
-      color="textPrimary"
-      class="app-navbar-actions__item flex-shrink-0 mx-0"
-    >
-      <VaIcon size="large" class="material-symbols-outlined mr-1">support_agent</VaIcon>
-      {{ t('supportAndConsulting') }}
-    </VaButton>
-    <VaButton
-      v-if="!isMobile"
-      preset="secondary"
-      href="https://admin.vuestic.dev/"
-      target="_blank"
-      color="textPrimary"
-      class="app-navbar-actions__item flex-shrink-0 mx-0"
-    >
-      <VaIcon size="large" class="material-symbols-outlined mr-1">info</VaIcon>
-      {{ t('aboutVuesticAdmin') }}
-    </VaButton>
     <GithubButton v-if="!isMobile" class="app-navbar-actions__item" />
     <VaButton
       v-if="!isMobile"
       preset="secondary"
-      href="https://discord.gg/u7fQdqQt8c"
+      href="https://discord.com/invite/Ahvc7ZjCUA"
       target="_blank"
       color="textPrimary"
       class="app-navbar-actions__item flex-shrink-0 mx-0"
     >
       <VaIcon :component="VaIconDiscord" />
     </VaButton>
-    <NotificationDropdown class="app-navbar-actions__item" />
+    <!-- <NotificationDropdown class="app-navbar-actions__item" /> -->
     <ProfileDropdown class="app-navbar-actions__item app-navbar-actions__item--profile mr-1" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import ProfileDropdown from './dropdowns/ProfileDropdown.vue'
-import NotificationDropdown from './dropdowns/NotificationDropdown.vue'
+// import NotificationDropdown from './dropdowns/NotificationDropdown.vue'
 import GithubButton from './GitHubButton.vue'
 import VaIconDiscord from '../../icons/VaIconDiscord.vue'
 import { useAuthStore } from '../../../stores/auth'

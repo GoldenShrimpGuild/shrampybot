@@ -21,6 +21,19 @@ export const useAuthStore = defineStore('auth', {
         },
       } as AxiosRequestConfig
     },
+    async callLogout() {
+      const GlobalStore = useGlobalStore()
+
+      const logout_path = '/auth/logout'
+      const axiosConfig = this.getAxiosConfig()
+
+      const bearerResponse = await axios.post(
+        logout_path, 
+        {}, 
+        axiosConfig)
+      this.$state.accessToken = ""
+      return bearerResponse
+    },
     async callRefresh() {
       const GlobalStore = useGlobalStore()
 
@@ -47,12 +60,11 @@ export const useAuthStore = defineStore('auth', {
     async testAndRefreshToken() {
       const GlobalStore = useGlobalStore()
 
-      const path = '/auth/self'
+      const path = '/auth/touch'
       const axiosConfig = this.getAxiosConfig()
 
       try {
         const bearerResponse = await axios.get(path, axiosConfig)
-        console.log(bearerResponse)
       } catch (error: any) {
         if (error.response.status == 401) {
           this.callRefresh()

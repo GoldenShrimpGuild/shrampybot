@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { onBeforeMount, ref } from 'vue'
+import { onBeforeMount, ref, watch, watchEffect } from 'vue'
+import { storeToRefs } from 'pinia'
 import axios from 'axios'
 import { useI18n } from 'vue-i18n'
 import StreamCard from '../../components/stream/StreamCard.vue'
 import { useAuthStore } from '../../stores/auth'
+import { useGlobalStore } from '../../stores/global-store'
 import { useTimer } from 'vue-timer-hook'
 
 const AuthStore = useAuthStore()
@@ -12,14 +14,39 @@ const { t } = useI18n()
 const streams = ref([])
 
 const time = Date.now()
-const timer = useTimer(time + 60)
+const timer = useTimer(time + 60000)
 
-onBeforeMount(() => {
-  axios.get('/public/stream', AuthStore.getAxiosConfig()).then((response) => {
+const GlobalStore = useGlobalStore()
+const { isDevEnvironment } = storeToRefs(GlobalStore)
+
+const loadStreams = async () => {
+  await axios.get('/public/stream', AuthStore.getAxiosConfig()).then((response) => {
     streams.value = response.data.data
     // console.log(response.data.data[0])
     // console.log(resizeThumbnailUrl(response.data.data[0]["thumbnail_url"], 1280, 720))
   })
+}
+
+const heartbeatTimerRestart = async () => {
+  // Monitor the current state of the authorization and refresh if it needs it
+  loadStreams()
+
+  const time = Date.now()
+  timer.restart(time + 60000)
+}
+
+watch(isDevEnvironment, async (newValue, oldValue) => {
+  loadStreams()
+})
+
+onBeforeMount(() => {
+  watchEffect(async () => {
+    if (timer.isExpired.value) {
+      await heartbeatTimerRestart()
+    }
+  })
+
+  loadStreams()
 })
 
 const resizeThumbnailUrl = (url: string, width: number, height: number) => {

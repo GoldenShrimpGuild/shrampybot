@@ -61,7 +61,8 @@
     "404": "404",
     "faq": "FAQ",
     "users": "Users",
-    "projects": "Projects"
+    "projects": "Projects",
+    "admin": "Admin"
   },
   "messages": {
     "all": "See all messages",

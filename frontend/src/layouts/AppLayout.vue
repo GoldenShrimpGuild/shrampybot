@@ -65,7 +65,7 @@ const onResize = () => {
 const time = Date.now()
 const timer = useTimer(time)
 const heartbeatTimerRestart = async () => {
-  // Monitor the current state of the websocket connection and refresh if it needs it
+  // Monitor the current state of the authorization and refresh if it needs it
   await AuthStore.testAndRefreshToken()
 
   const time = Date.now()

@@ -87,6 +87,44 @@ const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
+    path: '/admin',
+    redirect: { name: 'users' },
+    meta: {
+      nav: {
+        icon: 'lock',
+        displayName: 'menu.admin',
+        disabled: false,
+        hidden: false,
+      },
+      perms: {
+        requiresAuth: false,
+        requiresStaff: false,
+        requiresAdmin: false,
+      },
+    },
+    component: AppLayout,
+    children: [
+      {
+        name: 'users',
+        path: '/admin/users',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.users',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresStaff: false,
+            requiresAdmin: false,
+          },
+        },
+        component: () => import('../pages/admin/Users.vue'),
+      },
+    ],
+  },
+  {
     path: '/auth',
     meta: {
       nav: {
@@ -120,6 +158,24 @@ const routes: Array<RouteRecordRaw> = [
           },
         },
         component: () => import('../pages/auth/Login.vue'),
+      },
+      {
+        name: 'logout',
+        path: 'logout',
+        meta: {
+          nav: {
+            icon: 'vuestic-iconset-dashboard',
+            displayName: 'menu.logout',
+            disabled: true,
+            hidden: true,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresStaff: false,
+            requiresAdmin: false,
+          },
+        },
+        component: () => import('../pages/auth/Logout.vue'),
       },
       {
         name: 'validate_oauth',
