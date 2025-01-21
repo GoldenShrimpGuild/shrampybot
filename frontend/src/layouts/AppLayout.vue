@@ -1,9 +1,7 @@
 <template>
-  <VaLayout
-    :top="{ fixed: true, order: 2 }"
+  <VaLayout :top="{ fixed: true, order: 2 }"
     :left="{ fixed: true, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
-    @leftOverlayClick="isSidebarMinimized = true"
-  >
+    @leftOverlayClick="isSidebarMinimized = true">
     <template #top>
       <AppNavbar :is-mobile="isMobile" />
     </template>
@@ -28,15 +26,16 @@
   </VaLayout>
 </template>
 
-<script setup>
-import { onBeforeUnmount, onMounted, ref, computed, watchEffect } from 'vue'
+<script setup lang="ts">
+import { onBeforeUnmount, onBeforeMount, onMounted, ref, computed, watch, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
-import { onBeforeRouteUpdate } from 'vue-router'
+import { onBeforeRouteUpdate, useRouter } from 'vue-router'
 import { useBreakpoint } from 'vuestic-ui'
 import { useTimer } from 'vue-timer-hook'
 
 import { useAuthStore } from '../stores/auth'
 import { useGlobalStore } from '../stores/global-store'
+import { useUserStore } from '../stores/user'
 
 import AppLayoutNavigation from '../components/app-layout-navigation/AppLayoutNavigation.vue'
 import AppNavbar from '../components/navbar/AppNavbar.vue'
@@ -44,6 +43,9 @@ import Sidebar from '../components/sidebar/Sidebar.vue'
 
 const AuthStore = useAuthStore()
 const GlobalStore = useGlobalStore()
+const UserStore = useUserStore()
+
+const Router = useRouter()
 
 const breakpoints = useBreakpoint()
 
@@ -53,6 +55,7 @@ const sidebarMinimizedWidth = ref(undefined)
 const isMobile = ref(false)
 const isTablet = ref(false)
 const { isSidebarMinimized } = storeToRefs(GlobalStore)
+const { self } = storeToRefs(UserStore)
 
 const onResize = () => {
   isSidebarMinimized.value = breakpoints.mdDown
@@ -72,13 +75,15 @@ const heartbeatTimerRestart = async () => {
   timer.restart(time + 60000)
 }
 
-onMounted(() => {
+onBeforeMount(() => {
   watchEffect(async () => {
     if (timer.isExpired.value) {
       await heartbeatTimerRestart()
     }
   })
+})
 
+onMounted(() => {
   window.addEventListener('resize', onResize)
   onResize()
 })

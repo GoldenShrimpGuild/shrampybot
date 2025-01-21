@@ -78,7 +78,7 @@ const getQueryParams = async () => {
   }
 
   if (!isString(code)) {
-    encountered_error('This is not a useful page.')
+    router.push({ name: 'logout' })
     return false
   }
   const path = '/auth/validate'
@@ -97,12 +97,17 @@ const getQueryParams = async () => {
       oauth_progress.value = 100
       progress_title.value = t('auth.title_oauth_synchronizing')
       AuthStore.$state.accessToken = response.data.access
-      AuthStore.$state.refreshToken = response.data.refresh
-      router.push({ name: 'streams' })
     })
     .catch((reason) => {
       encountered_error(reason)
     })
+
+    await UserStore.fetchSelf()
+    if (!UserStore.$state.self.member) {
+      router.push({ name: 'logout'})
+    } else {
+      router.push({ name: 'streams' })
+    }
 }
 
 const encountered_error = async (reason: any) => {

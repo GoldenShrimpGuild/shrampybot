@@ -18,7 +18,7 @@ export interface INavigationRoute {
       disabled: boolean
       hidden: boolean
     }
-    perms?: {
+    perms: {
       requiresAuth?: boolean
       requiresStaff?: boolean
       requiresAdmin?: boolean
@@ -99,7 +99,7 @@ const routes: Array<RouteRecordRaw> = [
       perms: {
         requiresAuth: false,
         requiresStaff: false,
-        requiresAdmin: false,
+        requiresAdmin: true,
       },
     },
     component: AppLayout,
@@ -117,7 +117,7 @@ const routes: Array<RouteRecordRaw> = [
           perms: {
             requiresAuth: true,
             requiresStaff: false,
-            requiresAdmin: false,
+            requiresAdmin: true,
           },
         },
         component: () => import('../pages/admin/Users.vue'),
