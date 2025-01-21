@@ -54,8 +54,7 @@ const sidebarMinimizedWidth = ref(undefined)
 
 const isMobile = ref(false)
 const isTablet = ref(false)
-const { isSidebarMinimized } = storeToRefs(GlobalStore)
-const { self } = storeToRefs(UserStore)
+const { isSidebarMinimized, isDevEnvironment } = storeToRefs(GlobalStore)
 
 const onResize = () => {
   isSidebarMinimized.value = breakpoints.mdDown
@@ -83,7 +82,16 @@ onBeforeMount(() => {
   })
 })
 
-onMounted(() => {
+watch(isDevEnvironment, async (newValue, oldValue) => {
+  UserStore.fetchSelf()
+})
+
+onMounted(async () => {
+  if (!UserStore.$state.self?.id) {
+    await UserStore.fetchSelf()
+    console.log(UserStore.$state.self)
+  }
+
   window.addEventListener('resize', onResize)
   onResize()
 })

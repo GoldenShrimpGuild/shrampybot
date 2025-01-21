@@ -30,13 +30,24 @@ app.use(
           secondary: '#ffbb22',
           backgroundPrimary: '#000000',
           backgroundSecondary: '#333333',
+          backgroundElement: '#333333',
           textPrimary: '#ffffff',
           textSecondary: '#ffbb22',
           textInverted: '#000000',
           backgroundBorder: '#cccccc',
 
+          // GSG colours
+          gsgYellow: "#ffbb22",
+          gsgRed: "#ffcccc",
+
           // custom colors
           discordBlurple: '#5865F2',
+          mastodonLight: '#6364FF',
+          mastodonDark: '#563ACC',
+          twitchPurple: '#874af6',
+          blueskyBlue: '#3983f7',
+          youtubeRed: '#ea333e',
+          steamBlue: '#0a183a',
         },
       },
     },

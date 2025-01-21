@@ -1,20 +1,7 @@
 import { defineStore } from 'pinia'
-import { TwitchUserDatum } from '../../model/utility/nosqldb'
-import { User as DiscordUser } from '../../model/lib/discordgo'
 import { SelfResponseBody as User } from '../../model/controller/auth'
-import { useGlobalStore } from './global-store'
 import { useAuthStore } from './auth'
 import axios from 'axios'
-
-// export interface User {
-//   discord_id?: string
-//   username?: string
-//   is_authenticated?: boolean
-//   is_superuser?: boolean
-//   is_staff?: boolean
-//   streamer?: TwitchUserDatum
-//   discord_user?: DiscordUser
-// }
 
 export const useUserStore = defineStore('user', {
   state: () => {
@@ -30,7 +17,6 @@ export const useUserStore = defineStore('user', {
       this.$state.self = selfData
     },
     async fetchSelf() {
-      const GlobalStore = useGlobalStore()
       const AuthStore = useAuthStore()
 
       const self_path = '/auth/self'

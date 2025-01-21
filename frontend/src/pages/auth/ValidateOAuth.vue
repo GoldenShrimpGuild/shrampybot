@@ -78,7 +78,7 @@ const getQueryParams = async () => {
   }
 
   if (!isString(code)) {
-    router.push({ name: 'logout' })
+    router.replace({ name: 'logout' })
     return false
   }
   const path = '/auth/validate'
@@ -103,8 +103,8 @@ const getQueryParams = async () => {
     })
 
     await UserStore.fetchSelf()
-    if (!UserStore.$state.self.member) {
-      router.push({ name: 'logout'})
+    if (!UserStore.isGSGMember()) {
+      router.replace({ name: 'logout'})
     } else {
       router.push({ name: 'streams' })
     }
@@ -117,28 +117,12 @@ const encountered_error = async (reason: any) => {
   while (error_timeout_seconds.value > 0) {
     error_timeout_seconds.value -= 1
     error_timeout.value += 100 / 10
-    await sleep(1000)
+    // await sleep(1000)
   }
 
   show_error_modal.value = false
-  // router.replace({ name: 'login' })
+  router.replace({ name: 'logout' })
 }
-
-// const jwt_authenticate = async (user: string, password: string) => {
-//   let path = '/token/'
-//   await axios
-//     .post(path, {
-//       username: user,
-//       password: password,
-//     })
-//     .then((response) => {
-//       // TODO: Write data sync
-//       router.push({ name: 'dashboard' })
-//     })
-//     .catch((reason) => {
-//       encountered_error(reason)
-//     })
-// }
 </script>
 
 <style>
