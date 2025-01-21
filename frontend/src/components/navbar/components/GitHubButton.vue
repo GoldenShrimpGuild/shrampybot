@@ -2,9 +2,9 @@
   <VaButton
     preset="secondary"
     color="textPrimary"
-    href="https://github.com/epicmaxco/vuestic-admin"
+    href="https://github.com/GoldenShrimpGuild/shrampybot"
     target="_blank"
-    aria-label="Visit github"
+    aria-label="ShrampyBot Github"
   >
     <VaIcon :component="VaIconGitHub" />
   </VaButton>

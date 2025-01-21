@@ -3,6 +3,7 @@ package nosqldb
 import (
 	"encoding/json"
 	"shrampybot/utility"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -19,17 +20,19 @@ type DiscordOAuthDatum struct {
 	// Raw, unencrypted value of access token; never gets stored
 	AccessToken string `json:"-"`
 	// Encrypted value of access token
-	AccessTokenIV  string `json:"access_token_iv,omitempty"`
-	AccessTokenEnc string `json:"access_token_enc,omitempty"`
-	TokenType      string `json:"token_type,omitempty"`
-	ExpiresIn      int    `json:"expires_in,omitempty"`
+	AccessTokenIV  string    `json:"access_token_iv,omitempty"`
+	AccessTokenEnc string    `json:"access_token_enc,omitempty"`
+	TokenType      string    `json:"token_type,omitempty"`
+	ExpiresIn      float64   `json:"-"`
+	ExpiresAt      time.Time `json:"expires_at,omitempty"`
 	// Raw, unencrypted value of refresh token; never gets stored
 	RefreshToken string `json:"-"`
 	// Encrypted value of refresh token
 	RefreshTokenIV  string `json:"refresh_token_iv,omitempty"`
 	RefreshTokenEnc string `json:"refresh_token_enc,omitempty"`
+	Scope           string `json:"scope,omitempty"`
 
-	Scope string `json:"scope,omitempty"`
+	Refreshed bool `json:"-"`
 }
 
 func (n *NoSqlDb) GetDiscordOAuth(id string) (*DiscordOAuthDatum, error) {

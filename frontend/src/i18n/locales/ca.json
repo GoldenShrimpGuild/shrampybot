@@ -17,6 +17,9 @@
     "title_oauth_validating": "Validating OAuth",
     "title_oauth_synchronizing": "Synchronizing OAuth"
   },
+  "admin": {
+    "social_map": "User Social Map"
+  },
   "404": {
     "title": "This page’s gone fishing.",
     "text": "If you feel that it’s not right, please send us a message at ",
@@ -61,7 +64,10 @@
     "404": "404",
     "faq": "FAQ",
     "users": "Users",
-    "projects": "Projects"
+    "twitch_users": "Twitch Users",
+    "projects": "Projects",
+    "admin": "Admin",
+    "social_map": "Social Map"
   },
   "messages": {
     "all": "See all messages",

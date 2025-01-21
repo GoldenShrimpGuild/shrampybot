@@ -95,12 +95,14 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	d, err := discord.NewOAuthClient(dOAuth.AccessToken)
+	d, err := discord.NewOAuthClient(dOAuth)
 	if err != nil {
 		log.Println("Could not create new Discord oauth client.")
 		response.StatusCode = "403"
 		return response
 	}
+	// No need to immediately save credentials in this instance, since we just created
+	// fresh ones. Save can safely occur after a data fetch.
 
 	// Twofold purpose here:
 	// 1. Test whether our newly generated credentials work
@@ -120,6 +122,11 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 		log.Printf("Could not store Discord OAuth record for %v to db.\n", dOAuth.Username)
 		response.StatusCode = "500"
 		return response
+	}
+
+	err = mapDiscordConnections(user.ID, user.Username, n, d)
+	if err != nil {
+		log.Println("Could not map Discord connections.")
 	}
 
 	// Retrieve/produce signing key for shrampybot JWT for the user
@@ -215,7 +222,8 @@ func discordTokenExchange(code string, redirect_base string) (*nosqldb.DiscordOA
 	oAuthResponse.TokenType = responseMap["token_type"].(string)
 	oAuthResponse.AccessToken = responseMap["access_token"].(string)
 	oAuthResponse.RefreshToken = responseMap["refresh_token"].(string)
-	oAuthResponse.ExpiresIn, _ = responseMap["expires_in"].(int)
+	oAuthResponse.ExpiresIn = responseMap["expires_in"].(float64)
+	oAuthResponse.ExpiresAt = time.Now().Add(time.Duration(oAuthResponse.ExpiresIn) * time.Second)
 	oAuthResponse.Scope = responseMap["scope"].(string)
 
 	return &oAuthResponse, nil

@@ -5,7 +5,8 @@
         <VaButton preset="secondary" color="textPrimary">
           <span class="profile-dropdown__anchor min-w-max">
             <slot />
-            <VaAvatar :size="32" color="warning"> 😍 </VaAvatar>
+            <VaAvatar :size="32" color="#333333"><GSGShrimpIcon></GSGShrimpIcon></VaAvatar>
+            <!-- <VaAvatar :size="32" color="warning"> 😍 </VaAvatar> -->
           </span>
         </VaButton>
       </template>
@@ -36,7 +37,8 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useColors } from 'vuestic-ui'
+import { useColors, VaAvatar } from 'vuestic-ui'
+import GSGShrimpIcon from '../../../icons/GSGShrimpIcon.vue'
 
 const { colors, setHSLAColor } = useColors()
 const hoverColor = computed(() => setHSLAColor(colors.focus, { a: 0.1 }))
@@ -62,55 +64,55 @@ withDefaults(
   }>(),
   {
     options: () => [
-      {
-        name: 'account',
-        separator: true,
-        list: [
-          {
-            name: 'profile',
-            to: 'preferences',
-            icon: 'mso-account_circle',
-          },
-          {
-            name: 'settings',
-            to: 'settings',
-            icon: 'mso-settings',
-          },
-          {
-            name: 'billing',
-            to: 'billing',
-            icon: 'mso-receipt_long',
-          },
-          {
-            name: 'projects',
-            to: 'projects',
-            icon: 'mso-favorite',
-          },
-        ],
-      },
-      {
-        name: 'explore',
-        separator: true,
-        list: [
-          {
-            name: 'faq',
-            to: 'faq',
-            icon: 'mso-quiz',
-          },
-          {
-            name: 'helpAndSupport',
-            href: 'https://discord.gg/u7fQdqQt8c',
-            icon: 'mso-error',
-          },
-        ],
-      },
+      // {
+      //   name: 'account',
+      //   separator: true,
+      //   list: [
+      //     {
+      //       name: 'profile',
+      //       to: 'streams',
+      //       icon: 'mso-account_circle',
+      //     },
+      //     {
+      //       name: 'settings',
+      //       to: 'streams',
+      //       icon: 'mso-settings',
+      //     },
+      //     {
+      //       name: 'billing',
+      //       to: 'streams',
+      //       icon: 'mso-receipt_long',
+      //     },
+      //     {
+      //       name: 'projects',
+      //       to: 'streams',
+      //       icon: 'mso-favorite',
+      //     },
+      //   ],
+      // },
+      // {
+      //   name: 'explore',
+      //   separator: true,
+      //   list: [
+      //     {
+      //       name: 'faq',
+      //       to: 'faq',
+      //       icon: 'mso-quiz',
+      //     },
+      //     {
+      //       name: 'helpAndSupport',
+      //       href: 'https://discord.gg/u7fQdqQt8c',
+      //       icon: 'mso-error',
+      //     },
+      //   ],
+      // },
       {
         name: '',
         separator: false,
         list: [
           {
             name: 'logout',
-            to: 'login',
+            to: 'logout',
             icon: 'mso-logout',
           },
         ],

@@ -18,7 +18,7 @@ export interface INavigationRoute {
       disabled: boolean
       hidden: boolean
     }
-    perms?: {
+    perms: {
       requiresAuth?: boolean
       requiresStaff?: boolean
       requiresAdmin?: boolean
@@ -87,6 +87,44 @@ const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
+    path: '/admin',
+    redirect: { name: 'users' },
+    meta: {
+      nav: {
+        icon: 'lock',
+        displayName: 'menu.admin',
+        disabled: false,
+        hidden: false,
+      },
+      perms: {
+        requiresAuth: false,
+        requiresStaff: false,
+        requiresAdmin: true,
+      },
+    },
+    component: AppLayout,
+    children: [
+      {
+        name: 'user_map',
+        path: '/admin/social',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.social_map',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresStaff: false,
+            requiresAdmin: true,
+          },
+        },
+        component: () => import('../pages/admin/SocialMap.vue'),
+      },
+    ],
+  },
+  {
     path: '/auth',
     meta: {
       nav: {
@@ -120,6 +158,24 @@ const routes: Array<RouteRecordRaw> = [
           },
         },
         component: () => import('../pages/auth/Login.vue'),
+      },
+      {
+        name: 'logout',
+        path: 'logout',
+        meta: {
+          nav: {
+            icon: 'vuestic-iconset-dashboard',
+            displayName: 'menu.logout',
+            disabled: true,
+            hidden: true,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresStaff: false,
+            requiresAdmin: false,
+          },
+        },
+        component: () => import('../pages/auth/Logout.vue'),
       },
       {
         name: 'validate_oauth',

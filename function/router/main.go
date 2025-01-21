@@ -127,10 +127,9 @@ func (r *Router) Route() *Response {
 	// 		Headers:    &DefaultResponseHeaders,
 	// 	}
 	// }
-
 	for i := 0; i < len(r.routes); i++ {
 		if r.routes[i].Path[0] == r.routes[i].match_path {
-			if r.routes[i].RequireAuth {
+			if r.routes[i].RequireAuth && r.routes[i].Method != "OPTIONS" {
 				log.Printf("Authentication required for endpoint %v\n", r.routes[i].match_path)
 
 				if !r.Event.CheckAuthorizationJWT() {

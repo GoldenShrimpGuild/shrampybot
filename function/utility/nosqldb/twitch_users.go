@@ -20,11 +20,29 @@ const (
 )
 
 type TwitchUserDatum struct {
-	helix.User       `tstype:",extends,required"`
-	ShrampybotActive bool   `json:"shrampybot_active,omitempty"`
-	MastodonUserId   string `json:"mastodon_user_id,omitempty"`
-	DiscordUserId    string `json:"discord_user_id,omitempty"`
-	BlueskyUserId    string `json:"bluesky_user_id,omitempty"`
+	helix.User        `tstype:",extends,required"`
+	ShrampybotActive  bool   `json:"shrampybot_active,omitempty"`
+	MastodonUserId    string `json:"mastodon_user_id,omitempty"`
+	DiscordUserId     string `json:"discord_user_id,omitempty"`
+	DiscordUsername   string `json:"discord_username,omitempty"`
+	BlueskyUserId     string `json:"bluesky_user_id,omitempty"`
+	BlueskyUsername   string `json:"bluesky_username,omitempty"`
+	YoutubeUserId     string `json:"youtube_user_id,omitempty"`
+	YoutubeUsername   string `json:"youtube_username,omitempty"`
+	XUserId           string `json:"x_user_id,omitempty"`
+	XUsername         string `json:"x_username,omitempty"`
+	InstagramUserId   string `json:"instagram_user_id,omitempty"`
+	InstagramUserName string `json:"instagram_username,omitempty"`
+	SteamUserId       string `json:"steam_user_id,omitempty"`
+	SteamUsername     string `json:"steam_username,omitempty"`
+	FacebookUserId    string `json:"facebook_user_id,omitempty"`
+	FacebookUsername  string `json:"facebook_username,omitempty"`
+	GithubUserId      string `json:"github_user_id,omitempty"`
+	GithubUsername    string `json:"github_username,omitempty"`
+	TiktokUserId      string `json:"tiktok_user_id,omitempty"`
+	TiktokUsername    string `json:"tiktok_username,omitempty"`
+	SpotifyUserId     string `json:"spotify_user_id,omitempty"`
+	SpotifyUsername   string `json:"spotify_username,omitempty"`
 }
 
 func (n *NoSqlDb) DisableTwitchIds(ids *[]string) error {
@@ -143,6 +161,34 @@ func (n *NoSqlDb) GetActiveTwitchUsers() (*[]TwitchUserDatum, error) {
 	}
 
 	return &output, nil
+}
+
+func (n *NoSqlDb) PutTwitchUser(user *TwitchUserDatum) error {
+	var err error
+
+	fullTableName := n.prefix + twitchUsersTableName
+	user.ShrampybotActive = true
+
+	tempMap := map[string]any{}
+	tempBytes, _ := json.Marshal(user)
+	json.Unmarshal(tempBytes, &tempMap)
+
+	var item map[string]types.AttributeValue
+	item, err = attributevalue.MarshalMap(tempMap)
+	if err != nil {
+		log.Printf("Couldn't marshal twitch user %v for writing because: %v\n", user.ID, err)
+		return err
+	}
+
+	_, err = n.db.PutItem(n.ctx, &dynamodb.PutItemInput{
+		Item:      item,
+		TableName: &fullTableName,
+	})
+	if err != nil {
+		log.Printf("Couldn't record Stream: %v", err)
+	}
+
+	return err
 }
 
 func (n *NoSqlDb) PutTwitchUsers(users *[]TwitchUserDatum) error {
