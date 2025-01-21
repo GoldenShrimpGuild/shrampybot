@@ -28,6 +28,14 @@ func AuthController(route *router.Route) *router.Response {
 		// Request a refreshed set of tokens
 		c := NewRefreshView()
 		return c.CallMethod(route)
+	case "logout":
+		// Logout the user (revoke refresh token)
+		c := NewLogoutView()
+		return c.CallMethod(route)
+	case "touch":
+		// Test authorization
+		c := NewTouchView()
+		return c.CallMethod(route)
 	case "validate":
 		// Validate discord oAuth and produce new access & refresh tokens
 		c := NewValidateView()
