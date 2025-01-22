@@ -80,6 +80,14 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 	response := &router.Response{}
 	response.Headers = &router.DefaultResponseHeaders
 
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		log.Println("Could not instantiate dynamodb.")
+		response.StatusCode = "500"
+		return response
+	}
+
 	users, err := getTwitchUsers()
 	if err != nil || len(*users) == 0 {
 		log.Println("Exited route abnormally: Collection.Patch")
@@ -87,7 +95,40 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 		return response
 	}
 
-	err = saveActiveTwitchUsers(users)
+	storedUsers, err := n.GetTwitchUsers()
+	if err != nil || len(*users) == 0 {
+		log.Println("Exited route abnormally: Collection.Patch")
+		response.StatusCode = "500"
+		return response
+	}
+
+	mergedUsers := []nosqldb.TwitchUserDatum{}
+
+	for _, u := range *users {
+		foundStoredUser := false
+
+		for _, su := range *storedUsers {
+			if u.ID == su.ID {
+				foundStoredUser = true
+				// Update changeable fields from Twitch
+				su.Login = u.Login
+				su.DisplayName = u.DisplayName
+				su.Description = u.Description
+				su.OfflineImageURL = u.OfflineImageURL
+				su.ProfileImageURL = u.ProfileImageURL
+				su.ViewCount = u.ViewCount
+
+				mergedUsers = append(mergedUsers, su)
+				break
+			}
+		}
+
+		if !foundStoredUser {
+			mergedUsers = append(mergedUsers, u)
+		}
+	}
+
+	err = saveActiveTwitchUsers(&mergedUsers)
 	if err != nil {
 		log.Println("Exited route abnormally: Collection.Patch")
 		response.StatusCode = "500"
