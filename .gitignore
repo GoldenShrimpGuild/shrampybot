@@ -11,6 +11,8 @@ virtualenv
 .vscode
 *.http
 spaces*
+credentials.json
+token.json
 tools/services_test/services_test*
 tools/shrampysubs/shrampysubs*
 *.zip

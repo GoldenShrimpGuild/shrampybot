@@ -21,7 +21,8 @@
     "user_list": "User List",
     "ml_spreadsheet_comment": "Unlike the Google Sheets master list, this list is indexed by TwitchID/TwitchLogin rather than Artist Name, so there are no duplicate rows for a given Twitch channel. Only one artist name for each Twitch ID in the actual spreadsheet is included at present.",
     "spreadsheet": "Adapted Spreadsheet",
-    "social_map": "User Social Map"
+    "social_map": "User Social Map",
+    "categories": "Stream Categories and Hashtags"
   },
   "404": {
     "title": "This page’s gone fishing.",
@@ -71,7 +72,8 @@
     "projects": "Projects",
     "admin": "Admin",
     "social_map": "Social Map",
-    "user_list": "User List"
+    "user_list": "User List",
+    "categories": "Categories"
   },
   "messages": {
     "all": "See all messages",
