@@ -23,8 +23,12 @@ type TwitchUserDatum struct {
 	helix.User `tstype:",extends,required"`
 	// The active flag refers to membership in either the GSG team or tagged presence
 	// on the GSG mastodon instance
+	ShrampybotArtistName       string `json:"shrampybot_artist_name"`
 	ShrampybotActive           bool   `json:"shrampybot_active"`
 	ShrampybotLocation         string `json:"shrampybot_location,omitempty"`
+	ShrampybotBirthMonth       int    `json:"shrampybot_birth_month"`
+	ShrampybotBirthDay         int    `json:"shrampybot_birth_day"`
+	ShrampybotEmail            string `json:"shrampybot_email,omitempty"`
 	ShrampybotOverlayNow       string `json:"shrampybot_overlay_now,omitempty"`
 	ShrampybotOverlayNext      string `json:"shrampybot_overlay_next,omitempty"`
 	ShrampybotOverlayLater     string `json:"shrampybot_overlay_later,omitempty"`

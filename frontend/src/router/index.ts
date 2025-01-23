@@ -105,12 +105,12 @@ const routes: Array<RouteRecordRaw> = [
     component: AppLayout,
     children: [
       {
-        name: 'user_map',
-        path: '/admin/social',
+        name: 'user_list',
+        path: '/admin/users',
         meta: {
           nav: {
             icon: '',
-            displayName: 'menu.social_map',
+            displayName: 'menu.user_list',
             disabled: false,
             hidden: false,
           },
@@ -120,7 +120,7 @@ const routes: Array<RouteRecordRaw> = [
             requiresAdmin: true,
           },
         },
-        component: () => import('../pages/admin/SocialMap.vue'),
+        component: () => import('../pages/admin/UserList.vue'),
       },
     ],
   },
