@@ -5,6 +5,7 @@ import (
 	"log"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
+	"strings"
 )
 
 type CategoryView struct {
@@ -91,6 +92,79 @@ func (v *CategoryView) Get(route *router.Route) *router.Response {
 	return response
 }
 
+func (v *CategoryView) Put(route *router.Route) *router.Response {
+	var err error
+	log.Println("Entered route: Admin.Category.Put")
+	response := &router.Response{}
+	response.Headers = &router.DefaultResponseHeaders
+
+	// Parse submitted category data
+	requestBody := nosqldb.CategoryDatum{}
+	err = json.Unmarshal([]byte(route.Body), &requestBody)
+	if err != nil {
+		log.Printf("Could not unmarshal body json: %v\n", err)
+		response.StatusCode = "500"
+		return response
+	}
+
+	requestBody.Id = strings.Trim(requestBody.Id, " ")
+
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		log.Println("Could not instantiate dynamodb.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	// Find existing category by name so we can reuse its ID and maintain uniqueness
+	originalCategory, err := n.GetCategoryByName(requestBody.TwitchCategory)
+	if err != nil {
+		log.Println("Could not retrieve updated category.")
+		response.StatusCode = "500"
+		return response
+	}
+	if originalCategory.Id != requestBody.Id {
+		requestBody.Id = originalCategory.Id
+	}
+
+	catList := append([]nosqldb.CategoryDatum{}, requestBody)
+	err = n.PutCategories(&catList)
+	if err != nil {
+		log.Println("Could not store updated category.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	finalCategory, err := n.GetCategoryByName(requestBody.TwitchCategory)
+	if err != nil {
+		log.Println("Could not retrieve updated category.")
+		response.StatusCode = "500"
+		return response
+	}
+	returnList := append([]nosqldb.CategoryDatum{}, *finalCategory)
+
+	catBytes, err := json.Marshal(returnList)
+	if err != nil {
+		log.Println("Could not marshal updated category json.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	body := map[string]any{}
+	body["count"] = 1
+	bodyRef := []map[string]any{}
+	json.Unmarshal(catBytes, &bodyRef)
+	body["data"] = bodyRef
+
+	response.StatusCode = "200"
+	bodyBytes, _ := json.Marshal(body)
+	response.Body = string(bodyBytes)
+
+	log.Println("Exited route: Admin.Category.Put")
+	return response
+}
+
 func (v *CategoryView) Post(route *router.Route) *router.Response {
 	var err error
 	log.Println("Entered route: Admin.Category.Post")
@@ -171,5 +245,39 @@ func (v *CategoryView) Post(route *router.Route) *router.Response {
 	response.Body = string(bodyBytes)
 
 	log.Println("Exited route: Admin.Category.Post")
+	return response
+}
+
+func (v *CategoryView) Delete(route *router.Route) *router.Response {
+	var err error
+	log.Println("Entered route: Admin.Category.Delete")
+	response := &router.Response{}
+	response.Headers = &router.DefaultResponseHeaders
+
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		log.Println("Could not instantiate dynamodb.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	if len(route.Path) == 3 {
+		ids := append([]string{}, route.Path[2])
+
+		err := n.RemoveCategory(&ids)
+		if err != nil {
+			log.Println("Remove category failed.")
+			response.StatusCode = "500"
+			return response
+		}
+	} else {
+		log.Println("No ID specified.")
+		response.StatusCode = "400"
+		return response
+	}
+
+	response.StatusCode = "200"
+	log.Println("Exited route: Admin.Category.Delete")
 	return response
 }

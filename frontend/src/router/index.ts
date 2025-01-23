@@ -122,6 +122,24 @@ const routes: Array<RouteRecordRaw> = [
         },
         component: () => import('../pages/admin/UserList.vue'),
       },
+      {
+        name: 'categories',
+        path: '/admin/categories',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.categories',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresStaff: false,
+            requiresAdmin: true,
+          },
+        },
+        component: () => import('../pages/admin/Categories.vue'),
+      },
     ],
   },
   {

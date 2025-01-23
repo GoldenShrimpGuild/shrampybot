@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { watch, onBeforeMount, ref, computed } from 'vue'
+import { watch, onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
+import { storeToRefs, mapActions } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store';
 import { useTwitchUsersStore } from '../../stores/twitch_users';
 import { TwitchUserDatum } from '../../../model/utility/nosqldb';
@@ -20,29 +20,31 @@ const GlobalStore = useGlobalStore()
 const TwitchUsersStore = useTwitchUsersStore()
 const { isDevEnvironment } = storeToRefs(GlobalStore)
 
-watch(isDevEnvironment, async (newValue, oldValue) => {
+watch(isDevEnvironment, (newValue, oldValue) => {
   TwitchUsersStore.fetchUsers()
 })
 
-onBeforeMount(() => {
-  TwitchUsersStore.fetchUsers()
+onMounted(async () => {
+    await TwitchUsersStore.fetchUsers()
 })
 
-const sortOrder = ref('asc');
 const listType = ref(0)
 const showIds = ref(false)
 
 const sortedUsers = computed(() => {
-  const sortedCopy = [...TwitchUsersStore.$state.users];
-  function compare(a: TwitchUserDatum, b: TwitchUserDatum) {
-    if (a.login < b.login)
-      return -1;
-    if (a.login > b.login)
-      return 1;
-    return 0;
+  if (TwitchUsersStore.$state.users) {
+    const sortedCopy = [...TwitchUsersStore.$state.users];
+    function compare(a: TwitchUserDatum, b: TwitchUserDatum) {
+      if (a.login < b.login)
+        return -1;
+      if (a.login > b.login)
+        return 1;
+      return 0;
+    }
+    return sortedCopy.sort(compare);
+  } else {
+    return []
   }
-  console.log(sortedCopy[0])
-  return sortedCopy.sort(compare);
 });
 </script>
 
