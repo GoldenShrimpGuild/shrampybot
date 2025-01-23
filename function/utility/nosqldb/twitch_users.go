@@ -20,32 +20,46 @@ const (
 )
 
 type TwitchUserDatum struct {
-	helix.User        `tstype:",extends,required"`
-	ShrampybotActive  bool   `json:"shrampybot_active,omitempty"`
-	MastodonUserId    string `json:"mastodon_user_id,omitempty"`
-	DiscordUserId     string `json:"discord_user_id,omitempty"`
-	DiscordUsername   string `json:"discord_username,omitempty"`
-	BlueskyUserId     string `json:"bluesky_user_id,omitempty"`
-	BlueskyUsername   string `json:"bluesky_username,omitempty"`
-	YoutubeUserId     string `json:"youtube_user_id,omitempty"`
-	YoutubeUsername   string `json:"youtube_username,omitempty"`
-	XUserId           string `json:"x_user_id,omitempty"`
-	XUsername         string `json:"x_username,omitempty"`
-	InstagramUserId   string `json:"instagram_user_id,omitempty"`
-	InstagramUserName string `json:"instagram_username,omitempty"`
-	SteamUserId       string `json:"steam_user_id,omitempty"`
-	SteamUsername     string `json:"steam_username,omitempty"`
-	FacebookUserId    string `json:"facebook_user_id,omitempty"`
-	FacebookUsername  string `json:"facebook_username,omitempty"`
-	GithubUserId      string `json:"github_user_id,omitempty"`
-	GithubUsername    string `json:"github_username,omitempty"`
-	TiktokUserId      string `json:"tiktok_user_id,omitempty"`
-	TiktokUsername    string `json:"tiktok_username,omitempty"`
-	SpotifyUserId     string `json:"spotify_user_id,omitempty"`
-	SpotifyUsername   string `json:"spotify_username,omitempty"`
+	helix.User `tstype:",extends,required"`
+	// The active flag refers to membership in either the GSG team or tagged presence
+	// on the GSG mastodon instance
+	ShrampybotArtistName       string `json:"shrampybot_artist_name"`
+	ShrampybotActive           bool   `json:"shrampybot_active"`
+	ShrampybotLocation         string `json:"shrampybot_location,omitempty"`
+	ShrampybotBirthMonth       int    `json:"shrampybot_birth_month"`
+	ShrampybotBirthDay         int    `json:"shrampybot_birth_day"`
+	ShrampybotEmail            string `json:"shrampybot_email,omitempty"`
+	ShrampybotOverlayNow       string `json:"shrampybot_overlay_now,omitempty"`
+	ShrampybotOverlayNext      string `json:"shrampybot_overlay_next,omitempty"`
+	ShrampybotOverlayLater     string `json:"shrampybot_overlay_later,omitempty"`
+	ShrampybotGroupsTeam       bool   `json:"shrampybot_groups_team"`
+	ShrampybotGroupsMainPage   bool   `json:"shrampybot_groups_main_page"`
+	ShrampybotGroupsMDLRMonday bool   `json:"shrampybot_groups_mdlr_monday"`
+	ShrampybotGroupsClub       bool   `json:"shrampybot_groups_club"`
+	MastodonUserId             string `json:"mastodon_user_id,omitempty"`
+	DiscordUserId              string `json:"discord_user_id,omitempty"`
+	DiscordUsername            string `json:"discord_username,omitempty"`
+	BlueskyUserId              string `json:"bluesky_user_id,omitempty"`
+	BlueskyUsername            string `json:"bluesky_username,omitempty"`
+	YoutubeUserId              string `json:"youtube_user_id,omitempty"`
+	YoutubeUsername            string `json:"youtube_username,omitempty"`
+	XUserId                    string `json:"x_user_id,omitempty"`
+	XUsername                  string `json:"x_username,omitempty"`
+	InstagramUserId            string `json:"instagram_user_id,omitempty"`
+	InstagramUserName          string `json:"instagram_username,omitempty"`
+	SteamUserId                string `json:"steam_user_id,omitempty"`
+	SteamUsername              string `json:"steam_username,omitempty"`
+	FacebookUserId             string `json:"facebook_user_id,omitempty"`
+	FacebookUsername           string `json:"facebook_username,omitempty"`
+	GithubUserId               string `json:"github_user_id,omitempty"`
+	GithubUsername             string `json:"github_username,omitempty"`
+	TiktokUserId               string `json:"tiktok_user_id,omitempty"`
+	TiktokUsername             string `json:"tiktok_username,omitempty"`
+	SpotifyUserId              string `json:"spotify_user_id,omitempty"`
+	SpotifyUsername            string `json:"spotify_username,omitempty"`
 }
 
-func (n *NoSqlDb) DisableTwitchIds(ids *[]string) error {
+func (n *NoSqlDb) DisableTwitchUsers(ids *[]string) error {
 	var err error
 	fullTableName := n.prefix + twitchUsersTableName
 
@@ -189,7 +203,6 @@ func (n *NoSqlDb) PutTwitchUser(user *TwitchUserDatum) error {
 	var err error
 
 	fullTableName := n.prefix + twitchUsersTableName
-	user.ShrampybotActive = true
 
 	tempMap := map[string]any{}
 	tempBytes, _ := json.Marshal(user)
@@ -213,18 +226,15 @@ func (n *NoSqlDb) PutTwitchUser(user *TwitchUserDatum) error {
 	return err
 }
 
-func (n *NoSqlDb) PutTwitchUsers(users *[]TwitchUserDatum) error {
+func (n *NoSqlDb) PutTwitchUsers(users []*TwitchUserDatum) error {
 	var err error
 
 	fullTableName := n.prefix + twitchUsersTableName
 
-	for subList := range slices.Chunk(*users, batchSize) {
+	for subList := range slices.Chunk(users, batchSize) {
 		var writeReqs []types.WriteRequest
 
 		for _, user := range subList {
-			// Mark this list of users as active.
-			user.ShrampybotActive = true
-
 			userInterface := map[string]any{}
 			userBytes, _ := json.Marshal(user)
 			json.Unmarshal(userBytes, &userInterface)

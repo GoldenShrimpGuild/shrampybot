@@ -50,7 +50,7 @@ func (c *UserView) Get(route *router.Route) *router.Response {
 	}
 
 	// Fetch login names from our stored Twitch users
-	logins, err = n.GetActiveTwitchUsers()
+	logins, err = n.GetTwitchUsers()
 	if err != nil {
 		log.Println("Could not get saved Twitch logins.")
 		response.StatusCode = "500"

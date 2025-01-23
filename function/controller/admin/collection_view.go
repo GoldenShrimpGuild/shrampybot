@@ -88,23 +88,25 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 		return response
 	}
 
-	users, err := getTwitchUsers()
-	if err != nil || len(*users) == 0 {
+	teamUsers, err := getTwitchUsers()
+	if err != nil || len(*teamUsers) == 0 {
 		log.Println("Exited route abnormally: Collection.Patch")
 		response.StatusCode = "500"
 		return response
 	}
 
 	storedUsers, err := n.GetTwitchUsers()
-	if err != nil || len(*users) == 0 {
+	if err != nil || len(*storedUsers) == 0 {
 		log.Println("Exited route abnormally: Collection.Patch")
 		response.StatusCode = "500"
 		return response
 	}
 
-	mergedUsers := []nosqldb.TwitchUserDatum{}
+	intersectUsers := []*nosqldb.TwitchUserDatum{}
+	extraUsers := []*nosqldb.TwitchUserDatum{}
+	diffUsers := []*nosqldb.TwitchUserDatum{}
 
-	for _, u := range *users {
+	for _, u := range *teamUsers {
 		foundStoredUser := false
 
 		for _, su := range *storedUsers {
@@ -117,30 +119,59 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 				su.OfflineImageURL = u.OfflineImageURL
 				su.ProfileImageURL = u.ProfileImageURL
 				su.ViewCount = u.ViewCount
+				su.MastodonUserId = u.MastodonUserId
+				su.ShrampybotActive = true
 
-				mergedUsers = append(mergedUsers, su)
+				intersectUsers = append(intersectUsers, &su)
 				break
 			}
 		}
 
 		if !foundStoredUser {
-			mergedUsers = append(mergedUsers, u)
+			u.ShrampybotActive = true
+			extraUsers = append(extraUsers, &u)
 		}
 	}
 
-	err = saveActiveTwitchUsers(&mergedUsers)
+	for _, su := range *storedUsers {
+		foundTeamUser := false
+
+		for _, tu := range *teamUsers {
+			if tu.ID == su.ID {
+				foundTeamUser = true
+			}
+		}
+
+		if !foundTeamUser {
+			su.ShrampybotActive = false
+			diffUsers = append(diffUsers, &su)
+		}
+	}
+
+	err = n.PutTwitchUsers(intersectUsers)
 	if err != nil {
-		log.Println("Exited route abnormally: Collection.Patch")
+		response.StatusCode = "500"
+		return response
+	}
+	err = n.PutTwitchUsers(diffUsers)
+	if err != nil {
+		response.StatusCode = "500"
+		return response
+	}
+	err = n.PutTwitchUsers(extraUsers)
+	if err != nil {
 		response.StatusCode = "500"
 		return response
 	}
 
+	activeUsers := append(intersectUsers, extraUsers...)
+
 	body := map[string]any{}
-	body["count"] = len(*users)
+	body["count"] = len(activeUsers)
 	data := []string{}
 
 	// Munge users into displayable format
-	for _, u := range *users {
+	for _, u := range activeUsers {
 		data = append(data, u.Login)
 	}
 	body["data"] = data
@@ -195,46 +226,4 @@ func getTwitchUsers() (*[]nosqldb.TwitchUserDatum, error) {
 	}
 
 	return &output, nil
-}
-
-func saveActiveTwitchUsers(users *[]nosqldb.TwitchUserDatum) error {
-	// Instantiate DynamoDB
-	n, err := nosqldb.NewClient()
-	if err != nil {
-		return err
-	}
-
-	pastActive, err := n.GetActiveTwitchIds()
-	if err != nil {
-		return err
-	}
-	disableIds := []string{}
-	for _, pastUser := range *pastActive {
-		foundMatch := false
-
-		for _, newUser := range *users {
-			if pastUser == newUser.ID {
-				foundMatch = true
-				break
-			}
-		}
-
-		if !foundMatch {
-			disableIds = append(disableIds, pastUser)
-		}
-	}
-
-	// Disable removed (eg: no longer shrampy) Twitch Ids
-	err = n.DisableTwitchIds(&disableIds)
-	if err != nil {
-		return err
-	}
-
-	// Update/add twitch users and mark them active
-	err = n.PutTwitchUsers(users)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
