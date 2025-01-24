@@ -14,12 +14,6 @@ const (
 	staticTokenTableName = "static_token"
 )
 
-var (
-	validScopes = []string{
-		"admin",
-	}
-)
-
 type StaticTokenDatum struct {
 	Id           string    `json:"id"`
 	CreatorId    string    `json:"creator_id"`

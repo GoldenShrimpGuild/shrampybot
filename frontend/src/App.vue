@@ -88,12 +88,12 @@ a {
 }
 
 .va-sidebar-dev {
-  background-image: url('../public/construction.jpg');
+  background-image: url('/construction.jpg');
   background-position-y: -64px;
 }
 
 .va-navbar-dev {
-  background-image: url('../public/construction.jpg');
+  background-image: url('/construction.jpg');
 }
 
 .no-animate {

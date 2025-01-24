@@ -2,8 +2,12 @@ package admin
 
 import (
 	"log"
+	"shrampybot/config"
 	"shrampybot/router"
+	"shrampybot/utility/nosqldb"
 	"strings"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func AdminController(route *router.Route) *router.Response {
@@ -57,4 +61,18 @@ func AdminController(route *router.Route) *router.Response {
 	}
 
 	return resp
+}
+
+func generateStaticToken(static *nosqldb.StaticTokenDatum) (string, error) {
+	staticTokenRaw := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"iss":    config.BotName,
+		"aud":    "static",
+		"sub":    static.CreatorId,
+		"kid":    static.Id,
+		"iat":    static.CreatedAt.Unix(),
+		"exp":    static.ExpiresAt.Unix(),
+		"jti":    static.Id,
+		"scopes": static.Scopes,
+	})
+	return staticTokenRaw.SignedString([]byte(static.SecretKey))
 }

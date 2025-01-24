@@ -5,14 +5,29 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"shrampybot/config"
+)
+
+var (
+	ValidStaticTokenScopes = []string{
+		"login",
+		"dev",
+		"admin",
+	}
 )
 
 func GenerateRandomHex(byteLength int) string {
 	secretKey := make([]byte, byteLength)
 	rand.Read(secretKey)
 	return hex.EncodeToString(secretKey)
+}
+
+func GenerateRandomBase64(byteLength int) string {
+	b := make([]byte, byteLength)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
 }
 
 // Based on example code from:
