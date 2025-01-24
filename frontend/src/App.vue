@@ -86,4 +86,34 @@ div {
 a {
   color: #ffbb22;
 }
+
+.va-sidebar-dev {
+  background-image: url('../public/construction.jpg');
+  background-position-y: -64px;
+}
+
+.va-navbar-dev {
+  background-image: url('../public/construction.jpg');
+}
+
+.no-animate {
+/*CSS transitions*/
+-o-transition-property: none !important;
+-moz-transition-property: none !important;
+-ms-transition-property: none !important;
+-webkit-transition-property: none !important;
+transition-property: none !important;
+/*CSS transforms*/
+-o-transform: none !important;
+-moz-transform: none !important;
+-ms-transform: none !important;
+-webkit-transform: none !important;
+transform: none !important;
+/*CSS animations*/
+-webkit-animation: none !important;
+-moz-animation: none !important;
+-o-animation: none !important;
+-ms-animation: none !important;
+animation: none !important;
+}
 </style>

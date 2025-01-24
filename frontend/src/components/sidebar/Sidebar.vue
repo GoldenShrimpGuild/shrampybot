@@ -1,5 +1,5 @@
 <template>
-  <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0">
+  <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0" :class="GlobalStore.$state.isDevEnvironment ? 'va-sidebar-dev no-animate' : ''">
     <VaAccordion v-model="value" multiple>
       <VaCollapse v-for="(route, index) in visibleNavRoutes(navRoutes)" :key="index">
         <template #header="{ value: isCollapsed }">
@@ -59,9 +59,12 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { navRoutes, INavigationRoute } from '../../router'
+import { useGlobalStore } from '../../stores/global-store'
 import { useUserStore } from '../../stores/user'
 import { useColors } from 'vuestic-ui'
 import { useI18n } from 'vue-i18n'
+
+const GlobalStore = useGlobalStore()
 
 const { getColor, colorToRgba } = useColors()
 

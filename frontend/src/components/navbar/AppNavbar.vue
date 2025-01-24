@@ -1,5 +1,5 @@
 <template>
-  <VaNavbar class="app-layout-navbar py-2 px-0">
+  <VaNavbar class="app-layout-navbar py-2 px-0" :class="GlobalStore.$state.isDevEnvironment ? 'va-navbar-dev no-animate' : ''">
     <template #left>
       <div class="left">
         <Transition v-if="isMobile" name="icon-fade" mode="out-in">
@@ -12,7 +12,7 @@
           </div>
         </RouterLink>
       </div>
-      <div v-if="!isMobile"  style="margin-left: 1.5rem;">
+      <div v-if="!isMobile && UserStore.isDevTeam()"  style="margin-left: 1.5rem;">
       <VaButtonToggle class="" v-model="isDevEnvironment"
         size="small"
         toggle-color="#997112"
@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
-import { useAuthStore } from '../../stores/auth'
+import { useUserStore } from '../../stores/user'
 import AppNavbarActions from './components/AppNavbarActions.vue'
 import ShrampybotLogo from '../logos/ShrampybotLogo.vue'
 import { VaSpacer } from 'vuestic-ui'
@@ -45,15 +45,15 @@ defineProps({
   isMobile: { type: Boolean, default: false },
 })
 
-const AuthStore = useAuthStore()
+const UserStore = useUserStore()
 const GlobalStore = useGlobalStore()
 const { isSidebarMinimized, isDevEnvironment } = storeToRefs(GlobalStore)
 
-watch(isDevEnvironment, async (newValue, oldValue) => {
-  if (newValue === false) {
-    AuthStore.testAndRefreshToken()
-  }
-})
+// watch(isDevEnvironment, async (newValue, oldValue) => {
+//   if (newValue === false) {
+//     AuthStore.testAndRefreshToken()
+//   }
+// })
 
 </script>
 

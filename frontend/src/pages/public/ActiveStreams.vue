@@ -1,14 +1,13 @@
 <script lang="ts" setup>
 import { onBeforeMount, ref, watch, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
-import axios from 'axios'
+import { useAxios } from '../../plugins/axios'
 import { useI18n } from 'vue-i18n'
 import StreamCard from '../../components/stream/StreamCard.vue'
 import { useAuthStore } from '../../stores/auth'
 import { useGlobalStore } from '../../stores/global-store'
 import { useTimer } from 'vue-timer-hook'
 
-const AuthStore = useAuthStore()
 const { t } = useI18n()
 
 const streams = ref([])
@@ -19,8 +18,10 @@ const timer = useTimer(time + 60000)
 const GlobalStore = useGlobalStore()
 const { isDevEnvironment } = storeToRefs(GlobalStore)
 
+const axios = useAxios()
+
 const loadStreams = async () => {
-  await axios.get('/public/stream', AuthStore.getAxiosConfig()).then((response) => {
+  await axios.get('/public/stream').then((response) => {
     streams.value = response.data.data
     // console.log(response.data.data[0])
     // console.log(resizeThumbnailUrl(response.data.data[0]["thumbnail_url"], 1280, 720))

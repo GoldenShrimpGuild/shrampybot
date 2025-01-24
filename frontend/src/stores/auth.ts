@@ -2,13 +2,19 @@ import { defineStore } from 'pinia'
 import axios, { AxiosRequestConfig } from 'axios'
 import { useLocalStorage } from '@vueuse/core'
 import { useGlobalStore } from './global-store'
+import { jwtDecode, JwtPayload } from "jwt-decode";
+
+export interface CustomJwtPayload extends JwtPayload {
+  scopes: string
+}
 
 export const useAuthStore = defineStore('auth', {
   state: () => {
     const userId = useLocalStorage('user_id', '' as String)
-    const accessToken = '' as String
+    const accessTokenDev = '' as String
+    const accessTokenProd = '' as String
     const userServicesStatus = useLocalStorage('uss', {} as Record<string, any>)
-    return { accessToken, userServicesStatus, userId }
+    return { accessTokenDev, accessTokenProd, userServicesStatus, userId }
   },
   actions: {
     getAxiosConfig() {
@@ -17,7 +23,7 @@ export const useAuthStore = defineStore('auth', {
         baseURL: GlobalStore.getApiBaseUrl(),
         withCredentials: true,
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
+          Authorization: `Bearer ${GlobalStore.$state.isDevEnvironment ? this.$state.accessTokenDev : this.$state.accessTokenProd }`,
           'Content-Type': 'application/json',
         },
       } as AxiosRequestConfig
@@ -33,15 +39,19 @@ export const useAuthStore = defineStore('auth', {
         {},
         axiosConfig)
       .then((response) => {
-        this.$state.accessToken = ""
+        if (GlobalStore.$state.isDevEnvironment) {
+          this.$state.accessTokenDev = ""
+        } else {
+          this.$state.accessTokenProd = ""
+        }
         this.$state.userId = ""
       })
       return bearerResponse
     },
     async callRefresh() {
       const GlobalStore = useGlobalStore()
-
       const refresh_path = '/auth/refresh'
+      var success = false
 
       try {
         const refreshResponse = await axios.post(
@@ -56,14 +66,26 @@ export const useAuthStore = defineStore('auth', {
           },
         )
         .then((response) => {
-          this.$state.userId = response.data.user_id
-          this.$state.accessToken = response.data.access
+          if (response.status === 200) {
+            success = true
+            this.$state.userId = response.data.user_id
+            if (GlobalStore.$state.isDevEnvironment) {
+              this.$state.accessTokenDev = response.data.access
+            } else {
+              this.$state.accessTokenProd = response.data.access
+            }
+          }
         })
-        return refreshResponse
       } catch (refreshError: any) {
-        this.$state.accessToken = ''
+        if (GlobalStore.$state.isDevEnvironment) {
+          this.$state.accessTokenDev = ""
+        } else {
+          this.$state.accessTokenProd = ""
+        }
         this.$state.userId = ''
       }
+
+      return success
     },
     async testAndRefreshToken() {
       const GlobalStore = useGlobalStore()
@@ -86,5 +108,25 @@ export const useAuthStore = defineStore('auth', {
         }
       }
     },
+    decode() {
+      const GlobalStore = useGlobalStore()
+
+      if (GlobalStore.$state.isDevEnvironment) {
+        if (this.$state.accessTokenDev) {
+          return jwtDecode<CustomJwtPayload>(this.$state.accessTokenDev.toString())
+        }
+      } else {
+        if (this.$state.accessTokenProd) {
+          return jwtDecode<CustomJwtPayload>(this.$state.accessTokenProd.toString())
+        }
+      }
+    },
+    getScopes() {
+      const jwt = this.decode()
+      if (jwt) {
+        return jwt.scopes.split(' ')
+      }
+      return []
+    }
   },
 })

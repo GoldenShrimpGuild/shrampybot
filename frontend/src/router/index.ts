@@ -105,7 +105,7 @@ const routes: Array<RouteRecordRaw> = [
     component: AppLayout,
     children: [
       {
-        name: 'user_list',
+        name: 'users',
         path: '/admin/users',
         meta: {
           nav: {
@@ -139,6 +139,24 @@ const routes: Array<RouteRecordRaw> = [
           },
         },
         component: () => import('../pages/admin/Categories.vue'),
+      },
+      {
+        name: 'tokens',
+        path: '/admin/tokens',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.tokens',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresStaff: false,
+            requiresAdmin: true,
+          },
+        },
+        component: () => import('../pages/admin/Tokens.vue'),
       },
     ],
   },
@@ -274,8 +292,12 @@ const router = createRouter({
 router.beforeEach(async (to: any, from: any, next) => {
   const AuthStore = useAuthStore()
   const UserStore = useUserStore()
+  const GlobalStore = useGlobalStore()
 
-  if (AuthStore.accessToken !== '') {
+  const isDev = GlobalStore.$state.isDevEnvironment
+
+  const accessToken = GlobalStore.$state.isDevEnvironment ? AuthStore.$state.accessTokenDev : AuthStore.$state.accessTokenProd
+  if (accessToken !== '') {
     next()
     return
   }
@@ -283,18 +305,31 @@ router.beforeEach(async (to: any, from: any, next) => {
   // instead of having to check every route record with
   // to.matched.some(record => record.meta.requiresAuth)
   if (to.meta.perms.requiresAuth) {
-    if (AuthStore.accessToken !== '') {
+    if (accessToken !== '') {
       next()
       // next(await validateAndFetchRoute(to))
     } else {
-      // Try refreshing if no accessToken is set.
+      // Try refreshing (twice if needed to get around local vite hosting issue)
+      // if no accessToken is set.
+      await AuthStore.callRefresh()
       await AuthStore.callRefresh()
 
-      // If there's still no accessToken set after calling refresh, route to auth screen
-      if (AuthStore.accessToken === '') {
-        next('/auth/login')
+      if (isDev) {
+        // If there's still no accessToken set after calling refresh, route to auth screen
+        if (AuthStore.$state.accessTokenDev === '') {
+          console.log("Triggered return to login screen.")
+          next('/auth/login')
+        } else {
+          next()
+        }
       } else {
-        next()
+        // If there's still no accessToken set after calling refresh, route to auth screen
+        if (AuthStore.$state.accessTokenProd === '') {
+          console.log("Triggered return to login screen.")
+          next('/auth/login')
+        } else {
+          next()
+        }
       }
     }
     return
@@ -309,13 +344,13 @@ export const validateAndFetchRoute = async (route_path: any) => {
   const UserStore = useUserStore()
   const GlobalStore = useGlobalStore()
 
-  const path = '/auth/self'
+  const path = '/auth/touch'
 
   const axiosConfig = AuthStore.getAxiosConfig()
 
   try {
     const bearerResponse = await axios.get(path, axiosConfig)
-    UserStore.$state.self = bearerResponse.data.self
+    // UserStore.$state.self = bearerResponse.data.self
   } catch (error: any) {
     if (error.response.status in [400, 401]) {
       const refresh_path = '/token/refresh/'
@@ -332,17 +367,29 @@ export const validateAndFetchRoute = async (route_path: any) => {
             },
           },
         )
-        AuthStore.$state.accessToken = refreshResponse.data.access
+        if (GlobalStore.isDevEnvironment) {
+          AuthStore.$state.accessTokenDev = refreshResponse.data.access
+        } else {
+          AuthStore.$state.accessTokenProd = refreshResponse.data.access
+        }
         route_path = await validateAndFetchRoute(route_path)
       } catch (refreshError: any) {
-        AuthStore.$state.accessToken = ''
+        if (GlobalStore.isDevEnvironment) {
+          AuthStore.$state.accessTokenDev = ''
+        } else {
+          AuthStore.$state.accessTokenProd = ''
+        }
         route_path = {
           name: 'login',
           path: '/auth/login',
         } as RouteRecordRaw
       }
     } else if (error.response.status == 500) {
-      AuthStore.$state.accessToken = ''
+      if (GlobalStore.isDevEnvironment) {
+        AuthStore.$state.accessTokenDev = ''
+      } else {
+        AuthStore.$state.accessTokenProd = ''
+      }
       route_path = {
         name: 'login',
         path: '/auth/login',
