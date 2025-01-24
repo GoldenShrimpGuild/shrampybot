@@ -7,6 +7,7 @@ import (
 	"shrampybot/connector/discord"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -49,15 +50,17 @@ func AuthController(route *router.Route) *router.Response {
 	return resp
 }
 
-func generateAccessToken(oauth *nosqldb.OAuthDatum) (string, error) {
+func generateAccessToken(oauth *nosqldb.OAuthDatum, scopes []string) (string, error) {
 	// Generate jwt accessToken
 	accessTokenRaw := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss": config.BotName,
-		"sub": "access",
-		"kid": oauth.Id,
+		"aud": "access",
+		"sub": oauth.Id,
+		"kid": "0",
 		"iat": time.Now().Unix(),
 		// Access token lasts for 10 minutes
-		"exp": time.Now().Add(10 * time.Minute).Unix(),
+		"exp":    time.Now().Add(10 * time.Minute).Unix(),
+		"scopes": strings.Join(scopes, " "),
 	})
 	return accessTokenRaw.SignedString([]byte(oauth.SecretKey))
 }
@@ -66,12 +69,14 @@ func generateRefreshToken(oauth *nosqldb.OAuthDatum) (string, error) {
 	// Generate jwt refreshToken
 	refreshTokenRaw := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iss": config.BotName,
-		"sub": "refresh",
-		"kid": oauth.Id,
+		"aud": "refresh",
+		"sub": oauth.Id,
+		"kid": oauth.RefreshUID,
 		"iat": time.Now().Unix(),
 		// Refresh token lasts for 2 weeks
-		"exp": time.Now().Add(336 * time.Hour).Unix(),
-		"jti": oauth.RefreshUID,
+		"exp":    time.Now().Add(336 * time.Hour).Unix(),
+		"jti":    oauth.RefreshUID,
+		"scopes": "auth:refresh auth:logout",
 	})
 	return refreshTokenRaw.SignedString([]byte(oauth.SecretKey))
 }
@@ -92,20 +97,21 @@ func validateRefreshToken(refreshToken string) *jwt.Token {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		// Use kid claim as key to retrieve the OAuth secret from DynamoDB
+		// Use sub claim as key to retrieve the OAuth secret from DynamoDB
 		claims, res := token.Claims.(jwt.MapClaims)
 		if !res {
 			return nil, fmt.Errorf("could not retrieve token claims")
 		}
-		oAuth, err = n.GetOAuth(claims["kid"].(string))
+		oAuth, err = n.GetOAuth(claims["sub"].(string))
 		if err != nil {
+			log.Printf("Error retrieving OAuth for subject %v: %v\n", claims["sub"].(string), err)
 			return nil, err
 		}
 
 		return []byte(oAuth.SecretKey), nil
 	})
 	if err != nil {
-		log.Println("Signature check for JWT failed.")
+		log.Printf("Signature check for JWT failed: %v\n", err)
 		return nil
 	}
 	if !token.Valid {
@@ -119,7 +125,7 @@ func validateRefreshToken(refreshToken string) *jwt.Token {
 	if claims["iss"] != config.BotName {
 		return nil
 	}
-	if claims["sub"] != "refresh" {
+	if claims["aud"] != "refresh" {
 		return nil
 	}
 

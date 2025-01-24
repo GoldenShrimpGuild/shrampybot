@@ -1,10 +1,12 @@
 package discord
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"shrampybot/config"
 	"shrampybot/utility"
+	"slices"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -90,4 +92,53 @@ func (c *BotClient) Post(msg string, image *utility.Image) (*utility.PostRespons
 	)
 
 	return postResponse, nil
+}
+
+func (c *BotClient) UserIsAdmin(id string) bool {
+	membership, err := c.GetGuildMember(id)
+	if err != nil {
+		return false
+	}
+	if slices.Contains(membership.Roles, config.DiscordAdminRole) {
+		return true
+	}
+
+	return false
+}
+
+func (c *BotClient) UserIsDev(id string) bool {
+	membership, err := c.GetGuildMember(id)
+	if err != nil {
+		return false
+	}
+	if slices.Contains(membership.Roles, config.DiscordDevRole) {
+		return true
+	}
+
+	return false
+}
+
+func (c *BotClient) LocalScopesFromMembership(id string) ([]string, error) {
+	// determine scopes
+	scopes := []string{}
+	membership, err := c.GetGuildMember(id)
+	if err != nil {
+		log.Printf("Error retrieving scopes for user %v: %v\n", id, err)
+		return scopes, err
+	}
+	if membership != nil {
+		scopes = append(scopes, "login")
+		scopes = append(scopes, "self")
+		if slices.Contains(membership.Roles, config.DiscordDevRole) {
+			scopes = append(scopes, "dev")
+		}
+		if slices.Contains(membership.Roles, config.DiscordAdminRole) {
+			scopes = append(scopes, "admin")
+		}
+	}
+	if len(scopes) == 0 {
+		log.Printf("No membership on the Discord found for user %v.\n", id)
+		return scopes, errors.New("no membership found for user")
+	}
+	return scopes, nil
 }

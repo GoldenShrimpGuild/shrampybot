@@ -8,7 +8,6 @@ import (
 	"shrampybot/utility/nosqldb"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type SelfView struct {
@@ -57,13 +56,8 @@ func (v *SelfView) Get(route *router.Route) *router.Response {
 		return response
 	}
 	// Get token object, defined when CheckingAuthorizationJWT above
-	token := route.Router.Event.Token
-	claims, res := token.Claims.(jwt.MapClaims)
-	if !res {
-		log.Println("Failed to map JWT claims.")
-		response.StatusCode = "500"
-		return response
-	}
+	// token := route.Router.Event.Token
+	claims := route.Router.Event.Claims
 
 	// Instantiate DynamoDB
 	n, err := nosqldb.NewClient()
@@ -72,7 +66,7 @@ func (v *SelfView) Get(route *router.Route) *router.Response {
 		return response
 	}
 
-	dOAuth, err := n.GetDiscordOAuth(claims["kid"].(string))
+	dOAuth, err := n.GetDiscordOAuth(claims["sub"].(string))
 	if err != nil {
 		log.Printf("Could not get Discord OAuth record")
 		response.StatusCode = "500"
