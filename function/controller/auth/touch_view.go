@@ -6,8 +6,6 @@ import (
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
 	"strings"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type TouchView struct {
@@ -59,13 +57,7 @@ func (v *TouchView) Get(route *router.Route) *router.Response {
 		return response
 	}
 	// Get token object, defined when CheckingAuthorizationJWT above
-	token := route.Router.Event.Token
-	claims, res := token.Claims.(jwt.MapClaims)
-	if !res {
-		log.Println("Failed to map JWT claims.")
-		response.StatusCode = "500"
-		return response
-	}
+	claims := route.Router.Event.Claims
 
 	// Instantiate DynamoDB
 	n, err := nosqldb.NewClient()
@@ -74,12 +66,12 @@ func (v *TouchView) Get(route *router.Route) *router.Response {
 		return response
 	}
 
-	oAuth, err := n.GetOAuth(claims["kid"].(string))
+	oAuth, err := n.GetOAuth(claims["sub"].(string))
 	if err != nil {
 		response.StatusCode = "500"
 		return response
 	}
-	body.UserId = claims["kid"].(string)
+	body.UserId = claims["sub"].(string)
 
 	if strings.Contains(oAuth.RefreshUID, "REVOKED") {
 		response.StatusCode = "401"

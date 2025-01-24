@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"shrampybot/connector/discord"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
 	"time"
@@ -90,7 +91,7 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	oAuth, err := n.GetOAuth(claims["kid"].(string))
+	oAuth, err := n.GetOAuth(claims["sub"].(string))
 	if err != nil {
 		response.StatusCode = "500"
 		return response
@@ -103,7 +104,21 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	accessToken, err := generateAccessToken(oAuth)
+	// Connect to discord with GSG bot credentials
+	dc, err := discord.NewBotClient()
+	if err != nil {
+		response.StatusCode = "500"
+		return response
+	}
+
+	scopes, err := dc.LocalScopesFromMembership(claims["sub"].(string))
+	if err != nil {
+		log.Printf("No scopes could be built for user %v: %v\n", claims["sub"].(string), err)
+		response.StatusCode = "403"
+		return response
+	}
+
+	accessToken, err := generateAccessToken(oAuth, scopes)
 	if err != nil {
 		log.Printf("Could not generate access token: %v\n", err)
 		response.StatusCode = "500"

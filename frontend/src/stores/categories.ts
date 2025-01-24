@@ -3,8 +3,7 @@ import { CategoryDatum } from '../../model/utility/nosqldb'
 // import { User as DiscordUser } from '../../model/lib/discordgo'
 // import { SelfResponseBody as User } from '../../model/controller/auth'
 import { useAuthStore } from './auth'
-import axios from 'axios'
-import { AxiosResponse } from 'axios'
+import { useAxios } from '../plugins/axios'
 import { forEach } from 'lodash'
 
 export const useCategoryStore = defineStore('categories', {
@@ -16,21 +15,14 @@ export const useCategoryStore = defineStore('categories', {
   actions: {
     async fetchCategories() {
       const AuthStore = useAuthStore()
-
       const category_path = '/admin/category'
-      const axiosConfig = AuthStore.getAxiosConfig()
+      const axios = useAxios()
 
       const bearerResponse = axios.get(
-        category_path,
-        axiosConfig)
+        category_path)
         .then((response) => {
           if (response.status === 200) {
             this.$state.categories = response.data.data
-          }
-        })
-        .catch((err: any) => {
-          if (err.response.status === 401) {
-            AuthStore.callRefresh()
           }
         })
       return bearerResponse
@@ -39,12 +31,11 @@ export const useCategoryStore = defineStore('categories', {
       const AuthStore = useAuthStore()
 
       const category_path = '/admin/category'
-      const axiosConfig = AuthStore.getAxiosConfig()
+      const axios = useAxios()
 
       const bearerResponse = axios.put(
         category_path,
-        cat,
-        axiosConfig)
+        cat)
       .then((response) => {
         if (response.status === 200) {
           var foundItem = false
@@ -66,22 +57,16 @@ export const useCategoryStore = defineStore('categories', {
           }
         }
       })
-      .catch((err: any) => {
-        if (err.response.status === 401) {
-          AuthStore.callRefresh()
-        }
-      })
       return bearerResponse as unknown
     },
     async deleteCategory(id: string) {
       const AuthStore = useAuthStore()
 
       const category_path = '/admin/category/' + id
-      const axiosConfig = AuthStore.getAxiosConfig()
+      const axios = useAxios()
 
       const bearerResponse = axios.delete(
-        category_path,
-        axiosConfig)
+        category_path)
       .then((response) => {
         if (response.status === 200) {
           var copyList = this.$state.categories
@@ -92,11 +77,6 @@ export const useCategoryStore = defineStore('categories', {
               this.$state.categories.push(item)
             }
           })
-        }
-      })
-      .catch((err: any) => {
-        if (err.response.status === 401) {
-          AuthStore.callRefresh()
         }
       })
       return bearerResponse as unknown

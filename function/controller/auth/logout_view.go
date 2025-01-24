@@ -86,7 +86,7 @@ func (v *LogoutView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	oAuth, err := n.GetOAuth(claims["kid"].(string))
+	oAuth, err := n.GetOAuth(claims["sub"].(string))
 	if err != nil {
 		response.StatusCode = "500"
 		return response

@@ -144,7 +144,22 @@ func (v *ValidateView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	accessToken, err := generateAccessToken(sbOAuth)
+	// Connect to discord with GSG bot credentials
+	dc, err := discord.NewBotClient()
+	if err != nil {
+		response.StatusCode = "500"
+		return response
+	}
+
+	// Determine JWT scopes
+	scopes, err := dc.LocalScopesFromMembership(user.ID)
+	if err != nil {
+		log.Printf("No scopes could be built for user %v: %v\n", user.ID, err)
+		response.StatusCode = "403"
+		return response
+	}
+
+	accessToken, err := generateAccessToken(sbOAuth, scopes)
 	if err != nil {
 		log.Printf("Could not generate access token: %v\n", err)
 		response.StatusCode = "500"

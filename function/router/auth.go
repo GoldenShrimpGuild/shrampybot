@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/exp/slices"
 )
 
 func (e *Event) CheckAuthorizationStatic() bool {
@@ -36,6 +37,7 @@ func (e *Event) CheckAuthorizationStatic() bool {
 
 func (e *Event) CheckAuthorizationJWT() bool {
 	var oAuth *nosqldb.OAuthDatum
+	var static *nosqldb.StaticTokenDatum
 	var claims jwt.MapClaims
 
 	log.Println("Checking Bearer Authorization (JWT)...")
@@ -60,18 +62,31 @@ func (e *Event) CheckAuthorizationJWT() bool {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
-		// Use kid claim as key to retrieve the OAuth secret from DynamoDB
+		// Use sub claim as key to retrieve the OAuth secret from DynamoDB
 		claims, res := token.Claims.(jwt.MapClaims)
 		if !res {
 			return nil, fmt.Errorf("could not retrieve token claims")
 		}
-		oAuth, err = n.GetOAuth(claims["kid"].(string))
-		if err != nil {
-			log.Printf("Could not retrieve OAuth detail for kid %v\n", claims["kid"])
-			return nil, err
+		if claims["aud"].(string) == "access" {
+			// check if this is an OAuth token
+			oAuth, err = n.GetOAuth(claims["sub"].(string))
+			if err != nil {
+				log.Printf("Could not retrieve OAuth detail for sub %v\n", claims["sub"])
+				return nil, err
+			}
+			return []byte(oAuth.SecretKey), nil
+
+		} else if claims["aud"].(string) == "static" {
+			// check if this is a static token
+			static, err = n.GetStaticToken(claims["sub"].(string))
+			if err != nil {
+				log.Printf("Could not retrieve Static detail for sub %v\n", claims["sub"])
+				return nil, err
+			}
+			return []byte(static.SecretKey), nil
 		}
 
-		return []byte(oAuth.SecretKey), nil
+		return nil, err
 	})
 	if err != nil {
 		log.Printf("Signature check for JWT failed: %v\n", err)
@@ -88,14 +103,20 @@ func (e *Event) CheckAuthorizationJWT() bool {
 	if claims["iss"] != config.BotName {
 		return false
 	}
-	if claims["sub"] != "access" {
+	if claims["aud"] != "access" && claims["aud"] != "static" {
 		return false
 	}
 	if time.Unix(int64(claims["exp"].(float64)), 0).Before(time.Now()) {
 		return false
 	}
+	scopes := strings.Split(claims["scopes"].(string), " ")
+	if !slices.Contains(scopes, "login") {
+		return false
+	}
 
 	e.Token = token
+	e.Claims = claims
+	e.Scopes = scopes
 	return true
 }
 

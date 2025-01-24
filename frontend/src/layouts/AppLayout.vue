@@ -45,12 +45,12 @@ const AuthStore = useAuthStore()
 const GlobalStore = useGlobalStore()
 const UserStore = useUserStore()
 
-const Router = useRouter()
+const router = useRouter()
 
 const breakpoints = useBreakpoint()
 
 const sidebarWidth = ref('16rem')
-const sidebarMinimizedWidth = ref(undefined)
+const sidebarMinimizedWidth = ref('')
 
 const isMobile = ref(false)
 const isTablet = ref(false)
@@ -66,31 +66,31 @@ const onResize = () => {
 
 const time = Date.now()
 const timer = useTimer(time)
-const heartbeatTimerRestart = async () => {
-  // Monitor the current state of the authorization and refresh if it needs it
-  await AuthStore.testAndRefreshToken()
+// const heartbeatTimerRestart = async () => {
+//   // Monitor the current state of the authorization and refresh if it needs it
+//   await AuthStore.testAndRefreshToken()
 
-  const time = Date.now()
-  timer.restart(time + 60000)
-}
+//   const time = Date.now()
+//   timer.restart(time + 60000)
+// }
 
-onBeforeMount(() => {
-  watchEffect(async () => {
-    if (timer.isExpired.value) {
-      await heartbeatTimerRestart()
-    }
-  })
-})
+// onBeforeMount(() => {
+//   watchEffect(async () => {
+//     if (timer.isExpired.value) {
+//       await heartbeatTimerRestart()
+//     }
+//   })
+// })
 
 watch(isDevEnvironment, async (newValue, oldValue) => {
-  UserStore.fetchSelf()
+  // router.go(0)
 })
 
 onMounted(async () => {
-  if (!UserStore.$state.self?.id) {
-    await UserStore.fetchSelf()
-    console.log(UserStore.$state.self)
-  }
+  // if (!UserStore.$state.self?.id) {
+  //   await UserStore.fetchSelf()
+  //   console.log(UserStore.$state.self)
+  // }
 
   window.addEventListener('resize', onResize)
   onResize()

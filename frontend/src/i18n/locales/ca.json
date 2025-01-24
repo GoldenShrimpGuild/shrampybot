@@ -22,7 +22,8 @@
     "ml_spreadsheet_comment": "Unlike the Google Sheets master list, this list is indexed by TwitchID/TwitchLogin rather than Artist Name, so there are no duplicate rows for a given Twitch channel. Only one artist name for each Twitch ID in the actual spreadsheet is included at present.",
     "spreadsheet": "Adapted Spreadsheet",
     "social_map": "User Social Map",
-    "categories": "Stream Categories and Hashtags"
+    "categories": "Stream Categories and Hashtags",
+    "tokens": "Token and Access Management"
   },
   "404": {
     "title": "This page’s gone fishing.",

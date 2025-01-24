@@ -59,5 +59,9 @@ type Event struct {
 	Name            string          `json:"name"`
 	Body            string          `json:"body"`
 	RawQueryString  string          `json:"rawQueryString"`
-	Token           *jwt.Token      `json:"-"`
+	// These three are populated only through validating a JWT:
+	// (Not available on unauthenticated controllers)
+	Token  *jwt.Token    `json:"-"`
+	Claims jwt.MapClaims `json:"-"`
+	Scopes []string      `json:"-"`
 }

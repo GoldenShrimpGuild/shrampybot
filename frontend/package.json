@@ -36,6 +36,7 @@
     "epic-spinners": "^2.0.0",
     "flag-icons": "^6.15.0",
     "ionicons": "^4.6.3",
+    "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "medium-editor": "^5.23.3",
     "pinia": "^2.3.0",

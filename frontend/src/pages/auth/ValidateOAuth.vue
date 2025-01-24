@@ -96,18 +96,17 @@ const getQueryParams = async () => {
     .then(async (response) => {
       oauth_progress.value = 100
       progress_title.value = t('auth.title_oauth_synchronizing')
-      AuthStore.$state.accessToken = response.data.access
+      if (GlobalStore.$state.isDevEnvironment) {
+        AuthStore.$state.accessTokenDev = response.data.access
+      } else {
+        AuthStore.$state.accessTokenProd = response.data.access
+      }
     })
     .catch((reason) => {
       encountered_error(reason)
     })
 
-    await UserStore.fetchSelf()
-    if (!UserStore.isGSGMember()) {
-      router.replace({ name: 'logout'})
-    } else {
-      router.push({ name: 'streams' })
-    }
+    router.push({ name: 'streams' })
 }
 
 const encountered_error = async (reason: any) => {
