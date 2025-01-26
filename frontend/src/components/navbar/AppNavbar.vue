@@ -1,5 +1,5 @@
 <template>
-  <VaNavbar class="app-layout-navbar py-2 px-0" :class="GlobalStore.$state.isDevEnvironment ? 'va-navbar-dev no-animate' : ''">
+  <VaNavbar class="app-layout-navbar py-2 px-0" :class="isDevEnvironment ? 'va-navbar-dev no-animate' : ''">
     <template #left>
       <div class="left">
         <Transition v-if="isMobile" name="icon-fade" mode="out-in">
@@ -35,6 +35,7 @@
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
 import { useUserStore } from '../../stores/user'
+import { useAuthStore } from '../../stores/auth'
 import AppNavbarActions from './components/AppNavbarActions.vue'
 import ShrampybotLogo from '../logos/ShrampybotLogo.vue'
 import { VaSpacer } from 'vuestic-ui'
@@ -49,11 +50,12 @@ const UserStore = useUserStore()
 const GlobalStore = useGlobalStore()
 const { isSidebarMinimized, isDevEnvironment } = storeToRefs(GlobalStore)
 
-// watch(isDevEnvironment, async (newValue, oldValue) => {
-//   if (newValue === false) {
-//     AuthStore.testAndRefreshToken()
-//   }
-// })
+watch(isDevEnvironment, (newValue, oldValue) => {
+  const AuthStore = useAuthStore()
+  if (!AuthStore.getAccessToken() ) {
+    router.go(0)
+  }
+})
 
 </script>
 

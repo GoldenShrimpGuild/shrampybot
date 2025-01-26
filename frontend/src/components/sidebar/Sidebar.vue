@@ -107,8 +107,8 @@ const visibleNavRoutes = (items: INavigationRoute[] | undefined) => {
   if (items) {
     items.forEach((item) => {
       if (!item.meta.nav.hidden && !item.meta.nav.disabled) {
-        if (item.meta.perms.requiresAdmin) {
-          if (UserStore.isAdmin()) {
+        if (item.meta.perms.requiresAuth) {
+          if (UserStore.scopeMatch(item.meta.perms.requiresScopes)) {
             viz.push(item)
           }
         } else {

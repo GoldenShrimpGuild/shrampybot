@@ -74,7 +74,8 @@
     "admin": "Admin",
     "social_map": "Social Map",
     "user_list": "User List",
-    "categories": "Categories"
+    "categories": "Categories",
+    "tokens": "Tokens and Access"
   },
   "messages": {
     "all": "See all messages",

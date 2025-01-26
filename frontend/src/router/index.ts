@@ -20,8 +20,7 @@ export interface INavigationRoute {
     }
     perms: {
       requiresAuth?: boolean
-      requiresStaff?: boolean
-      requiresAdmin?: boolean
+      requiresScopes: string[]
     }
   }
   redirect?: object
@@ -41,9 +40,8 @@ const routes: Array<RouteRecordRaw> = [
         hidden: false,
       },
       perms: {
-        requiresAuth: false,
-        requiresStaff: false,
-        requiresAdmin: false,
+        requiresAuth: true,
+        requiresScopes: [],
       },
     },
     component: AppLayout,
@@ -60,8 +58,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresStaff: false,
-            requiresAdmin: false,
+            requiresScopes: [],
           },
         },
         component: () => import('../pages/public/ActiveStreams.vue'),
@@ -98,8 +95,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       perms: {
         requiresAuth: false,
-        requiresStaff: false,
-        requiresAdmin: true,
+        requiresScopes: ['admin'],
       },
     },
     component: AppLayout,
@@ -116,8 +112,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresStaff: false,
-            requiresAdmin: true,
+            requiresScopes: ['admin:users'],
           },
         },
         component: () => import('../pages/admin/UserList.vue'),
@@ -134,8 +129,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresStaff: false,
-            requiresAdmin: true,
+            requiresScopes: ['admin:categories']
           },
         },
         component: () => import('../pages/admin/Categories.vue'),
@@ -152,8 +146,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresStaff: false,
-            requiresAdmin: true,
+            requiresScopes: ['admin:tokens']
           },
         },
         component: () => import('../pages/admin/Tokens.vue'),
@@ -171,8 +164,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       perms: {
         requiresAuth: false,
-        requiresStaff: false,
-        requiresAdmin: false,
+        requiresScopes: [],
       },
     },
     component: AuthLayout,
@@ -189,8 +181,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: false,
-            requiresStaff: false,
-            requiresAdmin: false,
+            requiresScopes: [],
           },
         },
         component: () => import('../pages/auth/Login.vue'),
@@ -207,8 +198,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresStaff: false,
-            requiresAdmin: false,
+            requiresScopes: [],
           },
         },
         component: () => import('../pages/auth/Logout.vue'),
@@ -225,8 +215,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: false,
-            requiresStaff: false,
-            requiresAdmin: false,
+            requiresScopes: [],
           },
         },
         component: () => import('../pages/auth/ValidateOAuth.vue'),
@@ -242,8 +231,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: false,
-            requiresStaff: false,
-            requiresAdmin: false,
+            requiresScopes: [],
           },
         },
         redirect: { name: 'login' },
@@ -263,8 +251,7 @@ const routes: Array<RouteRecordRaw> = [
       },
       perms: {
         requiresAuth: false,
-        requiresStaff: false,
-        requiresAdmin: false,
+        requiresScopes: [],
       },
     },
   },
@@ -296,7 +283,7 @@ router.beforeEach(async (to: any, from: any, next) => {
 
   const isDev = GlobalStore.$state.isDevEnvironment
 
-  const accessToken = GlobalStore.$state.isDevEnvironment ? AuthStore.$state.accessTokenDev : AuthStore.$state.accessTokenProd
+  const accessToken = AuthStore.getAccessToken()
   if (accessToken !== '') {
     next()
     return
@@ -305,8 +292,10 @@ router.beforeEach(async (to: any, from: any, next) => {
   // instead of having to check every route record with
   // to.matched.some(record => record.meta.requiresAuth)
   if (to.meta.perms.requiresAuth) {
-    if (accessToken !== '') {
-      next()
+    if (accessToken !== '' && AuthStore.getScopes() !== null) {
+      if (UserStore.scopeMatch(to.meta.perms.requiresScopes)) {
+        next()
+      }
       // next(await validateAndFetchRoute(to))
     } else {
       // Try refreshing (twice if needed to get around local vite hosting issue)
@@ -314,27 +303,17 @@ router.beforeEach(async (to: any, from: any, next) => {
       await AuthStore.callRefresh()
       await AuthStore.callRefresh()
 
-      if (isDev) {
-        // If there's still no accessToken set after calling refresh, route to auth screen
-        if (AuthStore.$state.accessTokenDev === '') {
-          console.log("Triggered return to login screen.")
-          next('/auth/login')
-        } else {
-          next()
-        }
+      // If there's still no accessToken set after calling refresh, route to auth screen
+      if (AuthStore.getAccessToken() === '') {
+        console.log("Triggered return to login screen.")
+        next('/auth/login')
       } else {
-        // If there's still no accessToken set after calling refresh, route to auth screen
-        if (AuthStore.$state.accessTokenProd === '') {
-          console.log("Triggered return to login screen.")
-          next('/auth/login')
-        } else {
+        if (UserStore.scopeMatch(to.meta.perms.requiresScopes)) {
           next()
         }
       }
     }
     return
-    // this route requires auth, check if logged in
-    // if not, redirect to login page.
   }
   next()
 })
@@ -367,29 +346,17 @@ export const validateAndFetchRoute = async (route_path: any) => {
             },
           },
         )
-        if (GlobalStore.isDevEnvironment) {
-          AuthStore.$state.accessTokenDev = refreshResponse.data.access
-        } else {
-          AuthStore.$state.accessTokenProd = refreshResponse.data.access
-        }
+        AuthStore.setAccessToken(refreshResponse.data.access)
         route_path = await validateAndFetchRoute(route_path)
       } catch (refreshError: any) {
-        if (GlobalStore.isDevEnvironment) {
-          AuthStore.$state.accessTokenDev = ''
-        } else {
-          AuthStore.$state.accessTokenProd = ''
-        }
+        AuthStore.setAccessToken('')
         route_path = {
           name: 'login',
           path: '/auth/login',
         } as RouteRecordRaw
       }
     } else if (error.response.status == 500) {
-      if (GlobalStore.isDevEnvironment) {
-        AuthStore.$state.accessTokenDev = ''
-      } else {
-        AuthStore.$state.accessTokenProd = ''
-      }
+      AuthStore.setAccessToken('')
       route_path = {
         name: 'login',
         path: '/auth/login',

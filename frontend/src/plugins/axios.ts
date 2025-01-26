@@ -73,7 +73,7 @@ export const useAxios = () => {
             } else {
               AuthStore.$state.accessTokenProd = ''
             }
-            window.location.href = '/auth/login';
+            window.location.href = '/shrampybot/auth/login';
             return Promise.reject(refreshError);
           }
         }
