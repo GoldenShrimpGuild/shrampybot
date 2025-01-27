@@ -23,7 +23,24 @@
     "spreadsheet": "Adapted Spreadsheet",
     "social_map": "User Social Map",
     "categories": "Stream Categories and Hashtags",
-    "tokens": "Token and Access Management"
+    "category": {
+      "addCategory": "Add Category",
+      "edit": "Edit",
+      "editCategory": "Edit Category",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "spaceSeparatedList": "space-separated list",
+      "twitchCategory": "Twitch Category",
+      "twitchCategoryName": "Twitch Category Name",
+      "twitchCategoryRequired": "Twitch category is required",
+      "mastodonTags": "Mastodon Tags",
+      "blueskyTags": "Bluesky Tags",
+      "confirmDelete": "Delete confirmation",
+      "areYouSure": "Are you sure you'd like to delete this category?"
+    },
+    "tokens": "Tokens and Access Management",
+    "filters": "Filters"
   },
   "404": {
     "title": "This page’s gone fishing.",
@@ -73,8 +90,9 @@
     "projects": "Projects",
     "admin": "Admin",
     "social_map": "Social Map",
-    "user_list": "User List",
-    "categories": "Categories"
+    "categories": "Categories",
+    "tokens": "Tokens",
+    "filters": "Filters"
   },
   "messages": {
     "all": "See all messages",

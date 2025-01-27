@@ -23,7 +23,7 @@ div.va-card {
     align-items: top;
     margin-left: 1em;
     font-family: 'Revalia';
-    font-size: 10pt;
+    font-size: 16pt;
   }
 }
 
@@ -115,5 +115,10 @@ transform: none !important;
 -o-animation: none !important;
 -ms-animation: none !important;
 animation: none !important;
+}
+
+.va-list-item-label {
+  color: #FFFFFF;
+  font-weight: bold;
 }
 </style>

@@ -38,6 +38,31 @@ export const useUserStore = defineStore('user', {
     //   })
     //   return bearerResponse
     // },
+    scopeMatch(requiredScopes: string[]) {
+      const AuthStore = useAuthStore()
+      var result = false
+
+      if (requiredScopes.length === 0) {
+        return true
+      }
+
+      forEach(requiredScopes, (reqScope) => {
+        const reqParts = reqScope.split(':')
+
+        forEach(AuthStore.getScopes(), (tokenScope) => {
+          if (reqParts[0] === tokenScope) {
+            result = true
+            return
+          } else if (reqScope == tokenScope) {
+            result = true
+            return
+          }
+        })
+
+        if (result) { return }
+      })
+      return result
+    },
     isAdmin() {
       const AuthStore = useAuthStore()
       var result = false

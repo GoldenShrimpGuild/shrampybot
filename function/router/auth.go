@@ -78,7 +78,7 @@ func (e *Event) CheckAuthorizationJWT() bool {
 
 		} else if claims["aud"].(string) == "static" {
 			// check if this is a static token
-			static, err = n.GetStaticToken(claims["sub"].(string))
+			static, err = n.GetStaticToken(claims["kid"].(string))
 			if err != nil {
 				log.Printf("Could not retrieve Static detail for sub %v\n", claims["sub"])
 				return nil, err

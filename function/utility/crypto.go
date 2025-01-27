@@ -10,14 +10,6 @@ import (
 	"shrampybot/config"
 )
 
-var (
-	ValidStaticTokenScopes = []string{
-		"login",
-		"dev",
-		"admin",
-	}
-)
-
 func GenerateRandomHex(byteLength int) string {
 	secretKey := make([]byte, byteLength)
 	rand.Read(secretKey)

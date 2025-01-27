@@ -17,13 +17,31 @@ export const useAuthStore = defineStore('auth', {
     return { accessTokenDev, accessTokenProd, userServicesStatus, userId }
   },
   actions: {
+    setAccessToken(accessToken: string) {
+      const GlobalStore = useGlobalStore()
+
+      if (GlobalStore.isDevEnvironment) {
+        this.$state.accessTokenDev = accessToken
+      } else {
+        this.$state.accessTokenProd = accessToken
+      }
+    },
+    getAccessToken() {
+      const GlobalStore = useGlobalStore()
+
+      if (GlobalStore.isDevEnvironment) {
+        return this.$state.accessTokenDev
+      } else {
+        return this.$state.accessTokenProd
+      }
+    },
     getAxiosConfig() {
       const GlobalStore = useGlobalStore()
       return {
         baseURL: GlobalStore.getApiBaseUrl(),
         withCredentials: true,
         headers: {
-          Authorization: `Bearer ${GlobalStore.$state.isDevEnvironment ? this.$state.accessTokenDev : this.$state.accessTokenProd }`,
+          Authorization: `Bearer ${ this.getAccessToken() }`,
           'Content-Type': 'application/json',
         },
       } as AxiosRequestConfig
@@ -39,11 +57,7 @@ export const useAuthStore = defineStore('auth', {
         {},
         axiosConfig)
       .then((response) => {
-        if (GlobalStore.$state.isDevEnvironment) {
-          this.$state.accessTokenDev = ""
-        } else {
-          this.$state.accessTokenProd = ""
-        }
+        this.setAccessToken('')
         this.$state.userId = ""
       })
       return bearerResponse
@@ -69,19 +83,11 @@ export const useAuthStore = defineStore('auth', {
           if (response.status === 200) {
             success = true
             this.$state.userId = response.data.user_id
-            if (GlobalStore.$state.isDevEnvironment) {
-              this.$state.accessTokenDev = response.data.access
-            } else {
-              this.$state.accessTokenProd = response.data.access
-            }
+            this.setAccessToken(response.data.access)
           }
         })
       } catch (refreshError: any) {
-        if (GlobalStore.$state.isDevEnvironment) {
-          this.$state.accessTokenDev = ""
-        } else {
-          this.$state.accessTokenProd = ""
-        }
+        this.setAccessToken('')
         this.$state.userId = ''
       }
 
@@ -94,7 +100,7 @@ export const useAuthStore = defineStore('auth', {
       const axiosConfig = this.getAxiosConfig()
 
       try {
-        const bearerResponse = await axios.get(path, axiosConfig)
+        await axios.get(path, axiosConfig)
           .then((response) => {
             if (response.status === 200) {
               this.$state.userId = response.data.user_id
@@ -109,16 +115,10 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     decode() {
-      const GlobalStore = useGlobalStore()
+      const accessToken = this.getAccessToken()
 
-      if (GlobalStore.$state.isDevEnvironment) {
-        if (this.$state.accessTokenDev) {
-          return jwtDecode<CustomJwtPayload>(this.$state.accessTokenDev.toString())
-        }
-      } else {
-        if (this.$state.accessTokenProd) {
-          return jwtDecode<CustomJwtPayload>(this.$state.accessTokenProd.toString())
-        }
+      if (accessToken) {
+        return jwtDecode<CustomJwtPayload>(accessToken.toString())
       }
     },
     getScopes() {

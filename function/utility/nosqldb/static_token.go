@@ -2,16 +2,18 @@ package nosqldb
 
 import (
 	"encoding/json"
+	"fmt"
 	"shrampybot/utility"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 const (
-	staticTokenTableName = "static_token"
+	staticTokenTableName = "static_tokens"
 )
 
 type StaticTokenDatum struct {
@@ -56,6 +58,30 @@ func (n *NoSqlDb) GetStaticToken(id string) (*StaticTokenDatum, error) {
 	return &output, nil
 }
 
+func (n *NoSqlDb) GetStaticTokensNoDecrypt() ([]*StaticTokenDatum, error) {
+	var err error
+
+	fullTableName := n.prefix + staticTokenTableName
+
+	statement := aws.String(
+		fmt.Sprintf("SELECT * FROM \"%v\"", fullTableName),
+	)
+	output := []*StaticTokenDatum{}
+	results, err := n.QueryDB(statement)
+	if err != nil {
+		return output, err
+	}
+	// Manual marshalling to expand tags
+	for _, result := range *results {
+		tempCat := StaticTokenDatum{}
+		tempBytes, _ := json.Marshal(result)
+		json.Unmarshal(tempBytes, &tempCat)
+		output = append(output, &tempCat)
+	}
+
+	return output, nil
+}
+
 func (n *NoSqlDb) PutStaticToken(static *StaticTokenDatum) error {
 	var err error
 	fullTableName := n.prefix + staticTokenTableName
@@ -63,7 +89,7 @@ func (n *NoSqlDb) PutStaticToken(static *StaticTokenDatum) error {
 	// Encrypt secret values to be stored
 	static.SecretKeyEnc, static.SecretKeyIV, _ = utility.EncryptSecret(static.SecretKey)
 
-	tempMap := map[string]string{}
+	tempMap := map[string]any{}
 	tempBytes, _ := json.Marshal(static)
 	json.Unmarshal(tempBytes, &tempMap)
 
