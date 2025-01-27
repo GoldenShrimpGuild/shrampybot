@@ -37,7 +37,7 @@ func (c *UserView) Get(route *router.Route) *router.Response {
 	log.Println("Entered route: Admin.User.Get")
 	response := &router.Response{}
 	response.Headers = &router.DefaultResponseHeaders
-	var logins *[]nosqldb.TwitchUserDatum
+	var logins []*nosqldb.TwitchUserDatum
 
 	// Instantiate DynamoDB
 	n, err := nosqldb.NewClient()
@@ -56,7 +56,7 @@ func (c *UserView) Get(route *router.Route) *router.Response {
 	}
 
 	body := map[string]any{}
-	body["count"] = len(*logins)
+	body["count"] = len(logins)
 	body["data"] = logins
 	bodyBytes, _ := json.Marshal(body)
 

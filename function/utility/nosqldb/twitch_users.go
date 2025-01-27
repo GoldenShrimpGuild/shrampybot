@@ -115,6 +115,48 @@ func (n *NoSqlDb) GetTwitchUser(id string) (*TwitchUserDatum, error) {
 	return &output, nil
 }
 
+func (n *NoSqlDb) GetTwitchIdLoginMap() (map[string]string, error) {
+	var err error
+	fullTableName := n.prefix + twitchUsersTableName
+	statement := aws.String(
+		fmt.Sprintf("SELECT id,login FROM \"%v\"", fullTableName),
+	)
+	output := map[string]string{}
+	result, err := n.QueryDB(statement)
+	if err != nil {
+		return output, err
+	}
+
+	for _, tu := range *result {
+		tempId := objx.New(tu).Get("id")
+		tempLogin := objx.New(tu).Get("login")
+		output[tempId.Str()] = tempLogin.Str()
+	}
+
+	return output, nil
+}
+
+func (n *NoSqlDb) GetTwitchLoginIdMap() (map[string]string, error) {
+	var err error
+	fullTableName := n.prefix + twitchUsersTableName
+	statement := aws.String(
+		fmt.Sprintf("SELECT id,login FROM \"%v\"", fullTableName),
+	)
+	output := map[string]string{}
+	result, err := n.QueryDB(statement)
+	if err != nil {
+		return output, err
+	}
+
+	for _, tu := range *result {
+		tempId := objx.New(tu).Get("id")
+		tempLogin := objx.New(tu).Get("login")
+		output[tempLogin.Str()] = tempId.Str()
+	}
+
+	return output, nil
+}
+
 func (n *NoSqlDb) GetActiveTwitchIds() (*[]string, error) {
 	var err error
 	fullTableName := n.prefix + twitchUsersTableName
@@ -177,26 +219,26 @@ func (n *NoSqlDb) GetActiveTwitchUsers() (*[]TwitchUserDatum, error) {
 	return &output, nil
 }
 
-func (n *NoSqlDb) GetTwitchUsers() (*[]TwitchUserDatum, error) {
+func (n *NoSqlDb) GetTwitchUsers() ([]*TwitchUserDatum, error) {
 	var err error
 	fullTableName := n.prefix + twitchUsersTableName
 	statement := aws.String(
 		fmt.Sprintf("SELECT * FROM \"%v\"", fullTableName),
 	)
-	output := []TwitchUserDatum{}
+	output := []*TwitchUserDatum{}
 	results, err := n.QueryDB(statement)
 	if err != nil {
-		return &output, err
+		return output, err
 	}
 	// Manual marshalling to expand tags
 	for _, result := range *results {
 		tempCat := TwitchUserDatum{}
 		tempBytes, _ := json.Marshal(result)
 		json.Unmarshal(tempBytes, &tempCat)
-		output = append(output, tempCat)
+		output = append(output, &tempCat)
 	}
 
-	return &output, nil
+	return output, nil
 }
 
 func (n *NoSqlDb) PutTwitchUser(user *TwitchUserDatum) error {
