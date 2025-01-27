@@ -34,6 +34,16 @@ const scopeSelector = ref([
         disabled: false,
     },
     {
+        text: 'gsg',
+        value: 'gsg',
+        disabled: false,
+    },
+    {
+        text: 'gsg:streamer',
+        value: 'gsg:streamer',
+        disabled: false,
+    },
+    {
         text: 'admin',
         value: 'admin',
         disabled: false,
@@ -41,6 +51,11 @@ const scopeSelector = ref([
     {
         text: 'admin:categories',
         value: 'admin:categories',
+        disabled: false
+    },
+    {
+        text: 'admin:collection',
+        value: 'admin:collection',
         disabled: false
     },
     {
@@ -58,6 +73,14 @@ const scopeSelector = ref([
 const toggleNarrowAdminScopes = (enabled: Boolean) => {
     forEach(scopeSelector.value, (scope) => {
         if (scope.value.startsWith('admin:')) {
+            scope.disabled = !enabled
+        }
+    })
+}
+
+const toggleNarrowGSGScopes = (enabled: Boolean) => {
+    forEach(scopeSelector.value, (scope) => {
+        if (scope.value.startsWith('gsg:')) {
             scope.disabled = !enabled
         }
     })
@@ -92,12 +115,16 @@ const dateValidationRules = [
 watch(addModalForm.value, (newVal) => {
     var adminSelected = false
     var devSelected = false
+    var gsgSelected = false
 
     const dupeScopes = []
 
     forEach(newVal.scopes, (selectedScope) => {
         if (selectedScope.value == 'admin') {
             adminSelected = true
+        }
+        if (selectedScope.value == 'gsg') {
+            gsgSelected = true
         }
         if (selectedScope.value == 'dev') {
             devSelected = true
@@ -108,6 +135,12 @@ watch(addModalForm.value, (newVal) => {
         toggleNarrowAdminScopes(false)
     } else {
         toggleNarrowAdminScopes(true)
+    }
+
+    if (gsgSelected) {
+        toggleNarrowGSGScopes(false)
+    } else {
+        toggleNarrowGSGScopes(true)
     }
 
     if (devSelected) {

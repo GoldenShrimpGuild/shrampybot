@@ -38,8 +38,6 @@ func (v *LogoutView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
-	case "OPTIONS":
-		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")

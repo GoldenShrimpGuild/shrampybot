@@ -32,8 +32,6 @@ func (v *CollectionView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
-	case "OPTIONS":
-		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
@@ -96,7 +94,7 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 	}
 
 	storedUsers, err := n.GetTwitchUsers()
-	if err != nil || len(*storedUsers) == 0 {
+	if err != nil || len(storedUsers) == 0 {
 		log.Println("Exited route abnormally: Collection.Patch")
 		response.StatusCode = "500"
 		return response
@@ -109,7 +107,7 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 	for _, u := range *teamUsers {
 		foundStoredUser := false
 
-		for _, su := range *storedUsers {
+		for _, su := range storedUsers {
 			if u.ID == su.ID {
 				foundStoredUser = true
 				// Update changeable fields from Twitch
@@ -122,7 +120,7 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 				su.MastodonUserId = u.MastodonUserId
 				su.ShrampybotActive = true
 
-				intersectUsers = append(intersectUsers, &su)
+				intersectUsers = append(intersectUsers, su)
 				break
 			}
 		}
@@ -133,7 +131,7 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 		}
 	}
 
-	for _, su := range *storedUsers {
+	for _, su := range storedUsers {
 		foundTeamUser := false
 
 		for _, tu := range *teamUsers {
@@ -144,7 +142,7 @@ func (c *CollectionView) Patch(route *router.Route) *router.Response {
 
 		if !foundTeamUser {
 			su.ShrampybotActive = false
-			diffUsers = append(diffUsers, &su)
+			diffUsers = append(diffUsers, su)
 		}
 	}
 

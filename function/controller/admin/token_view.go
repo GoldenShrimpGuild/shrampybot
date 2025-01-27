@@ -14,17 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var (
-	validStaticTokenScopes = []string{
-		"login",
-		"dev",
-		"admin",
-		"admin:users",
-		"admin:categories",
-		"admin:tokens",
-	}
-)
-
 type TokenView struct {
 	router.View `tstype:",extends,required"`
 }
@@ -72,8 +61,6 @@ func (v *TokenView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
-	case "OPTIONS":
-		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
@@ -125,13 +112,6 @@ func (v *TokenView) Post(route *router.Route) *router.Response {
 
 	claims := route.Router.Event.Claims
 
-	// Disallow static tokens from provisioning static tokens
-	if claims["aud"] == "static" {
-		log.Println("Cannot use a static token to provision as static token.")
-		response.StatusCode = "403"
-		return response
-	}
-
 	who := claims["sub"].(string)
 
 	// Parse submitted category data
@@ -146,7 +126,7 @@ func (v *TokenView) Post(route *router.Route) *router.Response {
 	// Validate scopes and assemble new list
 	validScopes := []string{}
 	for _, scope := range requestBody.Scopes {
-		if slices.Contains(validStaticTokenScopes, scope) {
+		if slices.Contains(utility.ValidStaticTokenScopes, scope) {
 			validScopes = append(validScopes, scope)
 		}
 	}
