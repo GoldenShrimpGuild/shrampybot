@@ -14,14 +14,14 @@ const { t } = useI18n()
 const addEditModalShow = ref(false)
 const deleteModalShow = ref(false)
 const addEditModalForm = ref({
-    id: "" as String | undefined,
-    twitch_category: "",
-    mastodon_tag_entry: "",
+    id: '' as String | undefined,
+    twitch_category: '',
+    mastodon_tag_entry: '',
     mastodon_tags: [] as string[] | undefined,
-    bluesky_tag_entry: "",
+    bluesky_tag_entry: '',
     bluesky_tags: [] as string[] | undefined
 })
-const deleteModalId = ref("" as string | undefined)
+const deleteModalId = ref('' as string | undefined)
 const chipref = ref(null)
 
 const route = useRoute()
@@ -129,15 +129,15 @@ const sortedCategories = computed(() => {
 <template>
     <h1 class="page-title font-bold">{{ t('admin.categories') }}</h1>
     <VaButton size="small" icon="add" style="margin-bottom: 1rem;" color="gsgYellow" round @click="showModalAdd">
-        Add Category
+        {{ t('admin.category.addCategory') }}
     </VaButton>
     <div class="va-table-responsive">
         <table class="va-table va-table--hoverable">
             <thead>
                 <tr>
-                    <th>Twitch Category Name</th>
-                    <th>Mastodon Tags</th>
-                    <th>Bluesky Tags</th>
+                    <th>{{ t('admin.category.twitchCategoryName') }}</th>
+                    <th>{{ t('admin.category.mastodonTags') }}</th>
+                    <th>{{ t('admin.category.blueskyTags') }}</th>
                     <th></th>
                 </tr>
             </thead>
@@ -161,9 +161,9 @@ const sortedCategories = computed(() => {
                     <td>
                         <div class="flex gap-2">
                             <VaButton size="small" round icon="edit" color="gsgYellow" @click="showModalEdit(category)">
-                                Edit</VaButton>
+                                {{ t('admin.category.edit') }}</VaButton>
                             <VaButton size="small" round icon="delete" color="gsgRed"
-                                @click="showModalDelete(category)">Delete</VaButton>
+                                @click="showModalDelete(category)">{{ t('admin.category.delete') }}</VaButton>
                         </div>
                     </td>
                 </tr>
@@ -171,42 +171,42 @@ const sortedCategories = computed(() => {
         </table>
     </div>
     <VaModal v-model="deleteModalShow" hide-default-actions blur ok-text="Apply">
-        <h3 class="va-h5">
-            Delete confirmation
-        </h3>
+        <h4 class="va-h5">
+            {{ t('admin.category.confirmDelete') }}
+        </h4>
         <p>
-            Are you sure you'd like to delete this category?
+            {{ t('admin.category.areYouSure') }}
         </p>
         <template #footer>
             <div class="flex gap-2">
-                <VaButton color="gsgYellow" @click="deleteModalShow = !deleteModalShow">Cancel</VaButton>
-                <VaButton color="gsgRed" @click="deleteCategory">Delete</VaButton>
+                <VaButton color="gsgYellow" @click="deleteModalShow = !deleteModalShow">{{ t('admin.category.cancel') }}</VaButton>
+                <VaButton color="gsgRed" @click="deleteCategory">{{ t('admin.category.delete') }}</VaButton>
             </div>
         </template>
     </VaModal>
     <VaModal v-model="addEditModalShow" hide-default-actions blur>
         <template #header>
-            <h3 v-if="addEditModalForm.id" class="va-h5">
-                Edit Category
-            </h3>
-            <h3 v-else class="va-h5">
-                Add Category
-            </h3>
+            <h4 v-if="addEditModalForm.id" class="va-h5">
+                {{ t('admin.category.editCategory') }}
+            </h4>
+            <h4 v-else class="va-h5">
+                {{ t('admin.category.addCategory') }}
+            </h4>
         </template>
 
         <div class="flex flex-col items-start gap-2">
 
             <VaForm ref="addForm" immediate hide-error-messages class="flex flex-col gap-2 mb-2">
-                <VaInput v-model="addEditModalForm.twitch_category" label="Twitch Category" name="TwitchCategory"
-                    :rules="[(v) => Boolean(v) || 'Twitch Category is required']" />
-                <VaTextarea v-model="addEditModalForm.mastodon_tag_entry" label="Mastodon Tags" name="MastodonTags"
-                    placeholder="space-separated list" @keyup="updateTags" />
+                <VaInput v-model="addEditModalForm.twitch_category" :label="t('admin.category.twitchCategory')" name="TwitchCategory"
+                    :rules="[(v) => Boolean(v) || t('admin.category.twitchCategoryRequired')]" />
+                <VaTextarea v-model="addEditModalForm.mastodon_tag_entry" :label="t('admin.category.mastodonTags')" name="MastodonTags"
+                :placeholder="t('admin.category.spaceSeparatedList')" @keyup="updateTags" />
                 <div class="flex gap-2">
                     <VaChip color="mastodonLight" size="small" v-for="tag in addEditModalForm.mastodon_tags">{{ tag }}
                     </VaChip>
                 </div>
-                <VaTextarea v-model="addEditModalForm.bluesky_tag_entry" label="Bluesky Tags" name="BlueskyTags"
-                    placeholder="space-separated list" @keyup="updateTags" />
+                <VaTextarea v-model="addEditModalForm.bluesky_tag_entry" :label="t('admin.category.blueskyTags')" name="BlueskyTags"
+                    :placeholder="t('admin.category.spaceSeparatedList')" @keyup="updateTags" />
                 <div class="flex gap-2">
                     <VaChip color="blueskyBlue" size="small" v-for="tag in addEditModalForm.bluesky_tags">{{ tag }}
                     </VaChip>
@@ -216,8 +216,8 @@ const sortedCategories = computed(() => {
 
         <template #footer>
             <div class="flex gap-2">
-                <VaButton color="gsgYellow" @click="addEditModalShow = !addEditModalShow">Cancel</VaButton>
-                <VaButton color="gsgYellow" @click="saveCategory">Save</VaButton>
+                <VaButton color="gsgYellow" @click="addEditModalShow = !addEditModalShow">{{ t('admin.category.cancel') }}</VaButton>
+                <VaButton color="gsgYellow" @click="saveCategory">{{ t('admin.category.save') }}</VaButton>
             </div>
         </template>
     </VaModal>

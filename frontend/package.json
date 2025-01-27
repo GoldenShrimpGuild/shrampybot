@@ -38,6 +38,7 @@
     "ionicons": "^4.6.3",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
+    "lorem-ipsum": "^2.0.8",
     "medium-editor": "^5.23.3",
     "pinia": "^2.3.0",
     "register-service-worker": "^1.7.2",

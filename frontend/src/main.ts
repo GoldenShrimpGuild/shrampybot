@@ -22,7 +22,7 @@ app.use(
           secondary: '#ffbb22',
           backgroundPrimary: '#000000',
           backgroundSecondary: '#333333',
-          backgroundElement: '#333333',
+          backgroundElement: '#444444',
           textPrimary: '#ffffff',
           textSecondary: '#ffbb22',
           textInverted: '#000000',

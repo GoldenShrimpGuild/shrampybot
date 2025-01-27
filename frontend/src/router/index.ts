@@ -106,7 +106,7 @@ const routes: Array<RouteRecordRaw> = [
         meta: {
           nav: {
             icon: '',
-            displayName: 'menu.user_list',
+            displayName: 'menu.users',
             disabled: false,
             hidden: false,
           },
@@ -133,6 +133,23 @@ const routes: Array<RouteRecordRaw> = [
           },
         },
         component: () => import('../pages/admin/Categories.vue'),
+      },
+      {
+        name: 'filters',
+        path: '/admin/filters',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.filters',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresScopes: ['admin:filters']
+          },
+        },
+        component: () => import('../pages/admin/Filters.vue'),
       },
       {
         name: 'tokens',
