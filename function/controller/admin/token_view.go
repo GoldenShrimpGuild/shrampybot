@@ -14,6 +14,17 @@ import (
 	"github.com/google/uuid"
 )
 
+var (
+	validStaticTokenScopes = []string{
+		"login",
+		"dev",
+		"admin",
+		"admin:users",
+		"admin:categories",
+		"admin:tokens",
+	}
+)
+
 type TokenView struct {
 	router.View `tstype:",extends,required"`
 }
@@ -24,9 +35,24 @@ type NewTokenRequestBody struct {
 	Scopes    []string  `json:"scopes"`
 }
 
+type OutputStaticTokenInfo struct {
+	Id        string    `json:"id"`
+	CreatorId string    `json:"creator_id"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+	Revoked   bool      `json:"revoked"`
+	Scopes    string    `json:"scopes,omitempty"`
+	Purpose   string    `json:"purpose"`
+}
+
 type NewTokenResponseBody struct {
-	TokenId string `json:"token_id"`
-	Token   string `json:"token"`
+	OutputStaticTokenInfo `tstype:",extends,required"`
+	Token                 string `json:"token,omitempty"`
+}
+
+type ExtTokenResponseBody struct {
+	Count int                      `json:"count"`
+	Data  []*OutputStaticTokenInfo `json:"data"`
 }
 
 func NewTokenView() *TokenView {
@@ -55,18 +81,40 @@ func (v *TokenView) CallMethod(route *router.Route) *router.Response {
 
 // // Get complete list of tokens or individual token info by ID
 // // This will not return actual tokens as we aren't storing them server-side
-// func (v *TokenView) Get(route *router.Route) *router.Response {
-// 	var err error
+func (v *TokenView) Get(route *router.Route) *router.Response {
+	var err error
 
-// 	log.Println("Entered route: Admin.Token.Get")
-// 	response := &router.Response{}
-// 	response.Headers = &router.DefaultResponseHeaders
+	log.Println("Entered route: Admin.Token.Get")
+	response := &router.Response{}
+	response.Headers = &router.DefaultResponseHeaders
 
-// 	response.Body = string(outBytes)
-// 	response.StatusCode = "200"
-// 	log.Println("Exited route: Admin.Token.Get")
-// 	return response
-// }
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		log.Println("Could not instantiate dynamodb.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	tokens, err := n.GetStaticTokensNoDecrypt()
+	if err != nil {
+		log.Println("Could not retrieve tokens from db.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	tokensBytes, _ := json.Marshal(tokens)
+	respBody := ExtTokenResponseBody{}
+	json.Unmarshal(tokensBytes, &respBody.Data)
+	respBody.Count = len(respBody.Data)
+
+	outBytes, _ := json.Marshal(respBody)
+
+	response.Body = string(outBytes)
+	response.StatusCode = "200"
+	log.Println("Exited route: Admin.Token.Get")
+	return response
+}
 
 func (v *TokenView) Post(route *router.Route) *router.Response {
 	var err error
@@ -98,7 +146,7 @@ func (v *TokenView) Post(route *router.Route) *router.Response {
 	// Validate scopes and assemble new list
 	validScopes := []string{}
 	for _, scope := range requestBody.Scopes {
-		if slices.Contains(utility.ValidStaticTokenScopes, scope) {
+		if slices.Contains(validStaticTokenScopes, scope) {
 			validScopes = append(validScopes, scope)
 		}
 	}
@@ -137,10 +185,12 @@ func (v *TokenView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
-	output := NewTokenResponseBody{
-		TokenId: static.Id,
-		Token:   jwt,
-	}
+	output := NewTokenResponseBody{}
+
+	staticBytes, _ := json.Marshal(static)
+	json.Unmarshal(staticBytes, &output)
+	output.Token = jwt
+
 	outBytes, err := json.Marshal(output)
 	if err != nil {
 		log.Printf("Could not marshal response output: %v\n", err)
@@ -151,5 +201,48 @@ func (v *TokenView) Post(route *router.Route) *router.Response {
 	response.Body = string(outBytes)
 	response.StatusCode = "200"
 	log.Println("Exited route: Admin.Token.Post")
+	return response
+}
+
+func (v *TokenView) Delete(route *router.Route) *router.Response {
+	var err error
+	log.Println("Entered route: Admin.Token.Delete")
+	response := &router.Response{}
+	response.Headers = &router.DefaultResponseHeaders
+
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
+	if err != nil {
+		log.Println("Could not instantiate dynamodb.")
+		response.StatusCode = "500"
+		return response
+	}
+
+	if len(route.Path) == 3 {
+		token, err := n.GetStaticToken(route.Path[2])
+		if err != nil {
+			log.Println("Retrieve token failed.")
+			response.StatusCode = "500"
+			return response
+		}
+
+		log.Printf("Revoking static token for ID: %v\n", route.Path[2])
+		token.Revoked = true
+
+		err = n.PutStaticToken(token)
+		if err != nil {
+			log.Println("Save token failed.")
+			response.StatusCode = "500"
+			return response
+		}
+
+	} else {
+		log.Println("No ID specified.")
+		response.StatusCode = "400"
+		return response
+	}
+
+	response.StatusCode = "200"
+	log.Println("Exited route: Admin.Token.Delete")
 	return response
 }
