@@ -34,6 +34,7 @@ var (
 		4:  "Database connection error.",
 		5:  "Unhandled exception occurred while routing.",
 		6:  "Request data parsing error.",
+		7:  "Invalid scope, credentials, or path.",
 		10: "No arguments to route.",
 		11: "No route provided.",
 		12: "Invalid route.",
@@ -127,6 +128,7 @@ func (r *Router) Route() *Response {
 	// 		Headers:    &DefaultResponseHeaders,
 	// 	}
 	// }
+
 	for i := 0; i < len(r.routes); i++ {
 		if r.routes[i].Path[0] == r.routes[i].match_path {
 			if r.routes[i].RequireAuth && r.routes[i].Method != "OPTIONS" {
@@ -147,8 +149,11 @@ func (r *Router) Route() *Response {
 				}
 
 				log.Println("Authentication succeeded!")
+			} else if r.routes[i].Method == "OPTIONS" {
+				// Always respond with 200 OK on OPTIONS pre-flight checks.
+				return NewResponse(GenericBodyDataFlat{}, "200")
 			} else {
-				log.Printf("No authentication required for endpoint %v\n", r.routes[i].match_path)
+				log.Println("No auth required for this endpoint.")
 			}
 
 			responseBody := map[string]any{}

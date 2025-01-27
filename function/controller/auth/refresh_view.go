@@ -43,8 +43,6 @@ func (v *RefreshView) CallMethod(route *router.Route) *router.Response {
 		return v.Patch(route)
 	case "DELETE":
 		return v.Delete(route)
-	case "OPTIONS":
-		return v.Options(route)
 	}
 
 	return router.NewResponse(router.GenericBodyDataFlat{}, "500")
@@ -111,6 +109,7 @@ func (v *RefreshView) Post(route *router.Route) *router.Response {
 		return response
 	}
 
+	// Determine JWT scopes
 	scopes, err := dc.LocalScopesFromMembership(claims["sub"].(string))
 	if err != nil {
 		log.Printf("No scopes could be built for user %v: %v\n", claims["sub"].(string), err)
