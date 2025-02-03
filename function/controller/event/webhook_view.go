@@ -240,6 +240,13 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 	// when the stream goes offline
 	if checkKeywordFilter(tStream.Title, n) {
 		log.Printf("Found banned keyword in title \"%v\". Stopping processing.\n", tStream.Title)
+
+		stream.ShrampybotFiltered = true
+		err = n.PutStream(stream)
+		if err != nil {
+			log.Printf("Failed to update stream filtered flag.")
+		}
+
 		return nil
 	}
 

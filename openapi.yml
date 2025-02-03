@@ -152,6 +152,9 @@ components:
         mastodon_post_url:
           type: string
           summary: The URL of the mastodon post ShrampyBot made for this stream
+        shrampybot_filtered:
+          type: boolean
+          summary: Flag indicating whether or not ShrampyBot filtered this stream
 
     Streamer:
       type: object
