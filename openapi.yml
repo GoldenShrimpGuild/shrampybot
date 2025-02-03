@@ -35,6 +35,14 @@ paths:
       security:
         - APIToken: []
         - UserToken: []
+      parameters:
+        - in: query
+          name: login
+          schema:
+            type: string
+          style: form
+          explode: true
+          description: Field to select a subset of streamers
       responses:
         '200':
           description: Full or filtered list of GSG twitch streamers
@@ -144,6 +152,7 @@ components:
         mastodon_post_url:
           type: string
           summary: The URL of the mastodon post ShrampyBot made for this stream
+
     Streamer:
       type: object
       properties:
