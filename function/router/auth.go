@@ -16,25 +16,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-func (e *Event) CheckAuthorizationStatic() bool {
-	log.Println("Checking Bearer Authorization (Static)...")
-	if e.Headers.Authorization == "" {
-		return false
-	}
-
-	bearer := strings.Split(e.Headers.Authorization, " ")
-	if len(bearer) < 2 || strings.ToLower(bearer[0]) != "bearer" {
-		return false
-	}
-
-	if bearer[1] != config.GsgAdminToken {
-		return false
-	}
-
-	log.Println("Bearer Auth Succeeded.")
-	return true
-}
-
 func (e *Event) CheckAuthorizationJWT() bool {
 	var oAuth *nosqldb.OAuthDatum
 	var static *nosqldb.StaticTokenDatum
