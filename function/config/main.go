@@ -4,7 +4,6 @@ import "os"
 
 var (
 	BotName                  = os.Getenv("BOT_NAME")
-	GsgAdminToken            = os.Getenv("GSG_ADMIN_TOKEN")
 	StreamupDebounceInterval = os.Getenv("STREAMUP_DEBOUNCE_INTERVAL")
 	StreamThumbResolution    = os.Getenv("STREAM_THUMB_RESOLUTION")
 
