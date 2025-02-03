@@ -118,7 +118,7 @@ func (v *CategoryView) Put(route *router.Route) *router.Response {
 	// Find existing category by name so we can reuse its ID and maintain uniqueness
 	originalCategory, err := n.GetCategoryByName(requestBody.TwitchCategory)
 	if err != nil {
-		log.Println("Could not retrieve updated category.")
+		log.Println("Could not retrieve existing category.")
 		response.StatusCode = "500"
 		return response
 	}

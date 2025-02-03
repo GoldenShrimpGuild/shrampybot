@@ -24,34 +24,80 @@ type FilterDatum struct {
 	IsRegex         bool   `json:"is_regex"`
 }
 
-func (n *NoSqlDb) GetFilterKeywords() (*[]FilterDatum, error) {
+func (n *NoSqlDb) GetFilterKeyword(id string) (*FilterDatum, error) {
+	var err error
+	fullTableName := n.prefix + filterTableName
+
+	keyMap := map[string]types.AttributeValue{}
+	keyMap["id"] = &types.AttributeValueMemberS{Value: id}
+
+	result, err := n.db.GetItem(n.ctx, &dynamodb.GetItemInput{
+		Key:       keyMap,
+		TableName: &fullTableName,
+	})
+	if err != nil {
+		return &FilterDatum{}, err
+	}
+	output := FilterDatum{}
+	attributevalue.UnmarshalMap(result.Item, &output)
+	rFilt := map[string]any{}
+	attributevalue.UnmarshalMap(result.Item, &rFilt)
+
+	return &output, nil
+}
+
+// Fills the ID value in the passed-in filter reference if a match exists in the db
+func (n *NoSqlDb) FillFilterIdIfAny(filter *FilterDatum) error {
+	var results *[]map[string]any
+	var err error
+
+	fullTableName := n.prefix + filterTableName
+	statement := aws.String(
+		fmt.Sprintf("SELECT * FROM \"%v\"", fullTableName),
+	)
+	results, err = n.QueryDB(statement)
+	if err != nil {
+		return err
+	}
+
+	for _, rFilt := range *results {
+		if rFilt["keyword"] == filter.Keyword {
+			filter.Id = rFilt["id"].(string)
+			return nil
+		}
+	}
+
+	return nil
+}
+
+func (n *NoSqlDb) GetFilterKeywords() ([]*FilterDatum, error) {
 	var err error
 	fullTableName := n.prefix + filterTableName
 	statement := aws.String(
 		fmt.Sprintf("SELECT * FROM \"%v\"", fullTableName),
 	)
-	output := []FilterDatum{}
+	output := []*FilterDatum{}
 	results, err := n.QueryDB(statement)
 	if err != nil {
-		return &output, err
+		return output, err
 	}
 	// Manual marshalling to expand tags
 	for _, result := range *results {
 		tempCat := FilterDatum{}
 		tempBytes, _ := json.Marshal(result)
 		json.Unmarshal(tempBytes, &tempCat)
-		output = append(output, tempCat)
+		output = append(output, &tempCat)
 	}
 
-	return &output, nil
+	return output, nil
 }
 
-func (n *NoSqlDb) PutFilterKeywords(filterKeywords *[]FilterDatum) error {
+func (n *NoSqlDb) PutFilterKeywords(filterKeywords []*FilterDatum) error {
 	var err error
 	fullTableName := n.prefix + filterTableName
 
 	mapFilterKeywords := []map[string]any{}
-	for _, fk := range *filterKeywords {
+	for _, fk := range filterKeywords {
 		tempMap := map[string]any{}
 
 		fkBytes, _ := json.Marshal(fk)

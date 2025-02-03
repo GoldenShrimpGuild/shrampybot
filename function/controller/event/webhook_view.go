@@ -416,7 +416,7 @@ func checkKeywordFilter(title string, db *nosqldb.NoSqlDb) bool {
 	if err != nil {
 		log.Printf("Error trying to retrieve filter keywords: %v\n", err)
 	} else {
-		for _, filterItem := range *filterKeywords {
+		for _, filterItem := range filterKeywords {
 
 			// Matching regexp item
 			if filterItem.IsRegex {
