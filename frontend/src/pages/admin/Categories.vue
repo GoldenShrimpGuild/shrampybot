@@ -60,10 +60,6 @@ watch(chipref, (v) => {
     console.log(chipref.value)
 })
 
-watch(categories, (v) => {
-
-})
-
 watch(isDevEnvironment, (newValue, oldValue) => {
     CategoryStore.fetchCategories()
 })
