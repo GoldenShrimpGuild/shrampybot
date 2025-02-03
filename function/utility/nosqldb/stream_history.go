@@ -17,14 +17,15 @@ const (
 )
 
 type StreamHistoryDatum struct {
-	helix.Stream    `tstype:",extends,required"`
-	DiscordPostId   string    `json:"discord_post_id,omitempty"`
-	DiscordPostUrl  string    `json:"discord_post_url,omitempty"`
-	MastodonPostId  string    `json:"mastodon_post_id,omitempty"`
-	MastodonPostUrl string    `json:"mastodon_post_url,omitempty"`
-	BlueskyPostId   string    `json:"bluesky_post_id,omitempty"`
-	BlueskyPostUrl  string    `json:"bluesky_post_url,omitempty"`
-	EndedAt         time.Time `json:"ended_at,omitempty"`
+	helix.Stream       `tstype:",extends,required"`
+	DiscordPostId      string    `json:"discord_post_id,omitempty"`
+	DiscordPostUrl     string    `json:"discord_post_url,omitempty"`
+	MastodonPostId     string    `json:"mastodon_post_id,omitempty"`
+	MastodonPostUrl    string    `json:"mastodon_post_url,omitempty"`
+	BlueskyPostId      string    `json:"bluesky_post_id,omitempty"`
+	BlueskyPostUrl     string    `json:"bluesky_post_url,omitempty"`
+	ShrampybotFiltered bool      `json:"shrampybot_filtered"`
+	EndedAt            time.Time `json:"ended_at,omitempty"`
 }
 
 func (n *NoSqlDb) GetStream(id string) (*StreamHistoryDatum, error) {

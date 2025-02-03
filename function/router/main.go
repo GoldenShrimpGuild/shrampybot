@@ -48,7 +48,7 @@ var (
 
 type GenericBodyDataFlat struct {
 	Status *Status `json:"status,omitempty"`
-	Count  int64   `json:"count,omitempty"`
+	Count  int     `json:"count,omitempty"`
 	Data   []any   `json:"data,omitempty"`
 }
 

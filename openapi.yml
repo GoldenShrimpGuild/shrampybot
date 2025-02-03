@@ -1,0 +1,198 @@
+openapi: 3.0.0
+info:
+  title: ShrampyBot
+  description: Collection of API endpoints for managing Twitch subscriptions.
+  version: 1.0.0
+servers:
+  - url: https://tl72sifq5iu6gkzpqyyp7umsra0wjejp.lambda-url.ca-central-1.on.aws
+    description: Development Host
+  - url: https://3okyp4qsdy2xzm5cjmpw5it53u0tdnkv.lambda-url.ca-central-1.on.aws
+    description: Production Host
+paths:
+  /public/stream:
+    get:
+      summary: Get all (unfiltered) active streams by GSG streamers
+      security: []
+      responses:
+        '200':
+          description: Full list of active streams with ShrampyBot-specific metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count: 
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      $ref: '#/components/schemas/Stream'
+
+  /gsg/streamer:
+    get:
+      summary: Get Twitch channel info for GSG streamers
+      security:
+        - APIToken: []
+        - UserToken: []
+      parameters:
+        - in: query
+          name: login
+          schema:
+            type: string
+          style: form
+          explode: true
+          description: Field to select a subset of streamers
+      responses:
+        '200':
+          description: Full or filtered list of GSG twitch streamers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count: 
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      $ref: '#/components/schemas/Streamer'
+
+components:
+  securitySchemes:
+    APIToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Static JWT provisioned through the UI
+    UserToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: User JWT access token provisioned via Discord OAuth
+    RefreshToken:
+      type: apiKey
+      in: cookie
+      name: RefreshToken
+      description: HTTP-Only cookie storing the RefreshToken
+
+  schemas:
+    Stream:
+      type: object
+      properties:
+        id:
+          type: string
+          summary: The ID of the stream
+        user_id:
+          type: string
+          summary: The ID of the streamer
+        user_login:
+          type: string
+          summary: The login of the streamer
+        user_name:
+          type: string
+          summary: The name of the streamer
+        type:
+          type: string
+          summary: The type of stream (live or vod)
+        tags:
+          type: array
+          items:
+            type: string
+          summary: The tags of the stream
+        tag_ids:
+          type: array
+          items:
+            type: string
+          summary: The tag IDs of the stream
+        title:
+          type: string
+          summary: The title of the stream
+        started_at:
+          type: string
+          summary: When the stream started (ISO3339 format)
+          format: date-time
+        ended_at:
+          type: string
+          summary: When the stream ended (will be 0001-01-01T00:00:00Z for active streams)
+        language:
+          type: string
+          summary: The language of the stream
+        thumbnail_url:
+          type: string
+          summary: The thumbnail URL of the stream
+        game_id:
+          type: string
+          summary: The ID of the stream category
+        game_name:
+          type: string
+          summary: The name of the stream category
+        is_mature:
+          type: boolean
+          summary: Whether the stream contains 18+ content
+        viewer_count:
+          type: integer
+          summary: The number of viewers (typically shows as 0)
+        bluesky_post_id:
+          type: string
+          summary: The ID of the bluesky post ShrampyBot made for this stream
+        bluesky_post_url:
+          type: string
+          summary: The URL of the bluesky post ShrampyBot made for this stream (at:// format)
+        discord_post_id:
+          type: string
+          summary: The ID of the discord post ShrampyBot made for this stream
+        discord_post_url:
+          type: string
+          summary: The URL of the discord post ShrampyBot made for this stream
+        mastodon_post_id:
+          type: string
+          summary: The ID of the mastodon post ShrampyBot made for this stream
+        mastodon_post_url:
+          type: string
+          summary: The URL of the mastodon post ShrampyBot made for this stream
+        shrampybot_filtered:
+          type: boolean
+          summary: Flag indicating whether or not ShrampyBot filtered this stream
+
+    Streamer:
+      type: object
+      properties:
+        id:
+          type: string
+          summary: The ID of the streamer
+        login:
+          type: string
+          summary: The login of the streamer
+        display_name:
+          type: string
+          summary: The display name of the streamer
+        profile_image_url:
+          type: string
+          summary: The URL of the streamer's profile image
+        type:
+          type: string
+          summary: The type of streamer (e.g., affiliate, partner)
+        broadcaster_type:
+          type: string
+          summary: The type of broadcaster
+        description: 
+          type: string
+          summary: The description of the streamer
+        profile_image_url:
+          type: string
+          summary: The URL of the streamer's profile image
+        offline_image_url:
+          type: string
+          summary: The URL of the streamer's offline image
+        view_count:
+          type: integer
+          summary: The number of views (typically shows as 0)
+        email:
+          type: string
+          summary: The email of the streamer (blank here)
+        created_at:
+          type: string
+          summary: When the streamer was created (ISO3339 format)
+          format: date-time

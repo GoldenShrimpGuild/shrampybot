@@ -72,7 +72,14 @@ func (v *StreamView) Get(route *router.Route) *router.Response {
 		streams = *streamsRef
 	}
 
-	streamBytes, _ := json.Marshal(streams)
+	// Only include streams which were not filtered out by Shrampybot in this list
+	unfilteredStreams := []*nosqldb.StreamHistoryDatum{}
+	for _, stream := range streams {
+		if !stream.ShrampybotFiltered {
+			unfilteredStreams = append(unfilteredStreams, &stream)
+		}
+	}
+	streamBytes, _ := json.Marshal(unfilteredStreams)
 
 	body := map[string]any{}
 	body["count"] = len(streams)
