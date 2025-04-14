@@ -1,6 +1,8 @@
 module shrampybot
 
-go 1.23
+go 1.23.0
+
+toolchain go1.23.4
 
 require (
 	github.com/aws/aws-lambda-go v1.47.0
@@ -21,6 +23,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
@@ -88,8 +91,8 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	lukechampine.com/blake3 v1.3.0 // indirect
 )
