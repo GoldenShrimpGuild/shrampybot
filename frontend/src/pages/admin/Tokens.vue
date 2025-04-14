@@ -28,46 +28,51 @@ onBeforeMount(() => {
 })
 
 const scopeSelector = ref([
-  {
-    text: 'dev',
-    value: 'dev',
-    disabled: false,
-  },
-  {
-    text: 'gsg',
-    value: 'gsg',
-    disabled: false,
-  },
-  {
-    text: 'gsg:streamer',
-    value: 'gsg:streamer',
-    disabled: false,
-  },
-  {
-    text: 'admin',
-    value: 'admin',
-    disabled: false,
-  },
-  {
-    text: 'admin:categories',
-    value: 'admin:categories',
-    disabled: false,
-  },
-  {
-    text: 'admin:collection',
-    value: 'admin:collection',
-    disabled: false,
-  },
-  {
-    text: 'admin:filters',
-    value: 'admin:filters',
-    disabled: false,
-  },
-  {
-    text: 'admin:users',
-    value: 'admin:users',
-    disabled: false,
-  },
+    {
+        text: 'dev',
+        value: 'dev',
+        disabled: false,
+    },
+    {
+        text: 'gsg',
+        value: 'gsg',
+        disabled: false,
+    },
+    {
+        text: 'gsg:streamer',
+        value: 'gsg:streamer',
+        disabled: false,
+    },
+    {
+        text: 'admin',
+        value: 'admin',
+        disabled: false,
+    },
+    {
+        text: 'admin:categories',
+        value: 'admin:categories',
+        disabled: false
+    },
+    {
+        text: 'admin:collection',
+        value: 'admin:collection',
+        disabled: false
+    },
+    {
+        text: 'admin:events',
+        value: 'admin:events',
+        disabled: false
+    },
+    {
+        text: 'admin:filters',
+        value: 'admin:filters',
+        disabled: false
+    },
+    {
+        text: 'admin:users',
+        value: 'admin:users',
+        disabled: false
+    }
 ] as Array<Record<string, any>>)
 
 const toggleNarrowAdminScopes = (enabled: boolean) => {

@@ -27,7 +27,7 @@ func AdminController(route *router.Route) *router.Response {
 
 	switch route.Path[1] {
 	case "category":
-		if utility.MatchScope(scopes, "admin:category") {
+		if utility.MatchScope(scopes, "admin:categories") {
 			c := NewCategoryView()
 			return c.CallMethod(route)
 		}
@@ -36,18 +36,23 @@ func AdminController(route *router.Route) *router.Response {
 			c := NewCollectionView()
 			return c.CallMethod(route)
 		}
+	case "event":
+		if utility.MatchScope(scopes, "admin:events") {
+			c := NewEventView()
+			return c.CallMethod(route)
+		}
 	case "filter":
-		if utility.MatchScope(scopes, "admin:filter") {
+		if utility.MatchScope(scopes, "admin:filters") {
 			c := NewFilterView()
 			return c.CallMethod(route)
 		}
 	case "user":
-		if utility.MatchScope(scopes, "admin:user") {
+		if utility.MatchScope(scopes, "admin:users") {
 			c := NewUserView()
 			return c.CallMethod(route)
 		}
 	case "token":
-		if utility.MatchScope(scopes, "admin") {
+		if utility.MatchScope(scopes, "admin:tokens") {
 			// Do not allow token management with a static token
 			if claims["aud"].(string) != "static" {
 				c := NewTokenView()
