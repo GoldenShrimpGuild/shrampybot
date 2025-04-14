@@ -11,8 +11,11 @@
       </RouterLink>
     </template>
     <template #content>
-      <div class="h-full flex items-center justify-center" :class="GlobalStore.$state.isDevEnvironment ? 'va-navbar-dev no-animate' : ''">
-        <main class="mx-auto max-w-[420px]" >
+      <div
+        class="h-full flex items-center justify-center"
+        :class="GlobalStore.$state.isDevEnvironment ? 'va-navbar-dev no-animate' : ''"
+      >
+        <main class="mx-auto max-w-[420px]">
           <RouterView />
         </main>
       </div>

@@ -40,7 +40,7 @@ export const useUserStore = defineStore('user', {
     // },
     scopeMatch(requiredScopes: string[]) {
       const AuthStore = useAuthStore()
-      var result = false
+      let result = false
 
       if (requiredScopes.length === 0) {
         return true
@@ -59,14 +59,16 @@ export const useUserStore = defineStore('user', {
           }
         })
 
-        if (result) { return }
+        if (result) {
+          return
+        }
       })
       return result
     },
     isAdmin() {
       const AuthStore = useAuthStore()
-      var result = false
-      
+      let result = false
+
       forEach(AuthStore.getScopes(), (scope) => {
         const subScope = scope.split(':')
         if (subScope[0] === 'admin') {
@@ -79,8 +81,8 @@ export const useUserStore = defineStore('user', {
     },
     isDevTeam() {
       const AuthStore = useAuthStore()
-      var result = false
-      
+      let result = false
+
       forEach(AuthStore.getScopes(), (scope) => {
         const subScope = scope.split(':')
         if (subScope[0] === 'dev') {
@@ -90,6 +92,6 @@ export const useUserStore = defineStore('user', {
       })
 
       return result
-    }
+    },
   },
 })

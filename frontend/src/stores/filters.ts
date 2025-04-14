@@ -18,13 +18,11 @@ export const useFilterStore = defineStore('filters', {
       const path = '/admin/filter'
       const axios = useAxios()
 
-      const bearerResponse = axios.get(
-        path)
-        .then((response) => {
-          if (response.status === 200) {
-            this.$state.filters = response.data.data
-          }
-        })
+      const bearerResponse = axios.get(path).then((response) => {
+        if (response.status === 200) {
+          this.$state.filters = response.data.data
+        }
+      })
       return bearerResponse
     },
     async putFilter(filt: FilterDatum) {
@@ -33,12 +31,9 @@ export const useFilterStore = defineStore('filters', {
       const path = '/admin/filter'
       const axios = useAxios()
 
-      const bearerResponse = axios.put(
-        path,
-        filt)
-      .then((response) => {
+      const bearerResponse = axios.put(path, filt).then((response) => {
         if (response.status === 200) {
-          var foundItem = false
+          let foundItem = false
 
           forEach(this.$state.filters, (item) => {
             if (response.data && response.data.data && response.data.data.length > 0) {
@@ -65,11 +60,9 @@ export const useFilterStore = defineStore('filters', {
       const path = '/admin/filter/' + id
       const axios = useAxios()
 
-      const bearerResponse = axios.delete(
-        path)
-      .then((response) => {
+      const bearerResponse = axios.delete(path).then((response) => {
         if (response.status === 200) {
-          var copyList = this.$state.filters
+          const copyList = this.$state.filters
           this.$state.filters = []
 
           forEach(copyList, (item) => {
@@ -80,6 +73,6 @@ export const useFilterStore = defineStore('filters', {
         }
       })
       return bearerResponse as unknown
-    }
+    },
   },
 })
