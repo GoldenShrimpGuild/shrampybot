@@ -7,11 +7,9 @@ const AuthStore = useAuthStore()
 const router = useRouter()
 
 onMounted(() => {
-    AuthStore.callLogout()
-    router.push("login")
+  AuthStore.callLogout()
+  router.push('login')
 })
-
 </script>
 
-<template>
-</template>
+<template></template>

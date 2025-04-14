@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios, { AxiosRequestConfig } from 'axios'
 import { useLocalStorage } from '@vueuse/core'
 import { useGlobalStore } from './global-store'
-import { jwtDecode, JwtPayload } from "jwt-decode";
+import { jwtDecode, JwtPayload } from 'jwt-decode'
 
 export interface CustomJwtPayload extends JwtPayload {
   scopes: string
@@ -10,9 +10,9 @@ export interface CustomJwtPayload extends JwtPayload {
 
 export const useAuthStore = defineStore('auth', {
   state: () => {
-    const userId = useLocalStorage('user_id', '' as String)
-    const accessTokenDev = '' as String
-    const accessTokenProd = '' as String
+    const userId = useLocalStorage('user_id', '' as string)
+    const accessTokenDev = '' as string
+    const accessTokenProd = '' as string
     const userServicesStatus = useLocalStorage('uss', {} as Record<string, any>)
     return { accessTokenDev, accessTokenProd, userServicesStatus, userId }
   },
@@ -41,7 +41,7 @@ export const useAuthStore = defineStore('auth', {
         baseURL: GlobalStore.getApiBaseUrl(),
         withCredentials: true,
         headers: {
-          Authorization: `Bearer ${ this.getAccessToken() }`,
+          Authorization: `Bearer ${this.getAccessToken()}`,
           'Content-Type': 'application/json',
         },
       } as AxiosRequestConfig
@@ -52,40 +52,37 @@ export const useAuthStore = defineStore('auth', {
       const logout_path = '/auth/logout'
       const axiosConfig = this.getAxiosConfig()
 
-      const bearerResponse = await axios.post(
-        logout_path, 
-        {},
-        axiosConfig)
-      .then((response) => {
+      const bearerResponse = await axios.post(logout_path, {}, axiosConfig).then((response) => {
         this.setAccessToken('')
-        this.$state.userId = ""
+        this.$state.userId = ''
       })
       return bearerResponse
     },
     async callRefresh() {
       const GlobalStore = useGlobalStore()
       const refresh_path = '/auth/refresh'
-      var success = false
+      let success = false
 
       try {
-        const refreshResponse = await axios.post(
-          refresh_path,
-          {},
-          {
-            baseURL: GlobalStore.getApiBaseUrl(),
-            withCredentials: true,
-            headers: {
-              'Content-Type': 'application/json',
+        const refreshResponse = await axios
+          .post(
+            refresh_path,
+            {},
+            {
+              baseURL: GlobalStore.getApiBaseUrl(),
+              withCredentials: true,
+              headers: {
+                'Content-Type': 'application/json',
+              },
             },
-          },
-        )
-        .then((response) => {
-          if (response.status === 200) {
-            success = true
-            this.$state.userId = response.data.user_id
-            this.setAccessToken(response.data.access)
-          }
-        })
+          )
+          .then((response) => {
+            if (response.status === 200) {
+              success = true
+              this.$state.userId = response.data.user_id
+              this.setAccessToken(response.data.access)
+            }
+          })
       } catch (refreshError: any) {
         this.setAccessToken('')
         this.$state.userId = ''
@@ -100,12 +97,11 @@ export const useAuthStore = defineStore('auth', {
       const axiosConfig = this.getAxiosConfig()
 
       try {
-        await axios.get(path, axiosConfig)
-          .then((response) => {
-            if (response.status === 200) {
-              this.$state.userId = response.data.user_id
-            }
-          })
+        await axios.get(path, axiosConfig).then((response) => {
+          if (response.status === 200) {
+            this.$state.userId = response.data.user_id
+          }
+        })
       } catch (error: any) {
         if (error.response.status === 401) {
           this.callRefresh()
@@ -127,6 +123,6 @@ export const useAuthStore = defineStore('auth', {
         return jwt.scopes.split(' ')
       }
       return []
-    }
+    },
   },
 })

@@ -20,8 +20,8 @@ export const useTwitchUsersStore = defineStore('users', {
 
       const users_path = '/admin/user'
 
-      const bearerResponse = axios.get(
-        users_path)
+      const bearerResponse = axios
+        .get(users_path)
         .then((response) => {
           if (response.status === 200) {
             this.$state.users = response.data.data

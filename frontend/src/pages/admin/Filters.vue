@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
-import { FilterDatum } from '../../../model/utility/nosqldb';
-import { useGlobalStore } from '../../stores/global-store';
-import { useFilterStore } from '../../stores/filters';
+import { FilterDatum } from '../../../model/utility/nosqldb'
+import { useGlobalStore } from '../../stores/global-store'
+import { useFilterStore } from '../../stores/filters'
 
 const { t } = useI18n()
 
@@ -53,7 +53,7 @@ onMounted(async () => {
 })
 
 const saveFilter = async () => {
-  var prepFilter = {
+  const prepFilter = {
     id: addEditModalForm.value.id,
     keyword: addEditModalForm.value.keyword,
     is_regex: addEditModalForm.value.isRegex,
@@ -66,16 +66,15 @@ const saveFilter = async () => {
 }
 
 const deleteFilter = async () => {
-    await FilterStore.deleteFilter(deleteModalId.value as string)
+  await FilterStore.deleteFilter(deleteModalId.value as string)
 
-    deleteModalShow.value = !deleteModalShow.value
+  deleteModalShow.value = !deleteModalShow.value
 }
-
 </script>
 
 <template>
   <h1 class="page-title font-bold">{{ t('admin.filters') }}</h1>
-  <VaButton size="small" icon="add" style="margin-bottom: 1rem;" color="gsgYellow" round @click="showModalAdd">
+  <VaButton size="small" icon="add" style="margin-bottom: 1rem" color="gsgYellow" round @click="showModalAdd">
     Add filter
   </VaButton>
   <div class="va-table-responsive">
@@ -102,15 +101,13 @@ const deleteFilter = async () => {
               <VaIcon v-if="filter.case_insensitive" name="check" color="#00ff00"></VaIcon>
               <VaIcon v-else name="close" color="#ff0000"></VaIcon>
             </span>
-            <span v-else>
-              regex-determined
-            </span>
+            <span v-else> regex-determined </span>
           </td>
           <td>
             <div class="flex gap-2">
-              <VaButton size="small" round icon="edit" color="gsgYellow" @click="showModalEdit(filter)">
-                Edit</VaButton>
-              <VaButton size="small" round icon="delete" color="gsgRed" @click="showModalDelete(filter)">Delete
+              <VaButton size="small" round icon="edit" color="gsgYellow" @click="showModalEdit(filter)"> Edit</VaButton>
+              <VaButton size="small" round icon="delete" color="gsgRed" @click="showModalDelete(filter)"
+                >Delete
               </VaButton>
             </div>
           </td>
@@ -120,21 +117,25 @@ const deleteFilter = async () => {
   </div>
   <VaModal v-model="addEditModalShow" hide-default-actions blur>
     <template #header>
-      <h4 v-if="addEditModalForm.id" class="va-h5">
-        Edit Filter
-      </h4>
-      <h4 v-else class="va-h5">
-        Add Filter
-      </h4>
+      <h4 v-if="addEditModalForm.id" class="va-h5">Edit Filter</h4>
+      <h4 v-else class="va-h5">Add Filter</h4>
     </template>
 
     <div class="flex flex-col items-start gap-2">
-
       <VaForm ref="addForm" immediate hide-error-messages class="flex flex-col gap-2 mb-2">
-        <VaInput v-model="addEditModalForm.keyword" :label="addEditModalForm.isRegex ? 'Regex' : 'Keyword'" name="FilterKeyword"
-          :rules="[(v) => Boolean(v) || 'Keyword required']" />
+        <VaInput
+          v-model="addEditModalForm.keyword"
+          :label="addEditModalForm.isRegex ? 'Regex' : 'Keyword'"
+          name="FilterKeyword"
+          :rules="[(v) => Boolean(v) || 'Keyword required']"
+        />
         <VaCheckbox v-model="addEditModalForm.isRegex" label="Regex" name="IsRegex"></VaCheckbox>
-        <VaCheckbox v-model="addEditModalForm.caseInsensitive" label="Case-Insensitive" name="CaseInsensitive" :disabled="addEditModalForm.isRegex"></VaCheckbox>
+        <VaCheckbox
+          v-model="addEditModalForm.caseInsensitive"
+          label="Case-Insensitive"
+          name="CaseInsensitive"
+          :disabled="addEditModalForm.isRegex"
+        ></VaCheckbox>
       </VaForm>
     </div>
 
@@ -146,17 +147,13 @@ const deleteFilter = async () => {
     </template>
   </VaModal>
   <VaModal v-model="deleteModalShow" hide-default-actions blur ok-text="Apply">
-        <h4 class="va-h5">
-            Confirm Deletion
-        </h4>
-        <p>
-            Are you sure you'd like to delete this filter?
-        </p>
-        <template #footer>
-            <div class="flex gap-2">
-                <VaButton color="gsgYellow" @click="deleteModalShow = !deleteModalShow">Cancel</VaButton>
-                <VaButton color="gsgRed" @click="deleteFilter">Delete</VaButton>
-            </div>
-        </template>
-    </VaModal>
+    <h4 class="va-h5">Confirm Deletion</h4>
+    <p>Are you sure you'd like to delete this filter?</p>
+    <template #footer>
+      <div class="flex gap-2">
+        <VaButton color="gsgYellow" @click="deleteModalShow = !deleteModalShow">Cancel</VaButton>
+        <VaButton color="gsgRed" @click="deleteFilter">Delete</VaButton>
+      </div>
+    </template>
+  </VaModal>
 </template>

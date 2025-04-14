@@ -106,7 +106,7 @@ const getQueryParams = async () => {
       encountered_error(reason)
     })
 
-    router.push({ name: 'streams' })
+  router.push({ name: 'streams' })
 }
 
 const encountered_error = async (reason: any) => {
