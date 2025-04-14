@@ -129,7 +129,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresScopes: ['admin:categories']
+            requiresScopes: ['admin:categories'],
           },
         },
         component: () => import('../pages/admin/Categories.vue'),
@@ -146,7 +146,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresScopes: ['admin:filters']
+            requiresScopes: ['admin:filters'],
           },
         },
         component: () => import('../pages/admin/Filters.vue'),
@@ -163,7 +163,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresScopes: ['admin:tokens']
+            requiresScopes: ['admin:tokens'],
           },
         },
         component: () => import('../pages/admin/Tokens.vue'),
@@ -322,7 +322,7 @@ router.beforeEach(async (to: any, from: any, next) => {
 
       // If there's still no accessToken set after calling refresh, route to auth screen
       if (AuthStore.getAccessToken() === '') {
-        console.log("Triggered return to login screen.")
+        console.log('Triggered return to login screen.')
         next('/auth/login')
       } else {
         if (UserStore.scopeMatch(to.meta.perms.requiresScopes)) {

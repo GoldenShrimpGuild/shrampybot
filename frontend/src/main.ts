@@ -29,8 +29,8 @@ app.use(
           backgroundBorder: '#cccccc',
 
           // GSG colours
-          gsgYellow: "#ffbb22",
-          gsgRed: "#e42222",
+          gsgYellow: '#ffbb22',
+          gsgRed: '#e42222',
 
           // custom colors
           discordBlurple: '#5865F2',

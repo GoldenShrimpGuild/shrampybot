@@ -18,13 +18,11 @@ export const useCategoryStore = defineStore('categories', {
       const category_path = '/admin/category'
       const axios = useAxios()
 
-      const bearerResponse = axios.get(
-        category_path)
-        .then((response) => {
-          if (response.status === 200) {
-            this.$state.categories = response.data.data
-          }
-        })
+      const bearerResponse = axios.get(category_path).then((response) => {
+        if (response.status === 200) {
+          this.$state.categories = response.data.data
+        }
+      })
       return bearerResponse
     },
     async putCategory(cat: CategoryDatum) {
@@ -33,12 +31,9 @@ export const useCategoryStore = defineStore('categories', {
       const category_path = '/admin/category'
       const axios = useAxios()
 
-      const bearerResponse = axios.put(
-        category_path,
-        cat)
-      .then((response) => {
+      const bearerResponse = axios.put(category_path, cat).then((response) => {
         if (response.status === 200) {
-          var foundItem = false
+          let foundItem = false
 
           forEach(this.$state.categories, (item) => {
             if (response.data && response.data.data && response.data.data.length > 0) {
@@ -65,11 +60,9 @@ export const useCategoryStore = defineStore('categories', {
       const category_path = '/admin/category/' + id
       const axios = useAxios()
 
-      const bearerResponse = axios.delete(
-        category_path)
-      .then((response) => {
+      const bearerResponse = axios.delete(category_path).then((response) => {
         if (response.status === 200) {
-          var copyList = this.$state.categories
+          const copyList = this.$state.categories
           this.$state.categories = []
 
           forEach(copyList, (item) => {
@@ -80,6 +73,6 @@ export const useCategoryStore = defineStore('categories', {
         }
       })
       return bearerResponse as unknown
-    }
+    },
   },
 })

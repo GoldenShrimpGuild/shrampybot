@@ -232,43 +232,47 @@ const revokeToken = () => {
           </div>
           <div class="va-table-responsive">
             <table class="va-table">
-              <tr>
-                <th>Valid</th>
-                <th>Created At (UTC)</th>
-                <th>Created By</th>
-                <th>Expires At (UTC)</th>
-                <th>Scopes</th>
-                <th>Purpose</th>
-                <th></th>
-              </tr>
-              <tr v-for="token in sortedTokens" :key="token.id" rowspan="2">
-                <template v-if="showRevoked || showRevoked == token.revoked">
-                  <td>
-                    <VaIcon
-                      v-if="!token.revoked && currentDate < new Date(token.expires_at)"
-                      name="check"
-                      color="#00ff00"
-                    ></VaIcon>
-                    <VaIcon v-else name="stop_circle" color="gsgRed"></VaIcon>
-                  </td>
-                  <td>{{ new Date(token.created_at).toDateString() }}</td>
-                  <td>{{ token.creator_id }}</td>
-                  <td>{{ new Date(token.expires_at).toDateString() }}</td>
-                  <td>{{ token.scopes }}</td>
-                  <td>{{ token.purpose }}</td>
-                  <td>
-                    <VaButton
-                      v-if="!token.revoked"
-                      size="small"
-                      round
-                      icon="stop_circle"
-                      color="gsgRed"
-                      @click="showModalRevoke(token.id)"
-                      >Revoke</VaButton
-                    >
-                  </td>
-                </template>
-              </tr>
+              <thead>
+                <tr>
+                  <th>Valid</th>
+                  <th>Created At (UTC)</th>
+                  <th>Created By</th>
+                  <th>Expires At (UTC)</th>
+                  <th>Scopes</th>
+                  <th>Purpose</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="token in sortedTokens" :key="token.id" rowspan="2">
+                  <template v-if="showRevoked || showRevoked == token.revoked">
+                    <td>
+                      <VaIcon
+                        v-if="!token.revoked && currentDate < new Date(token.expires_at)"
+                        name="check"
+                        color="#00ff00"
+                      ></VaIcon>
+                      <VaIcon v-else name="stop_circle" color="gsgRed"></VaIcon>
+                    </td>
+                    <td>{{ new Date(token.created_at).toDateString() }}</td>
+                    <td>{{ token.creator_id }}</td>
+                    <td>{{ new Date(token.expires_at).toDateString() }}</td>
+                    <td>{{ token.scopes }}</td>
+                    <td>{{ token.purpose }}</td>
+                    <td>
+                      <VaButton
+                        v-if="!token.revoked"
+                        size="small"
+                        round
+                        icon="stop_circle"
+                        color="gsgRed"
+                        @click="showModalRevoke(token.id)"
+                        >Revoke</VaButton
+                      >
+                    </td>
+                  </template>
+                </tr>
+              </tbody>
             </table>
           </div>
         </VaCardContent>

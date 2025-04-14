@@ -3,8 +3,13 @@
     <template #left>
       <div class="left">
         <Transition v-if="isMobile" name="icon-fade" mode="out-in">
-          <VaIcon color="primary" :name="isSidebarMinimized ? 'menu' : 'close'" size="24px" style="margin-top: 3px"
-            @click="isSidebarMinimized = !isSidebarMinimized" />
+          <VaIcon
+            color="primary"
+            :name="isSidebarMinimized ? 'menu' : 'close'"
+            size="24px"
+            style="margin-top: 3px"
+            @click="isSidebarMinimized = !isSidebarMinimized"
+          />
         </Transition>
         <RouterLink to="/" aria-label="Visit home page">
           <div>
@@ -12,16 +17,19 @@
           </div>
         </RouterLink>
       </div>
-      <div v-if="!isMobile && UserStore.isDevTeam()"  style="margin-left: 1.5rem;">
-      <VaButtonToggle class="" v-model="isDevEnvironment"
-        size="small"
-        toggle-color="#997112"
-        color="#ffbb22"
-        round
-        :options="[
-          { label: 'Dev', value: true },
-          { label: 'Prod', value: false },
-        ]" />
+      <div v-if="!isMobile && UserStore.isDevTeam()" style="margin-left: 1.5rem">
+        <VaButtonToggle
+          v-model="isDevEnvironment"
+          class=""
+          size="small"
+          toggle-color="#997112"
+          color="#ffbb22"
+          round
+          :options="[
+            { label: 'Dev', value: true },
+            { label: 'Prod', value: false },
+          ]"
+        />
         <VaSpacer></VaSpacer>
       </div>
     </template>
@@ -52,11 +60,10 @@ const { isSidebarMinimized, isDevEnvironment } = storeToRefs(GlobalStore)
 
 watch(isDevEnvironment, (newValue, oldValue) => {
   const AuthStore = useAuthStore()
-  if (!AuthStore.getAccessToken() ) {
+  if (!AuthStore.getAccessToken()) {
     router.go(0)
   }
 })
-
 </script>
 
 <style lang="scss" scoped>
@@ -80,11 +87,11 @@ watch(isDevEnvironment, (newValue, oldValue) => {
   align-items: center;
   margin-left: 1rem;
 
-  &>* {
+  & > * {
     margin-right: 1rem;
   }
 
-  &>*:last-child {
+  & > *:last-child {
     margin-right: 0;
   }
 }

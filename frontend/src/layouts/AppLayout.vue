@@ -1,7 +1,9 @@
 <template>
-  <VaLayout :top="{ fixed: true, order: 2 }"
+  <VaLayout
+    :top="{ fixed: true, order: 2 }"
     :left="{ fixed: true, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
-    @leftOverlayClick="isSidebarMinimized = true">
+    @leftOverlayClick="isSidebarMinimized = true"
+  >
     <template #top>
       <AppNavbar :is-mobile="isMobile" />
     </template>

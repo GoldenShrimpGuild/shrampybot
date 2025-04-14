@@ -1,5 +1,11 @@
 <template>
-  <VaSidebar v-model="writableVisible" :width="sidebarWidth" :color="color" minimized-width="0" :class="GlobalStore.$state.isDevEnvironment ? 'va-sidebar-dev no-animate' : ''">
+  <VaSidebar
+    v-model="writableVisible"
+    :width="sidebarWidth"
+    :color="color"
+    minimized-width="0"
+    :class="GlobalStore.$state.isDevEnvironment ? 'va-sidebar-dev no-animate' : ''"
+  >
     <VaAccordion v-model="value" multiple>
       <VaCollapse v-for="(route, index) in visibleNavRoutes(navRoutes)" :key="index">
         <template #header="{ value: isCollapsed }">
