@@ -59,6 +59,11 @@ const scopeSelector = ref([
         disabled: false
     },
     {
+        text: 'admin:events',
+        value: 'admin:events',
+        disabled: false
+    },
+    {
         text: 'admin:filters',
         value: 'admin:filters',
         disabled: false

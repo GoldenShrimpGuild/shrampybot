@@ -40,7 +40,15 @@
       "areYouSure": "Are you sure you'd like to delete this category?"
     },
     "tokens": "Tokens and Access Management",
-    "filters": "Filters"
+    "filters": "Filters",
+    "events": "Events",
+    "event": {
+      "eventsApi": "Events API",
+      "modalTitle": "Clearing Cache",
+      "icButton": "Clear API Cache",
+      "icSuccessFor": "Successfully flushed Events API cache for ",
+      "icFailureFor": "Failed to flush Events API cache for "
+    }
   },
   "404": {
     "title": "This page’s gone fishing.",
@@ -92,7 +100,8 @@
     "social_map": "Social Map",
     "categories": "Categories",
     "tokens": "Tokens",
-    "filters": "Filters"
+    "filters": "Filters",
+    "events": "Events"
   },
   "messages": {
     "all": "See all messages",

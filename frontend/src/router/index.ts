@@ -101,23 +101,6 @@ const routes: Array<RouteRecordRaw> = [
     component: AppLayout,
     children: [
       {
-        name: 'users',
-        path: '/admin/users',
-        meta: {
-          nav: {
-            icon: '',
-            displayName: 'menu.users',
-            disabled: false,
-            hidden: false,
-          },
-          perms: {
-            requiresAuth: true,
-            requiresScopes: ['admin:users'],
-          },
-        },
-        component: () => import('../pages/admin/UserList.vue'),
-      },
-      {
         name: 'categories',
         path: '/admin/categories',
         meta: {
@@ -133,6 +116,23 @@ const routes: Array<RouteRecordRaw> = [
           },
         },
         component: () => import('../pages/admin/Categories.vue'),
+      },
+      {
+        name: 'events',
+        path: '/admin/events/:eventId?',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.events',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresScopes: ['admin:events']
+          },
+        },
+        component: () => import('../pages/admin/Events.vue'),
       },
       {
         name: 'filters',
@@ -167,6 +167,23 @@ const routes: Array<RouteRecordRaw> = [
           },
         },
         component: () => import('../pages/admin/Tokens.vue'),
+      },
+      {
+        name: 'users',
+        path: '/admin/users',
+        meta: {
+          nav: {
+            icon: '',
+            displayName: 'menu.users',
+            disabled: false,
+            hidden: false,
+          },
+          perms: {
+            requiresAuth: true,
+            requiresScopes: ['admin:users'],
+          },
+        },
+        component: () => import('../pages/admin/UserList.vue'),
       },
     ],
   },
