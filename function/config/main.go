@@ -12,6 +12,7 @@ var (
 	AwsEndpointUrl     = os.Getenv("AWS_ENDPOINT_URL")
 	AwsDefaultRegion   = os.Getenv("AWS_DEFAULT_REGION")
 	AwsBucket          = os.Getenv("AWS_BUCKET")
+	AwsSessionToken    = os.Getenv("AWS_SESSION_TOKEN")
 
 	TwitchApiKey      = os.Getenv("TWITCH_API_KEY")
 	TwitchApiSecret   = os.Getenv("TWITCH_API_SECRET")
@@ -33,6 +34,11 @@ var (
 	DiscordChannel      = os.Getenv("DISCORD_CHANNEL")
 	DiscordAdminRole    = os.Getenv("DISCORD_ADMIN_ROLE")
 	DiscordDevRole      = os.Getenv("DISCORD_DEV_ROLE")
+
+	EventApiHost    = os.Getenv("EVENT_API_HOST")
+	EventApiPath    = os.Getenv("EVENT_API_PATH")
+	EventApiRegion  = os.Getenv("EVENT_API_REGION")
+	EventApiService = os.Getenv("EVENT_API_SERVICE")
 
 	DBCryptKey = os.Getenv("DB_CRYPT_KEY")
 )

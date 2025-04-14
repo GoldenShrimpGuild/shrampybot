@@ -9,10 +9,12 @@ var (
 		"gsg",
 		"gsg:streamer",
 		"admin",
-		"admin:users",
 		"admin:categories",
 		"admin:collection",
+		"admin:events",
+		"admin:filters",
 		"admin:tokens",
+		"admin:users",
 	}
 )
 
