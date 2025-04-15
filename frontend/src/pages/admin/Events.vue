@@ -2,8 +2,6 @@
 import { ref, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n'
-import { storeToRefs } from 'pinia'
-import { useGlobalStore } from '../../stores/global-store';
 import { useAxios } from '../../plugins/axios'
 
 const { t } = useI18n()
@@ -13,32 +11,25 @@ const eventId = ref('' as string | undefined)
 const showICModal = ref(false)
 const disableICModalButton = ref(true)
 const cacheFlushSuccess = ref(false)
-
-const GlobalStore = useGlobalStore()
-
-const { isDevEnvironment } = storeToRefs(GlobalStore)
 const axios = useAxios();
-
 const route = useRoute();
 
 const invalidateAPICache = async () => {
-  if (isDevEnvironment.value) {
-    disableICModalButton.value = true
-    showICModal.value = true
-    cacheFlushSuccess.value = false
+  disableICModalButton.value = true
+  showICModal.value = true
+  cacheFlushSuccess.value = false
 
-    axios.get('/admin/event/' + eventId.value)
-      .then((response) => {
-        if (response.status === 200) {
-          disableICModalButton.value = false
-          cacheFlushSuccess.value = true
-        }
-      })
-      .catch((error) => {
+  axios.get('/admin/event/' + eventId.value)
+    .then((response) => {
+      if (response.status === 200) {
         disableICModalButton.value = false
-        cacheFlushSuccess.value = false
-      })
-  }
+        cacheFlushSuccess.value = true
+      }
+    })
+    .catch((error) => {
+      disableICModalButton.value = false
+      cacheFlushSuccess.value = false
+    })
 }
 
 onMounted(async () => {
