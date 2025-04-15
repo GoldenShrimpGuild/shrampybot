@@ -2,6 +2,7 @@ package nosqldb
 
 import (
 	"encoding/json"
+	"log"
 	"shrampybot/utility"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -56,7 +57,11 @@ func (n *NoSqlDb) PutOAuth(oauth *OAuthDatum) error {
 	fullTableName := n.prefix + oAuthTableName
 
 	// Encrypt secret values to be stored
-	oauth.SecretKeyEnc, oauth.SecretKeyIV, _ = utility.EncryptSecret(oauth.SecretKey)
+	oauth.SecretKeyEnc, oauth.SecretKeyIV, err = utility.EncryptSecret(oauth.SecretKey)
+	if err != nil {
+		log.Printf("Could not encrypt oauth secret key: %v\n", err)
+		return err
+	}
 
 	tempMap := map[string]string{}
 	tempBytes, _ := json.Marshal(oauth)
