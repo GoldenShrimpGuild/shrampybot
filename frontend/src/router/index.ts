@@ -112,7 +112,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresScopes: ['admin:categories'],
+            requiresScopes: ['admin:categories']
           },
         },
         component: () => import('../pages/admin/Categories.vue'),
@@ -146,7 +146,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresScopes: ['admin:filters'],
+            requiresScopes: ['admin:filters']
           },
         },
         component: () => import('../pages/admin/Filters.vue'),
@@ -163,7 +163,7 @@ const routes: Array<RouteRecordRaw> = [
           },
           perms: {
             requiresAuth: true,
-            requiresScopes: ['admin:tokens'],
+            requiresScopes: ['admin:tokens']
           },
         },
         component: () => import('../pages/admin/Tokens.vue'),
@@ -323,6 +323,11 @@ router.beforeEach(async (to: any, from: any, next) => {
     return
   }
 
+  // If the route is undefined, redirect to 404 page.
+  if (!to.meta.perms) {
+    next('/404')
+  }
+
   // instead of having to check every route record with
   // to.matched.some(record => record.meta.requiresAuth)
   if (to.meta.perms.requiresAuth) {
@@ -339,8 +344,12 @@ router.beforeEach(async (to: any, from: any, next) => {
 
       // If there's still no accessToken set after calling refresh, route to auth screen
       if (AuthStore.getAccessToken() === '') {
-        console.log('Triggered return to login screen.')
-        next('/auth/login')
+        console.log("Triggered return to login screen.")
+        if (to.path !== '/auth/login') {
+          next('/auth/login?redirect_path='+encodeURIComponent(to.path))
+        } else {
+          next('/auth/login')
+        }
       } else {
         if (UserStore.scopeMatch(to.meta.perms.requiresScopes)) {
           next()
@@ -363,7 +372,6 @@ export const validateAndFetchRoute = async (route_path: any) => {
 
   try {
     const bearerResponse = await axios.get(path, axiosConfig)
-    // UserStore.$state.self = bearerResponse.data.self
   } catch (error: any) {
     if (error.response.status in [400, 401]) {
       const refresh_path = '/token/refresh/'
@@ -386,14 +394,14 @@ export const validateAndFetchRoute = async (route_path: any) => {
         AuthStore.setAccessToken('')
         route_path = {
           name: 'login',
-          path: '/auth/login',
+          path: '/auth/login' + '?redirect_path=' + encodeURIComponent(route_path.path),
         } as RouteRecordRaw
       }
     } else if (error.response.status == 500) {
       AuthStore.setAccessToken('')
       route_path = {
         name: 'login',
-        path: '/auth/login',
+        path: '/auth/login' + '?redirect_path=' + encodeURIComponent(route_path.path),
       } as RouteRecordRaw
     }
   }

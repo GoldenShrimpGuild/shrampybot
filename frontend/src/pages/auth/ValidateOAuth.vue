@@ -71,6 +71,7 @@ const getQueryParams = async () => {
   await router.isReady()
   const code = route.query.code
   const error = route.query.error
+  const state = GlobalStore.decodeStateBlob(String(route.query.state))
 
   if (error === 'access_denied') {
     encountered_error(route.query.error_description)
@@ -106,7 +107,7 @@ const getQueryParams = async () => {
       encountered_error(reason)
     })
 
-  router.push({ name: 'streams' })
+  router.push(state.redirect_path)
 }
 
 const encountered_error = async (reason: any) => {
