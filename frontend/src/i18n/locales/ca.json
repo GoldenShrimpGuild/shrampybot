@@ -43,11 +43,22 @@
     "filters": "Filters",
     "events": "Events",
     "event": {
-      "eventsApi": "Events API",
+      "eventOperations": "Event Operations",
+      "currentEvent": "Current Event",
+      "setCurrentEvent": "Set as Current Event",
+      "clearCurrentEvent": "Clear Current Event",
       "modalTitle": "Clearing Cache",
       "icButton": "Clear API Cache",
-      "icSuccessFor": "Successfully flushed Events API cache for ",
-      "icFailureFor": "Failed to flush Events API cache for "
+      "icSuccess": "Successfully flushed Events API cache.",
+      "icFailure": "Failed to flush Events API cache.",
+      "setCESuccess": "Successfully set Current Event",
+      "setCEFailure": "Failed to set Current Event",
+      "clearCESuccess": "Successfully cleared Current Event",
+      "clearCEFailure": "Failed to clear Current Event",
+      "noCurrentEvent": "No current event is set.",
+      "eventId": "EventID",
+      "name": "Title",
+      "desc": "Description"
     }
   },
   "404": {

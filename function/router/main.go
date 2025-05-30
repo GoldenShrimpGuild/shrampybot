@@ -58,6 +58,26 @@ type Status struct {
 	ErrorCode int    `json:"error_code,omitempty"`
 }
 
+type StatusCode int
+
+const (
+	StatusSuccess StatusCode = iota
+	StatusFailure
+	StatusUnknown
+	StatusNotFound
+)
+
+var StatusText = map[StatusCode]string{
+	StatusSuccess:  "success",
+	StatusFailure:  "failure",
+	StatusUnknown:  "unknown",
+	StatusNotFound: "notFound",
+}
+
+func (st StatusCode) String() string {
+	return StatusText[st]
+}
+
 type Route struct {
 	match_path string
 
