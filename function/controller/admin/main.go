@@ -36,6 +36,11 @@ func AdminController(route *router.Route) *router.Response {
 			c := NewCollectionView()
 			return c.CallMethod(route)
 		}
+	case "current_event":
+		if utility.MatchScope(scopes, "admin:events") {
+			c := NewCurrentEventView()
+			return c.CallMethod(route)
+		}
 	case "event":
 		if utility.MatchScope(scopes, "admin:events") {
 			c := NewEventView()

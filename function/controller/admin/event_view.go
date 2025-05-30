@@ -23,14 +23,17 @@ type EventView struct {
 }
 
 type EventApiResponse struct {
-	Meta EventApiResponseMeta `json:"meta"`
+	Title       string               `json:"title,omitempty"`
+	Description string               `json:"description,omitempty"`
+	Meta        EventApiResponseMeta `json:"meta"`
+	StatusCode  int                  `json:"_statusCode,omitempty"`
 }
 
 type EventApiResponseMeta struct {
-	ApiVersion  string `json:"apiVersion"`
-	Environment string `json:"environment"`
-	EventId     string `json:"eventId"`
-	GeneratedOn string `json:"generatedOn"`
+	ApiVersion  string `json:"apiVersion,omitempty"`
+	Environment string `json:"environment,omitempty"`
+	EventId     string `json:"eventId,omitempty"`
+	GeneratedOn string `json:"generatedOn,omitempty"`
 }
 
 func NewEventView() *EventView {
