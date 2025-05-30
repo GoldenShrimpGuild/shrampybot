@@ -24,7 +24,12 @@ div.va-card {
     margin-left: 1em;
     font-family: 'Revalia';
     font-size: 16pt;
+    margin-bottom: 1rem;
   }
+}
+
+div.indented-list div.va-list-item {
+  padding-left: 2em;
 }
 
 h1 {
