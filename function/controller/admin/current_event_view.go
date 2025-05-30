@@ -2,11 +2,7 @@ package admin
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"log"
-	"net/http"
-	"shrampybot/config"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
 	"strconv"
@@ -134,7 +130,7 @@ func (c *CurrentEventView) Put(route *router.Route) *router.Response {
 
 	responseBody := CurrentEventPutResponseBody{}
 	responseBody.Status = router.StatusText[router.StatusUnknown]
-	retEvent, err := retrieveEventApiResponse(requestBody.EventId)
+	retEvent, err := sendSignedCacheInvalidation(requestBody.EventId)
 	responseBody.RetrievedEvent = *retEvent
 	if err != nil {
 		responseBody.Status = router.StatusText[router.StatusFailure]
@@ -154,6 +150,10 @@ func (c *CurrentEventView) Put(route *router.Route) *router.Response {
 			}
 		}
 	}
+
+	// Invalidate the cache on the "current" event
+	// Ignore all errors and just continue for now.
+	_, _ = sendSignedCacheInvalidation("current")
 
 	bodyBytes, _ := json.Marshal(responseBody)
 	response.Body = string(bodyBytes)
@@ -200,44 +200,44 @@ func (c *CurrentEventView) Delete(route *router.Route) *router.Response {
 	return response
 }
 
-func retrieveEventApiResponse(eventId string) (*EventApiResponse, error) {
-	apiResponse := EventApiResponse{}
+// func retrieveEventApiResponse(eventId string) (*EventApiResponse, error) {
+// 	apiResponse := EventApiResponse{}
 
-	url := "https://" + config.EventApiHost + config.EventApiPath + eventId
+// 	url := "https://" + config.EventApiHost + config.EventApiPath + eventId
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Printf("Error creating request to %v, %v", url, err)
-		return &apiResponse, err
-	}
-	req.Host = config.EventApiHost
+// 	req, err := http.NewRequest("GET", url, nil)
+// 	if err != nil {
+// 		log.Printf("Error creating request to %v, %v", url, err)
+// 		return &apiResponse, err
+// 	}
+// 	req.Host = config.EventApiHost
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Printf("Error making request: %v", err)
-		return &apiResponse, err
-	}
-	defer resp.Body.Close()
+// 	client := &http.Client{}
+// 	resp, err := client.Do(req)
+// 	if err != nil {
+// 		log.Printf("Error making request: %v", err)
+// 		return &apiResponse, err
+// 	}
+// 	defer resp.Body.Close()
 
-	apiResponse.StatusCode = resp.StatusCode
-	if resp.StatusCode != 200 {
-		log.Printf("Request failed with status code: %v", resp.StatusCode)
-		err = fmt.Errorf("request failed with status code %v", resp.StatusCode)
-		return &apiResponse, err
-	}
+// 	apiResponse.StatusCode = resp.StatusCode
+// 	if resp.StatusCode != 200 {
+// 		log.Printf("Request failed with status code: %v", resp.StatusCode)
+// 		err = fmt.Errorf("request failed with status code %v", resp.StatusCode)
+// 		return &apiResponse, err
+// 	}
 
-	body, err := io.ReadAll(io.Reader(resp.Body))
-	if err != nil {
-		fmt.Printf("Error reading response body: %v", err)
-		return &apiResponse, err
-	}
-	err = json.Unmarshal(body, &apiResponse)
-	if err != nil {
-		fmt.Printf("Error unmarshalling remote body json: %v", err)
-		return &apiResponse, err
-	}
+// 	body, err := io.ReadAll(io.Reader(resp.Body))
+// 	if err != nil {
+// 		fmt.Printf("Error reading response body: %v", err)
+// 		return &apiResponse, err
+// 	}
+// 	err = json.Unmarshal(body, &apiResponse)
+// 	if err != nil {
+// 		fmt.Printf("Error unmarshalling remote body json: %v", err)
+// 		return &apiResponse, err
+// 	}
 
-	apiResponse.StatusCode = resp.StatusCode
-	return &apiResponse, nil
-}
+// 	apiResponse.StatusCode = resp.StatusCode
+// 	return &apiResponse, nil
+// }

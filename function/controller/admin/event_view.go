@@ -69,7 +69,7 @@ func (c *EventView) Get(route *router.Route) *router.Response {
 		return response
 	}
 
-	err := sendSignedCacheInvalidation(route.Path[2])
+	_, err := sendSignedCacheInvalidation(route.Path[2])
 	if err != nil {
 		log.Printf("Error invalidating cache: %v", err)
 		response.StatusCode = "500"
@@ -87,8 +87,9 @@ func (c *EventView) Get(route *router.Route) *router.Response {
 // https://github.com/aws-samples/sigv4-signing-examples/blob/main/sdk/golang/main.go
 // https://gist.github.com/secretorange/905b4811300d7c96c71fa9c6d115ee24
 
-func sendSignedCacheInvalidation(eventId string) error {
+func sendSignedCacheInvalidation(eventId string) (*EventApiResponse, error) {
 	ctx := context.Background()
+	apiResponse := EventApiResponse{}
 	payloadHash := "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
 	creds := aws.Credentials{
@@ -102,7 +103,7 @@ func sendSignedCacheInvalidation(eventId string) error {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Printf("Error creating request to %v, %v", url, err)
-		return err
+		return &apiResponse, err
 	}
 
 	req.Host = config.EventApiHost
@@ -111,41 +112,42 @@ func sendSignedCacheInvalidation(eventId string) error {
 	signer := v4.NewSigner()
 	if err = signer.SignHTTP(ctx, creds, req, payloadHash, config.EventApiService, config.EventApiRegion, time.Now()); err != nil {
 		log.Printf("Error signing request: %v", err)
-		return err
+		return &apiResponse, err
 	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Error making request: %v", err)
-		return err
+		return &apiResponse, err
 	}
 	defer resp.Body.Close()
 
+	apiResponse.StatusCode = resp.StatusCode
 	if resp.StatusCode != 200 {
 		log.Printf("Request failed with status code: %v", resp.StatusCode)
-		err = errors.New("request failed with non-200 status code")
-		return err
+		err = fmt.Errorf("request failed with status code %v", resp.StatusCode)
+		return &apiResponse, err
 	}
 
 	warning := resp.Header.Get("Warning")
 	if strings.Contains(warning, "199") {
+		apiResponse.StatusCode = 199
 		err = errors.New("error 199 received from remote url")
-		return err
+		return &apiResponse, err
 	}
 
 	body, err := io.ReadAll(io.Reader(resp.Body))
 	if err != nil {
 		fmt.Printf("Error reading response body: %v", err)
-		return err
+		return &apiResponse, err
 	}
-	parsedBody := EventApiResponse{}
-	json.Unmarshal(body, &parsedBody)
-
-	if eventId != parsedBody.Meta.EventId {
-		err = errors.New("no matching eventId found in response")
-		return err
+	err = json.Unmarshal(body, &apiResponse)
+	if err != nil {
+		fmt.Printf("Error unmarshalling remote body json: %v", err)
+		return &apiResponse, err
 	}
 
-	return nil
+	apiResponse.StatusCode = resp.StatusCode
+	return &apiResponse, err
 }
