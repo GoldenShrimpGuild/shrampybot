@@ -3,12 +3,9 @@ import { ref, watch, onBeforeMount, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStaticTokenStore } from '../../stores/static_token'
-import { NewTokenRequestBody, NewTokenResponseBody, OutputStaticTokenInfo } from '../../../model/controller/admin'
-import { Time } from '../../../model/lib/helix'
-import { DateInputDate, DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types.js'
-import { SelectOption } from 'vuestic-ui'
-import { forEach, List } from 'lodash'
-import { loremIpsum } from 'lorem-ipsum'
+import { NewTokenRequestBody, OutputStaticTokenInfo } from '../../../model/controller/admin'
+import { DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types.js'
+import { forEach } from 'lodash'
 
 const StaticTokenStore = useStaticTokenStore()
 const { tokens } = storeToRefs(StaticTokenStore)
@@ -283,15 +280,6 @@ const revokeToken = () => {
         </VaCardContent>
       </VaCard>
     </div>
-    <!-- <DataSection />
-    <div class="flex flex-col md:flex-row gap-4">
-      <RevenueByLocationMap class="w-full md:w-4/6" />
-      <RegionRevenue class="w-full md:w-2/6" />
-    </div>
-    <div class="flex flex-col md:flex-row gap-4">
-      <ProjectTable class="w-full md:w-1/2" />
-      <Timeline class="w-full md:w-1/2" />
-    </div> -->
   </section>
   <VaModal v-model="addModalShow" hide-default-actions blur>
     <template #header>
