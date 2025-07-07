@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"shrampybot/config"
 	"shrampybot/router"
+	"shrampybot/utility/nosqldb"
 	"strings"
 	"time"
 
@@ -34,6 +35,18 @@ type EventApiResponseMeta struct {
 	Environment string `json:"environment,omitempty"`
 	EventId     string `json:"eventId,omitempty"`
 	GeneratedOn string `json:"generatedOn,omitempty"`
+}
+
+type EventGetResponseBody struct {
+	Status         string                               `json:"status,omitempty"`
+	EventResponse  *EventApiResponse                    `json:"eventResponse,omitempty"`
+	IsCurrentEvent bool                                 `json:"isCurrentEvent"`
+	CurrentEvent   *CurrentEventGetEventGetResponseBody `json:"currentEvent,omitempty"`
+}
+
+type CurrentEventGetEventGetResponseBody struct {
+	Status        string            `json:"status,omitempty"`
+	EventResponse *EventApiResponse `json:"eventResponse,omitempty"`
 }
 
 func NewEventView() *EventView {
@@ -62,6 +75,7 @@ func (c *EventView) Get(route *router.Route) *router.Response {
 	log.Println("Entered route: Admin.Event.Get")
 	response := &router.Response{}
 	response.Headers = &router.DefaultResponseHeaders
+	response.StatusCode = "200"
 
 	if len(route.Path) != 3 {
 		log.Println("No ID specified.")
@@ -69,15 +83,52 @@ func (c *EventView) Get(route *router.Route) *router.Response {
 		return response
 	}
 
-	_, err := sendSignedCacheInvalidation(route.Path[2])
+	// Instantiate DynamoDB
+	n, err := nosqldb.NewClient()
 	if err != nil {
-		log.Printf("Error invalidating cache: %v", err)
+		log.Println("Could not instantiate dynamodb.")
 		response.StatusCode = "500"
 		return response
 	}
 
-	log.Printf("Successfully invalidated cache for event %v", route.Path[2])
-	response.StatusCode = "200"
+	inputEvent := strings.TrimSpace(route.Path[2])
+
+	responseBody := EventGetResponseBody{}
+	responseBody.Status = router.StatusText[router.StatusUnknown]
+	responseBody.IsCurrentEvent = false
+	responseBody.CurrentEvent = nil
+	responseBody.EventResponse, err = sendSignedCacheInvalidation(inputEvent)
+	if err != nil {
+		log.Printf("Could not invalidate cache for event %v: %v", inputEvent, err)
+		responseBody.Status = router.StatusText[router.StatusFailure]
+	} else {
+		log.Printf("Successfully invalidated cache for event %v", route.Path[2])
+
+		responseBody.Status = router.StatusText[router.StatusSuccess]
+		// Defaulting to event 1 based on current single-current-event behaviour
+		currentEvent, err := n.GetCurrentEvent(1)
+		if err != nil {
+			log.Printf("Could not retrieve current event by index %v: %v", 1, err)
+		} else {
+			if currentEvent.EventId == inputEvent {
+				responseBody.IsCurrentEvent = true
+				responseBody.CurrentEvent = &CurrentEventGetEventGetResponseBody{}
+				responseBody.CurrentEvent.EventResponse, err = sendSignedCacheInvalidation("current")
+				if err != nil {
+					responseBody.CurrentEvent.Status = router.StatusText[router.StatusFailure]
+					log.Printf("Failed to reset current event cache: %v", err)
+				} else {
+					responseBody.CurrentEvent.Status = router.StatusText[router.StatusSuccess]
+					log.Printf("Successfully invalidated cache for current event.")
+				}
+			} else {
+				log.Printf("Event %v is not current event (%v), nothing to be done.", inputEvent, currentEvent.EventId)
+			}
+		}
+	}
+
+	bodyBytes, _ := json.Marshal(responseBody)
+	response.Body = string(bodyBytes)
 
 	log.Println("Exited route: Admin.Event.Get")
 	return response

@@ -4,6 +4,7 @@ import { useToast } from 'vuestic-ui';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n'
 import { useAxios } from '../../plugins/axios'
+import { EventGetResponseBody } from '../../../model/controller/admin';
 import { CurrentEventDatum } from '../../../model/utility/nosqldb'
 import { CurrentEventPutRequestBody } from '../../../model/controller/admin'
 
@@ -11,6 +12,7 @@ const { t } = useI18n()
 const toast = useToast()
 
 const eventId = ref('' as string | undefined)
+const event = ref({} as EventGetResponseBody)
 const currentEvent = ref({} as CurrentEventDatum)
 
 const ICButtonLoading = ref(false)
@@ -25,26 +27,51 @@ const invalidateAPICache = async () => {
   axios.get('/admin/event/' + eventId.value)
     .then((response) => {
       if (response.status === 200) {
-        sendNormalToast(t("admin.event.icSuccess"))
-        ICButtonLoading.value = false
+        if (response.data.status && response.data.status === "success") {
+          event.value = response.data.eventResponse
+          sendNormalToast(t("admin.event.icSuccess"))
+        } else if (response.data.status && response.data.status === "failure") {
+          event.value = response.data.eventResponse
+          sendErrorToast(t("admin.event.icFailure"))
+        } else {
+          sendErrorToast(t("admin.event.unknownError"))
+        }
       }
+      ICButtonLoading.value = false
     })
     .catch((error) => {
-      sendErrorToast(t("admin.event.icFailure"))
+      if (error.response.status === 502) {
+        // Retry eternally when hitting 502s... seems to be AWS's fault
+        invalidateAPICache()
+      } else {
+        sendErrorToast(t("admin.event.icFailure"))
+      }
       ICButtonLoading.value = false
     })
 }
 
 const getCurrentEvent = async () => {
+  setCEButtonLoading.value = true
+
   axios.get('/admin/current_event/1')
     .then((response) => {
       if (response.status === 200) {
-        if (response.data.status === "success") {
+        if (response.data.status && response.data.status === "success") {
           currentEvent.value = response.data.currentEvent
+        } else {
+          sendErrorToast(t("admin.event.unknownError"))
         }
       }
+      setCEButtonLoading.value = false
     })
     .catch((error) => {
+      if (error.response.status === 502) {
+        // Retry eternally when hitting 502s... seems to be AWS's fault
+        getCurrentEvent()
+      } else {
+        sendErrorToast(t("admin.event.unknownError"))
+      }
+      setCEButtonLoading.value = false
     })
 }
 
@@ -66,8 +93,8 @@ const clearCurrentEvent = async () => {
         } else {
           sendErrorToast(t("admin.event.clearCEFailure"))
         }
-        clearCEButtonDisabled.value = false
       }
+      clearCEButtonDisabled.value = false
     })
     .catch((error) => {
       if (error.response.status === 502) {
@@ -75,8 +102,8 @@ const clearCurrentEvent = async () => {
         clearCurrentEvent()
       } else {
         sendErrorToast(t("admin.event.clearCEFailure"))
-        clearCEButtonDisabled.value = false
       }
+      clearCEButtonDisabled.value = false
     })
 }
 
@@ -96,8 +123,8 @@ const setCurrentEvent = async () => {
         } else {
           sendErrorToast(t("admin.event.setCEFailure"))
         }
-        setCEButtonLoading.value = false
       }
+      setCEButtonLoading.value = false
     })
     .catch((error) => {
       if (error.response.status === 502) {
@@ -105,8 +132,8 @@ const setCurrentEvent = async () => {
         setCurrentEvent()
       } else {
         sendErrorToast(t("admin.event.setCEFailure"))
-        setCEButtonLoading.value = false
       }
+      setCEButtonLoading.value = false
     })
 }
 

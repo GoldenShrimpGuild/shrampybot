@@ -6,6 +6,7 @@ import (
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
 	"strconv"
+	"strings"
 )
 
 type CurrentEventView struct {
@@ -126,21 +127,22 @@ func (c *CurrentEventView) Put(route *router.Route) *router.Response {
 		response.StatusCode = "500"
 		return response
 	}
-	log.Printf("Requested Event ID is \"%v\"", requestBody.EventId)
+	eventId := strings.TrimSpace(requestBody.EventId)
+	log.Printf("Requested Event ID is \"%v\"", eventId)
 
 	responseBody := CurrentEventPutResponseBody{}
 	responseBody.Status = router.StatusText[router.StatusUnknown]
-	retEvent, err := sendSignedCacheInvalidation(requestBody.EventId)
+	retEvent, err := sendSignedCacheInvalidation(eventId)
 	responseBody.RetrievedEvent = *retEvent
 	if err != nil {
 		responseBody.Status = router.StatusText[router.StatusFailure]
-		log.Printf("Error retrieving remote event with ID %v: %v", requestBody.EventId, err)
+		log.Printf("Error retrieving remote event with ID %v: %v", eventId, err)
 	} else {
 		log.Printf("Retrieved event ID is \"%v\"", responseBody.RetrievedEvent.Meta.EventId)
 		// Only set the current event if the retrieved EventId aligns
-		if requestBody.EventId == responseBody.RetrievedEvent.Meta.EventId {
+		if eventId == responseBody.RetrievedEvent.Meta.EventId {
 			currentEvent := nosqldb.CurrentEventDatum{
-				EventId:     requestBody.EventId,
+				EventId:     eventId,
 				Title:       responseBody.RetrievedEvent.Title,
 				Description: responseBody.RetrievedEvent.Description,
 			}

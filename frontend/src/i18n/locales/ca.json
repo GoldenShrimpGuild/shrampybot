@@ -56,6 +56,7 @@
       "clearCESuccess": "Successfully cleared Current Event",
       "clearCEFailure": "Failed to clear Current Event",
       "noCurrentEvent": "No current event is set.",
+      "unknownError": "Unknown error occurred.",
       "eventId": "EventID",
       "name": "Title",
       "desc": "Description"
