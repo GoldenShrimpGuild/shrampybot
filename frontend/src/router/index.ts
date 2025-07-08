@@ -63,24 +63,6 @@ const routes: Array<RouteRecordRaw> = [
         },
         component: () => import('../pages/public/ActiveStreams.vue'),
       },
-      // {
-      //   name: 'dashboard',
-      //   path: '/dashboard',
-      //   meta: {
-      //     nav: {
-      //       icon: '',
-      //       displayName: 'menu.dashboard',
-      //       disabled: false,
-      //       hidden: false,
-      //     },
-      //     perms: {
-      //       requiresAuth: true,
-      //       requiresStaff: false,
-      //       requiresAdmin: false,
-      //     },
-      //   },
-      //   component: () => import('../pages/admin/dashboard/Dashboard.vue'),
-      // },
     ],
   },
   {
