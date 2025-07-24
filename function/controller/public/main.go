@@ -17,6 +17,9 @@ func PublicController(route *router.Route) *router.Response {
 	}
 
 	switch route.Path[1] {
+	case "multi":
+		c := NewMultiView()
+		return c.CallMethod(route)
 	case "stream":
 		c := NewStreamView()
 		return c.CallMethod(route)
