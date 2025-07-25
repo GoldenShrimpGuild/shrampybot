@@ -12,6 +12,7 @@ type ResponseHeaders struct {
 	AccessControlAllowCredentials string `json:"Access-Control-Allow-Credentials"`
 	AccessControlAllowHeaders     string `json:"Access-Control-Allow-Headers"`
 	Vary                          string `json:"Vary"`
+	Location                      string `json:"Location,omitempty"`
 }
 
 // type ResponseStatus struct {
