@@ -96,7 +96,7 @@ func (v *MultiView) Get(route *router.Route) *router.Response {
 	sort.Strings(streamerNames)
 	body := strings.Join(streamerNames, "/")
 
-	response.StatusCode = "301"
+	response.StatusCode = "302"
 	response.Headers.Location = fmt.Sprintf("https://www.multitwitch.tv/%s", body)
 	response.Body = body + "\n"
 	log.Println("Exited route: Public.Multi.Get")
