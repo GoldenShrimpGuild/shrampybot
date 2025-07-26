@@ -79,6 +79,10 @@ func (v *MultiView) Get(route *router.Route) *router.Response {
 			continue
 		}
 
+		if stream.UserLogin == "goldenshrimpguild" {
+			continue
+		}
+
 		if len(route.Path) == 3 && route.Path[2] != "" {
 			if !strings.Contains(strings.ToLower(stream.Title), strings.ToLower(route.Path[2])) {
 				continue
