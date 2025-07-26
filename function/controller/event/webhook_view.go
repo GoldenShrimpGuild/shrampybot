@@ -178,6 +178,9 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 
 		// Check if the last stream ended less than n seconds ago
 		if rStream.EndedAt.After(debounceTime) {
+			rStream.EndedAt = time.Time{}
+			n.PutStream(rStream)
+
 			log.Printf("Last stream ended less than %v seconds ago. Stopping processing.\n", config.StreamupDebounceInterval)
 			return nil
 		}
