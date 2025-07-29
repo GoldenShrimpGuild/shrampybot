@@ -62,6 +62,11 @@
       "desc": "Description"
     }
   },
+  "multiTwitch": {
+    "header": "GSG Multi-Twitch",
+    "decor": "Decor",
+    "chat": "Chat"
+  },
   "404": {
     "title": "This page’s gone fishing.",
     "text": "If you feel that it’s not right, please send us a message at ",

@@ -16,13 +16,24 @@ app.use(router)
 app.use(
   createVuestic({
     config: {
+      breakpoint: {
+        enabled: false,
+        bodyClass: true,
+        thresholds: {
+          xs: 0,
+          sm: 0,
+          md: 0,
+          lg: 0,
+          xl: 0,
+        },
+      },
       colors: {
         variables: {
           primary: '#ffffff',
           secondary: '#ffbb22',
           backgroundPrimary: '#000000',
           backgroundSecondary: '#333333',
-          backgroundElement: '#444444',
+          backgroundElement: '#694e00ff',
           textPrimary: '#ffffff',
           textSecondary: '#ffbb22',
           textInverted: '#000000',
