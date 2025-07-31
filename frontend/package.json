@@ -2,9 +2,10 @@
   "name": "vuestic-admin",
   "private": true,
   "version": "3.1.0",
+  "type": "module",
   "scripts": {
     "prepare": "cd ../function && tygo generate && cd ../frontend",
-    "dev": "vite",
+    "dev": "vite-node src/",
     "build": "pnpm run lint && vue-tsc --noEmit && vite build",
     "build:ci": "vite build",
     "start:ci": "serve -s ./dist",
@@ -26,7 +27,6 @@
     "@eslint/config-array": "^0.19.2",
     "@eslint/object-schema": "^2.1.6",
     "@floating-ui/dom": "^1.6.13",
-    "@gtm-support/vue-gtm": "^2.2.0",
     "@types/lodash": "^4.17.16",
     "@vuestic/compiler": "latest",
     "@vuestic/tailwind": "^0.1.5",
@@ -78,13 +78,20 @@
     "eslint-plugin-storybook": "^0.6.15",
     "eslint-plugin-vue": "^9.33.0",
     "lint-staged": "^15.5.1",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.6",
     "prettier": "^3.5.3",
     "storybook": "^8.6.12",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "vite": "^5.4.18",
     "vue-eslint-parser": "^9.4.3",
     "vue-tsc": "^2.2.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }

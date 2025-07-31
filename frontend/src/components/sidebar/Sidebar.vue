@@ -164,4 +164,8 @@ const items = ref([] as Array<INavigationRoute>)
     font-family: 'Revalia';
   }
 }
+.va-sidebar-dev {
+  background-image: url('/construction.jpg');
+  background-position-y: -64px;
+}
 </style>

@@ -66,20 +66,24 @@ watch(isDevEnvironment, (newValue, oldValue) => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="css" scoped>
 .va-navbar {
   z-index: 2;
+}
 
-  @media screen and (max-width: 950px) {
-    .left {
-      width: 100%;
-    }
-
-    .app-navbar__actions {
-      display: flex;
-      justify-content: space-between;
-    }
+@media screen and (max-width: 950px) {
+  .va-navbar .left {
+    width: 100%;
   }
+
+  .va-navbar .app-navbar__actions {
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+.va-navbar-dev {
+  background-image: url('/construction.jpg');
 }
 
 .left {
