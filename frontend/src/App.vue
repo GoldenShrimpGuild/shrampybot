@@ -1,5 +1,5 @@
 <template>
-  <RouterView />
+  <RouterView></RouterView>
 </template>
 
 <style lang="scss">
@@ -16,6 +16,9 @@
 
 body {
   margin: 0;
+  box-sizing: content-box;
+  display: block;
+  position: static;
 }
 
 div.va-card {

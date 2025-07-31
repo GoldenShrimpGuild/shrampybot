@@ -5,6 +5,8 @@ import (
 	"log"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
+	"slices"
+	"strings"
 )
 
 type StreamView struct {
@@ -56,7 +58,7 @@ func (v *StreamView) Get(route *router.Route) *router.Response {
 		// Get single result
 		stream, err := n.GetStream(route.Path[2])
 		if err != nil {
-			log.Println("Get category failed.")
+			log.Printf("Get stream [%v] failed.", route.Path[2])
 			response.StatusCode = "500"
 			return response
 		}
@@ -72,14 +74,32 @@ func (v *StreamView) Get(route *router.Route) *router.Response {
 		streams = *streamsRef
 	}
 
-	// Only include streams which were not filtered out by Shrampybot in this list
-	unfilteredStreams := []*nosqldb.StreamHistoryDatum{}
-	for _, stream := range streams {
-		if !stream.ShrampybotFiltered {
-			unfilteredStreams = append(unfilteredStreams, &stream)
-		}
+	// Load requisite category listing
+	categories, err := n.GetCategoryMap()
+	if err != nil {
+		log.Println("Could not retrieve categories for stream sorting.")
+		response.StatusCode = "500"
+		return response
 	}
-	streamBytes, _ := json.Marshal(unfilteredStreams)
+	lcCatStrings := []string{}
+	for _, c := range *categories {
+		lcCatStrings = append(lcCatStrings, strings.ToLower(c.TwitchCategory))
+	}
+
+	// Only include streams which were not filtered out by Shrampybot in this list
+	outputStreams := []*nosqldb.StreamHistoryDatum{}
+	for _, stream := range streams {
+		if stream.ShrampybotFiltered {
+			continue
+		}
+
+		if !slices.Contains(lcCatStrings, strings.ToLower(stream.GameName)) {
+			continue
+		}
+
+		outputStreams = append(outputStreams, &stream)
+	}
+	streamBytes, _ := json.Marshal(outputStreams)
 
 	body := map[string]any{}
 	body["count"] = len(streams)

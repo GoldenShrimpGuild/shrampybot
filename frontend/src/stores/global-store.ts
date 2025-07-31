@@ -3,6 +3,10 @@ import { useLocalStorage } from '@vueuse/core'
 import { useCookies } from "vue3-cookies"
 import { useRoute } from "vue-router"
 
+// Should load these from an env config instead.
+export const apiBaseUrlDev = "https://tl72sifq5iu6gkzpqyyp7umsra0wjejp.lambda-url.ca-central-1.on.aws"
+export const apiBaseUrlProd = "https://3okyp4qsdy2xzm5cjmpw5it53u0tdnkv.lambda-url.ca-central-1.on.aws"
+
 export const useGlobalStore = defineStore('global', {
   state: () => {
     const isDevEnvironment = useLocalStorage('isDevEnvironment', false)
@@ -36,9 +40,9 @@ export const useGlobalStore = defineStore('global', {
     getApiBaseUrl() {
       // TODO: Assemble this more sensibly
       if (this.isDevEnvironment) {
-        return 'https://tl72sifq5iu6gkzpqyyp7umsra0wjejp.lambda-url.ca-central-1.on.aws'
+        return apiBaseUrlDev
       } else {
-        return 'https://3okyp4qsdy2xzm5cjmpw5it53u0tdnkv.lambda-url.ca-central-1.on.aws'
+        return apiBaseUrlProd
       }
     },
     getDiscordOAuthUrl() {
