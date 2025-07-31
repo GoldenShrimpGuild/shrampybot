@@ -2,64 +2,69 @@
 import { computed, onBeforeMount, onMounted, ref, watch, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
-import StreamCard from '../../components/multi/StreamCard.vue'
-import TwitchChat from '../../components/multi/TwitchChat.vue'
-import { usePublicStore, type Streams } from '../../stores/public/'
+import { usePublicStore } from '../../stores/public/'
+import { useMultiStore } from '../../stores/public/multi'
 import { useTimer } from 'vue-timer-hook'
-import type { StreamHistoryDatum } from '../../../model/utility/nosqldb'
+
+// Types
+import type { StreamHistoryDatum as Stream } from '../../../model/utility/nosqldb'
+import type { Streams } from '../../stores/public/classes'
+
+// Components
+import Sidebar from '../../components/multi/Sidebar.vue'
+import TwitchStream from '../../components/multi/TwitchStream.vue'
 
 const { t } = useI18n()
 
 const PS = usePublicStore()
-const MS = PS.multi
-const { streams, userLogins, streamsLoaded } = storeToRefs(PS)
+const MS = useMultiStore()
+const { streamsList, userLogins, streamsLoaded } = storeToRefs(PS)
 const { 
   hideChat,
-  dynamicChatWidth,
+  fixedChatWidth,
+  dynamicSidebarWidth,
+  dynamicSidebarHeight,
   hideDecor,
+  fixedCardDecorHeight,
   dynamicCardDecorHeight,
   centreFrames,
   streamWidth,
   streamHeight,
   streamTopPadding,
   useDropdownChatSelect,
-  chatEmbedHeight,
-  wrapperHeight,
-  wrapperWidth,
-  streamsContainerWidth,
-  headerHeight,
-  sideButtonsHeight,
-  chatSelectorHeight,
+  dynamicChatEmbedHeight,
+  fixedChatSelectorHeight,
   currentWindowHeight,
-
-  sideMenu,
+  currentWindowWidth,
+  dynamicHeaderHeight,
+  dynamicWrapperWidth,
+  dynamicWrapperHeight,
+  fixedButtonsHeight,
+  numRows,
+  sideMenu
 } = storeToRefs(MS)
 
-const time = Date.now()
+const lastStreamLoadTime = Date.now()
+const streamLoadInterval = 2000
+const streamLoadTimer = useTimer(lastStreamLoadTime + streamLoadInterval)
 
-const refreshDelay = 2000
-const timer = useTimer(time + refreshDelay)
+// ID globals
+const mtWrapperId = ref("mt-wrapper")
+const mtHeaderId = ref("mt-header")
 
-const chatTabSelected = ref(0)
-const currentChatLogin = computed(() => userLogins.value[chatTabSelected.value] as string)
-const currentChatStream = computed(() => streams.value[currentChatLogin.value])
+// class globals
+const streamsClass = ref("mt-streams")
+const cardClass = ref("mt-card")
 
-const updateSizeParams = async () => {
-  const gsgButtons = document.getElementById('gsgButtons');
-  sideButtonsHeight.value = gsgButtons ? gsgButtons.getBoundingClientRect().height : 0
+var lastSizeUpdateTime = Date.now()
 
-  const chatTabs = document.getElementById('chatTabs');
-  chatSelectorHeight.value = chatTabs ? chatTabs.getBoundingClientRect().height : 0
-
-  const mtHeader = document.getElementById("mtHeader")
-  headerHeight.value = mtHeader ? mtHeader.getBoundingClientRect().height : 0
-
-  currentWindowHeight.value = window.innerHeight
-  wrapperHeight.value = currentWindowHeight.value
-  wrapperWidth.value = window.innerWidth
-  streamsContainerWidth.value = wrapperWidth.value - dynamicChatWidth.value - 5
-
-  MS.calculateSizes()
+const updateSizeParams = async (force: boolean = false) => {
+  const currentTime = Date.now()
+  if (force || currentTime > lastSizeUpdateTime+200) {
+    MS.setWindowSize(window.innerWidth, window.innerHeight)
+    MS.calculateSizes()
+    lastSizeUpdateTime = currentTime
+  }
 }
 
 const callStreamRefresh = async () => {
@@ -67,12 +72,15 @@ const callStreamRefresh = async () => {
   await updateSizeParams()
 
   const time = Date.now()
-  timer.restart(time + refreshDelay)
+  streamLoadTimer.restart(time + streamLoadInterval)
 }
+
+watch(hideChat, async (newValue) => await updateSizeParams())
+watch(hideDecor, async (newValue) => await updateSizeParams())
 
 onBeforeMount(async () => {
   watchEffect(async () => {
-    if (timer.isExpired.value) {
+    if (streamLoadTimer.isExpired.value) {
       await callStreamRefresh()
     }
   })
@@ -89,25 +97,51 @@ onMounted(async () => {
 })
 </script>
 
+<style scoped>
+#mt-wrapper {
+  padding: none;
+  margin: none;
+  height: v-bind(currentWindowHeight + 'px');
+  width: v-bind(dynamicWrapperWidth + 'px');
+}
+
+#mt-wrapper > div > h1 {
+  height: v-bind(dynamicHeaderHeight + 'px');
+  width: v-bind(dynamicWrapperWidth + 'px');
+}
+
+#mt-header {
+  height: v-bind(dynamicHeaderHeight + 'px');
+  width: v-bind(dynamicWrapperWidth + 'px');
+}
+
+.mt-streams {
+  height: v-bind(dynamicWrapperHeight + 'px');
+  width: v-bind(dynamicWrapperWidth + 'px');
+}
+</style>
+
 <template>
-  <VaLayout :class="`h-full w-full`" style="overflow: hidden;">
+  <VaLayout
+    :right="{fixed: true}"
+  >
     <template #content>
-      <div id="mtWrapper" 
-        :class="`box-content static p-0 m-0 h-[${wrapperHeight}px] w-[${wrapperWidth}px]`"
-        :style="`overflow: hidden;`"
-      >
-        <h1 id="mtHeader" :class="`pl-4 pt-2 pb-0 font-bold h-[${headerHeight}px]`" :hidden="hideDecor">{{ t('multiTwitch.header') }}</h1>
-        <div id="mtStreams" :class="`h-[${wrapperHeight - headerHeight}px] w-[${streamsContainerWidth}px]`" :aria-busy="!streamsLoaded"
-          :style="`overflow: hidden; padding-top: ${streamTopPadding}px; padding-right: ${dynamicChatWidth}px;`"
-        >
+      <div :id="mtWrapperId">
+        <div :id="mtHeaderId">
+          <h1 :class="`pl-4 pt-2 pb-0 font-bold`" :hidden="hideDecor" onshow="console.log('showed')">
+            {{ t('multiTwitch.header') }}
+          </h1>
+        </div>
+        <div :class="streamsClass" :aria-busy="!streamsLoaded">
+          <!-- ${centreFrames ? 'place-content-center' : ''} -->
           <VaSkeletonGroup
             v-if="!streamsLoaded"
-            :class="`w-full ${centreFrames ? 'place-content-center' : ''} gap-2`"
+            :class="``"
             animation="wave"
             :delay="0"
           >
             <VaCard
-                v-for="stream in Object.values(streams)"
+                v-for="stream in streamsList"
                 :key="stream.user_login"
                 :class="`h-[${streamHeight}px] w-[${streamWidth}px]`"
             >
@@ -121,169 +155,49 @@ onMounted(async () => {
               </VaCardContent>
             </VaCard>
           </VaSkeletonGroup>
-          <div 
-            v-else
-            :class="`flex flex-wrap w-[${streamsContainerWidth}px] h-[${wrapperHeight-headerHeight}px] ${centreFrames ? 'place-content-center' : ''} gap-2`"
-          >
-              <StreamCard
-                v-for="stream in Object.values(streams)"
+          <div v-else
+            :class="`flex flex-wrap ${centreFrames ? 'place-content-center' : ''} w-[${dynamicWrapperWidth}px] h-[${dynamicWrapperHeight}px]`">
+              <VaCard 
+                v-for="stream in streamsList"
                 :key="stream.user_login"
-                :stream="stream"
-                :height="streamHeight"
-                :width="streamWidth"
-                :cardOffset="dynamicCardDecorHeight"
-                :decorations="hideDecor"
-                @start-embed="updateSizeParams()"
-              ></StreamCard>
+                :class="`${cardClass} item w-[${streamWidth}px] h-[${streamHeight}px]`"
+              >
+                <TwitchStream
+                  :user-login="stream.user_login"
+                  :width="streamWidth"
+                  :height="streamHeight-dynamicCardDecorHeight"
+                  @start-embed="updateSizeParams()"
+                ></TwitchStream>
+                <VaCardContent 
+                  :style="`width: ${streamWidth}px; `"
+                  :hidden="hideDecor"
+                >
+                  <h5 :style="`text-overflow: ellipsis; overflow: hidden; white-space: nowrap;`">{{ stream.user_name }}</h5>
+                  <p :style="`text-overflow: ellipsis; overflow: hidden; white-space: nowrap;`">
+                    {{ stream.title }}
+                  </p>
+                </VaCardContent>
+              </VaCard>
           </div>
         </div>
       </div>
     </template>
 
     <template #right>
-      <div 
-        id="mtSidebar"
-        :class="`fixed top-0 right-0 h-${hideChat ? 0 : 'full'} row`"
-      >
-          <div 
-            id="gsgButtons"
-            class="pl-2 pr-1 pt-2 pb-2 inline-grid grid-cols-3 w-full content-box"
-          >
-            <VaButton
-              round
-              class="item mr-1"
-              size="small"
-              color="gsgYellow"
-              :icon="hideDecor ? 'check_box_outline_blank' : 'check_box'"
-              v-on:click="MS.toggleDecor()"
-            >
-              {{ t("multiTwitch.decor") }}
-            </VaButton>
-            <VaButton
-              round
-              class="item mr-1"
-              size="small"
-              color="gsgYellow"
-              :icon="hideChat ? 'check_box_outline_blank' : 'check_box'"
-              v-on:click="MS.toggleChat()"
-            >
-              {{ t("multiTwitch.chat") }}
-            </VaButton>
-            <VaMenu
-              :options="sideMenu"
-              @selected="(v) => v.handler()"
-              disabled-by="disabled"
-            >
-              <template #anchor>
-                <VaButton
-                  round
-                  outline
-                  class="item mr-1"
-                  size="small"
-                  color="gsgYellow"
-                  :icon="'menu'"
-                >
-                </VaButton>
-              </template>
-            </VaMenu>
-        </div>
-        <div :hidden="hideChat" class="pt-1 h-full bg-[var(--va-background-element)]">
-          <VaTabs 
-            v-if="!useDropdownChatSelect"
-            id="chatTabs" 
-            :class="`w-[${() => dynamicChatWidth}]`"
-            v-model="chatTabSelected"
-            :hide-pagination="false"
-          >
-            <template #tabs>
-              <VaTab
-                v-for="stream in Object.values(streams)"
-                :key="stream.user_login"
-                :label="stream.user_name"
-              >
-                {{ stream.user_name }}
-              </VaTab>
-            </template>
-          </VaTabs>
-          <VaSelect
-            v-else
-            v-model="chatTabSelected"
-            placeholder="Colored"
-            color="#FFFFFF"
-            :options="Object.values(streams)"
-            inner-label
-          />
-          <div :class="`w-[${dynamicChatWidth}px] h-full`">
-            <VaSkeletonGroup
-                v-if="!streams"
-                :class="`h-full w-[${dynamicChatWidth}px]`"
-                animation="wave"
-                :delay="0"
-              >
-              <div
-                :style="`width: ${dynamicChatWidth}px;`"
-              >
-                  <VaSkeleton variant="text" class="ml-2 va-text" :lines="100" />
-              </div>
-            </VaSkeletonGroup>
-            <template v-else v-for="stream in Object.values(streams)" :key="stream.user_login">
-              <TwitchChat
-                :hidden="currentChatLogin != stream.user_login"
-                :user-login="stream.user_login"
-                :height="chatEmbedHeight"
-              ></TwitchChat>
-            </template>
-          </div>
-        </div>
-      </div>
+      <Sidebar
+        :dynamic-sidebar-width
+        :dynamic-sidebar-height
+        :streams-list
+        :hide-chat
+        :hide-decor
+        :fixed-chat-selector-height
+        :use-dropdown-chat-select
+        :dynamic-chat-embed-height
+        :side-menu
+        :fixed-buttons-height
+        @toggle-chat="MS.toggleChat()"
+        @toggle-decor="MS.toggleDecor()"
+      ></Sidebar>
     </template>
   </VaLayout>
 </template>
-
-<style lang="css">
-
-#mtHeader {
-  height: 45px;
-}
-
-#mtStreams {
-    /* text-align: center; */
-    float: left;
-    margin: 0;
-    /* margin-right: -100px; */
-    padding: 0;
-}
-
-#mtStreams div {
-  float: left;
-}
-
-#mtStreams .item {
-  float: left;
-}
-
-iframe {
-    border:0 none;
-}
-
-.fullwidth {
-    width: 100%;
-}
-
-.left {
-    float: left;
-}
-
-.right {
-    float: right;
-}
-
-.centering {
-    text-align: center;
-}
-
-.clear {
-    clear: both;
-}
-
-</style>

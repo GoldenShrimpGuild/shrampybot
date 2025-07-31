@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 const thisHost = new URL(window.location.href).hostname
 const embedUrl = `https://twitch.tv/embed/USER_LOGIN/chat?darkpopout&parent=${thisHost}`
@@ -16,11 +16,11 @@ const iframeUrl = computed(() => embedUrl.replace('USER_LOGIN', props.userLogin)
 
 <template>
   <iframe
-    :class="`stream-chat v-full w-full`"
     :id="iframeId"
+    :class="`stream-chat h-full w-full`"
     :src="iframeUrl"
+    height="100%"
     width="100%"
-    :height
     frameborder="0"
     scrolling="no"
   >

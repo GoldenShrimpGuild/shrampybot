@@ -3,8 +3,13 @@ import { useLocalStorage } from '@vueuse/core'
 import { usePublicStore } from '.'
 import type { VaMenuOption } from 'vuestic-ui/dist/types/components/va-menu-list/types.js'
 
-const fixedChatWidth = 300
-const fixedCardDecorHeight = 60
+const fixedChatWidth = 320
+const fixedButtonsHeight = 20
+const fixedButtonsWidth = 160
+const fixedCardDecorHeight = 100
+const fixedHeaderHeight = 60
+const fixedWindowPadding = 5
+const fixedChatSelectorHeight = 50
 
 export const useMultiStore = defineStore('multi', {
     state: () => {
@@ -28,18 +33,16 @@ export const useMultiStore = defineStore('multi', {
             useDropdownChatSelect,
 
             // Element Dimensions
-            wrapperHeight: 0,
-            wrapperWidth: 0,
-            streamsContainerWidth: 0,
-            headerHeight: 0,
-            sideButtonsHeight: 0,
-            chatSelectorHeight: 0,
+            currentWindowWidth: 0,
             currentWindowHeight: 0,
-            chatEmbedHeight: 0,
 
             streamWidth: 0,
             streamHeight: 0,
             streamTopPadding: 0,
+            numRows: 1,
+
+            streamXPositions: new Map<string, number>(),
+            streamYPositions: new Map<string, number>(),
         }
     },
     getters: {
@@ -59,7 +62,7 @@ export const useMultiStore = defineStore('multi', {
             disabled: false,
             icon: this.centreFrames ? 'check_box' : 'check_box_outline_blank',
             handler: (o: object) => {
-              ps.multi.toggleCentreFrames()
+              ps.multi.toggleCentre()
             },
           },
           {
@@ -90,7 +93,6 @@ export const useMultiStore = defineStore('multi', {
             icon: ps.includeGSGChannel ? 'check_box' : 'check_box_outline_blank',
             handler: (o: object) => {
               ps.toggleIncludeGSG()
-              ps.addRemoveGSG()
             }
           },
           {
@@ -175,20 +177,42 @@ export const useMultiStore = defineStore('multi', {
           },
         ]
     },
-    dynamicChatWidth(): number {
-      return this.hideChat ? 0 : fixedChatWidth
+    dynamicHeaderHeight(): number {
+      return this.hideDecor ? 0 : fixedHeaderHeight; // height in rem
+    },
+    dynamicWrapperHeight(): number {
+      return this.currentWindowHeight - fixedHeaderHeight - fixedWindowPadding*2
+    },
+    dynamicWrapperWidth(): number {
+      return this.currentWindowWidth - fixedWindowPadding*2 - (this.hideChat ? 0 : fixedChatWidth)
+    },
+    dynamicSidebarWidth(): number {
+      return this.hideChat ? fixedButtonsWidth : fixedChatWidth
+    },
+    dynamicSidebarHeight(): number {
+      return this.hideChat ? fixedButtonsHeight : this.currentWindowHeight + fixedButtonsHeight
+    },
+    fixedChatWidth(): number {
+      return fixedChatWidth
+    },
+    fixedCardDecorHeight(): number {
+      return fixedCardDecorHeight
     },
     dynamicCardDecorHeight(): number {
       return this.hideDecor ? 0 : fixedCardDecorHeight
     },
+    fixedButtonsHeight(): number {
+      return fixedButtonsHeight
+    },
+    fixedChatSelectorHeight(): number {
+      return fixedChatSelectorHeight
+    },
+    dynamicChatEmbedHeight(): number {
+      return this.dynamicSidebarHeight - this.fixedButtonsHeight - this.fixedChatSelectorHeight
+    }
   },
   actions: {
     calculateSizes() {
-      const arbitraryEdgeSpacerValue = 5
-
-      // First, the chat size.
-      this.chatEmbedHeight = window.innerHeight - this.sideButtonsHeight - this.chatSelectorHeight - arbitraryEdgeSpacerValue
-
       // logic here borrowed from www.multitwitch.tv
       // licensed under terms: "The code of this project is free to use"
       // repo: https://github.com/bhamrick/multitwitch
@@ -199,36 +223,45 @@ export const useMultiStore = defineStore('multi', {
       var finalHeight = 0
       var topPadding = 0
 
-      const numStreams = Object.keys(ps.streams).length
+      const numStreams = ps.streamsList.length
 
-      const areaHeight = this.currentWindowHeight - this.headerHeight
-      const areaWidth = this.wrapperWidth
+      const areaHeight = this.dynamicWrapperHeight
+      const areaWidth = this.dynamicWrapperWidth
 
-      const cardDecorHeight = this.dynamicCardDecorHeight
+      var perRow = 1
+      var numRows = 0
 
-      for (var perRow = 1; perRow <= numStreams; perRow++) {
-        const rows = Math.ceil(numStreams / perRow)
-        const cardDecorHR = cardDecorHeight*rows
+      for (perRow = 1; perRow <= numStreams; perRow++) {
+        numRows = Math.ceil(numStreams / perRow)
         var maxWidth = Math.floor(areaWidth / perRow)
-        var maxHeight = Math.floor(areaHeight / rows) - cardDecorHR
+        var maxHeight = Math.floor((areaHeight) / numRows)
 
         if ((maxWidth * 9/16) < maxHeight) {
-            maxHeight = (maxWidth * 9/16)
+            maxHeight = Math.floor(maxWidth * 9/16)
         } else {
-            maxWidth = (maxHeight * 16/9)
+            maxWidth = Math.floor(maxHeight * 16/9)
         }
+
         if (maxWidth > finalWidth) {
-            finalWidth = maxWidth
-            finalHeight = maxHeight + cardDecorHR*9/16
-            topPadding = (areaHeight - (rows * maxHeight)) / 2
+            if (areaHeight < areaWidth) {
+              finalHeight = maxHeight
+              finalWidth = Math.floor(finalHeight * 16/9)
+            } else {
+              finalWidth = maxWidth
+              finalHeight = Math.floor(finalWidth * 9/16)
+            }
+            topPadding = (areaHeight - (numRows * finalHeight)) / 2
         }
       }
 
-      this.streamWidth = finalWidth
-      this.streamHeight = finalHeight
+      this.streamWidth = finalWidth - this.dynamicCardDecorHeight*numRows*16/9
+      this.streamHeight = finalHeight - this.dynamicCardDecorHeight*numRows
       this.streamTopPadding = topPadding
+      this.numRows = numRows
+      // console.log(this.streamWidth)
+      // console.log(this.streamHeight)
     },
-    toggleCentreFrames() {
+    toggleCentre() {
       this.centreFrames = !this.centreFrames
     },
     toggleChat() {
@@ -248,6 +281,10 @@ export const useMultiStore = defineStore('multi', {
     },
     toggleUseDropdownChatSelect() {
        this.useDropdownChatSelect = !this.useDropdownChatSelect
+    },
+    setWindowSize(width: number, height: number) {
+      this.currentWindowWidth = width
+      this.currentWindowHeight = height
     },
   },
 })

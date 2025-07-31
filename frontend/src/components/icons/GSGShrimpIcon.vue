@@ -1,5 +1,5 @@
 <template>
-  <svg id="gsg_shrimp" height="4rem" class="md:w-3/4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
+  <svg :class="props.class" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000">
     <path
       class="cls-1"
       d="M784.8,458c-19.25,22.44-53.57,25-75.78,5.72-22.61-19.66-25.19-53.14-5.84-75.71s52.72-25.12,75.64-5.64A53.39,53.39,0,0,1,784.8,458Z"
@@ -20,18 +20,33 @@
   </svg>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { computed } from 'vue';
 
-<style lang="css">
+const props = defineProps<{
+  class?: string,
+  eyeColor?: string,
+  pupilColor?: string,
+  bodyColor?: string,
+  height?: string,
+  width?: string,
+}>()
+
+const eye = computed(() => props.eyeColor || "#fff")
+const pupil = computed(() => props.pupilColor || "#231f20")
+const body = computed(() => props.bodyColor || "#fb2")
+</script>
+
+<style scoped>
 .cls-1 {
-  fill: #fff;
+  fill: v-bind(eye);
 }
 
 .cls-2 {
-  fill: #231f20;
+  fill: v-bind(pupil);
 }
 
 .cls-3 {
-  fill: #fb2;
+  fill: v-bind(body);
 }
 </style>
