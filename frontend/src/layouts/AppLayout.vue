@@ -1,5 +1,6 @@
 <template>
   <VaLayout
+    id="shrampybotAdminLayout"
     :top="{ fixed: true, order: 2 }"
     :left="{ fixed: true, absolute: breakpoints.mdDown, order: 1, overlay: breakpoints.mdDown && !isSidebarMinimized }"
     @leftOverlayClick="isSidebarMinimized = true"
@@ -116,8 +117,10 @@ const onCloseSidebarButtonClick = () => {
 }
 </script>
 
-<style lang="scss" scoped>
-// Prevent icon jump on animation
+<style lang="css">
+.va-card * {
+  text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
+}
 .va-sidebar {
   width: unset !important;
   min-width: unset !important;

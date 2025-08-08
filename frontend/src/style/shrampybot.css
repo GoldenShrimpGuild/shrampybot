@@ -4,18 +4,20 @@
 
 body {
   margin: 0;
-  box-sizing: content-box;
+  /* box-sizing: content-box; */
   display: block;
   position: static;
 }
 
-div.va-card {
-  & .va-card__title {
+div.va-card .va-card__title {
     align-items: top;
     margin: 0;
     font-family: 'Revalia';
     font-size: 16pt;
-  }
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 90%;
 }
 
 div.indented-list div.va-list-item {
@@ -111,4 +113,14 @@ a {
 
 .va-button {
     font-weight: 600;
+}
+
+.va-input-wrapper__container {
+    border-width: 1px;
+    border-color: white;
+}
+
+.va-checkbox__square {
+    border-width: 1px;
+    border-color: white;
 }

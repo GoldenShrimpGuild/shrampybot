@@ -47,6 +47,7 @@ app.use(
           gsgRed: '#e42222',
 
           // custom colors
+          gsgDarkYellow: '#715411',
           discordBlurple: '#5865F2',
           mastodonLight: '#6364FF',
           mastodonDark: '#563ACC',

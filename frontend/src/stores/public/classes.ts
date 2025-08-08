@@ -19,7 +19,7 @@ export class Streams<Key extends string, Stream extends StreamHistoryDatum> exte
       })
     }
   }
-  reconcile(streamList: Stream[]) {
+  async reconcile(streamList: Stream[]) {
     const streamLogins = streamList.map(v => v.user_login)
 
     // Remove what's needed
@@ -30,7 +30,7 @@ export class Streams<Key extends string, Stream extends StreamHistoryDatum> exte
           // clear gsgRecord when a matched stream is removed
           this.gsgRecord = null
         }
-        stream.user_login
+        this.delete(stream.user_login)
       })
 
     // Add what's needed

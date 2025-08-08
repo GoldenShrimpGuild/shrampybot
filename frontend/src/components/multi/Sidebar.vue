@@ -1,213 +1,207 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import TwitchChat from '../../components/multi/TwitchChat.vue'
-import type { VaMenuOption } from 'vuestic-ui/dist/types/components/va-menu-list/types.js'
 import type { StreamHistoryDatum as Stream } from '../../../model/utility/nosqldb'
-import GSGShrimpIcon from '../icons/GSGShrimpIcon.vue'
+
+// components
+import SidebarNav from './SidebarNav.vue'
+import ChatTabs from './ChatTabs.vue'
+import TwitchChat from '../../components/multi/TwitchChat.vue'
+import { useWindowSize } from '@vueuse/core';
 
 const { t } = useI18n()
 
 const sidebarClass = ref("mt-sidebar")
-const sidebarButtonsClass = ref("sidebar-buttons")
 const chatSelectorClass = ref("chat-selector")
-const shrimpIconClass = ref("shrimp-icon")
-const embedContainerClass = ref("embed-container")
+const embedContainerClass = ref("chat-embed-container")
+
+// fixed sizing
+const minSidebarWidth = 160
+const fixedChatSelectorHeight = 35
+const fixedButtonsHeight = 20
+
+const fixedModalWidth = 500
 
 const props = defineProps<{
+  maxWidth: number,
+  maxHeight: number,
   streamsList: Stream[],
-  // userLogins: string[],
-  // streamsLoaded: boolean,
-  
+  streamsLoaded: boolean,
+  useDevAPI: boolean,
+  disableStreamLoading: boolean,
+  includeGSGChannel: boolean,
+  currentRainbowColour: string,
   hideChat: boolean,
   hideDecor: boolean,
-  dynamicSidebarWidth: number,
-  dynamicSidebarHeight: number,
-  useDropdownChatSelect: boolean,
-  fixedButtonsHeight: number,
-  dynamicChatEmbedHeight: number,
-  fixedChatSelectorHeight: number,
-  sideMenu: VaMenuOption[],
+  centreFrames: boolean,
+  testStreamCount: number,
+  forceSkeleton: boolean,
+  startMuted: boolean,
 }>()
 
 const emit = defineEmits<{
   (e: "toggleChat"): void,
   (e: "toggleDecor"): void,
   (e: "toggleCentre"): void,
+  (e: "toggleIncludeGSG"): void,
+  (e: "toggleDevAPI"): void,
+  (e: "setFakeData", disableStreamLoading: boolean, forceSkeleton: boolean): void,
+  (e: "setTestStreamCount", streamCount: number): void,
+  (e: "recalculateSize"): void,
+  (e: "handleUrl", url: string): void,
+  (e: "toggleStartMuted"): void,
 }>()
 
-const userLogins = computed(() => props.streamsList.map((v) => v.user_login))
+const fakeDataModal = ref(false)
+const fakeStreamCount = computed({
+  get: () => props.testStreamCount,
+  set: (newValue) => emit("setTestStreamCount", newValue)
+})
 
 const chatTabSelected = ref(0)
-const currentChatStream = computed(() => props.streamsList.at(chatTabSelected.value))
-const currentChatLogin = computed(() => props.streamsList.at(chatTabSelected.value)?.user_login)
+const currentChatStream = computed(() => props.streamsList.at(chatTabSelected.value) || {} as Stream)
+const currentChatLogin = computed(() => props.streamsList.at(chatTabSelected.value)?.user_login || "")
+
+const sidebarWidth = computed(() => props.hideChat ? minSidebarWidth : props.maxWidth)
+const sidebarHeight = computed(() => props.hideChat ? fixedButtonsHeight : props.maxHeight)
+const chatEmbedHeight = computed(() => props.maxHeight - fixedButtonsHeight - fixedChatSelectorHeight)
+
+const {width: windowWidth, height: windowHeight} = useWindowSize()
+const modalWidth = computed(() => windowWidth.value >= fixedModalWidth ? fixedModalWidth : windowWidth.value)
+
+const showFakeDataModal = () => {
+  fakeDataModal.value = true
+}
 
 </script>
 
 <style scoped>
 .mt-sidebar {
-  height: v-bind(dynamicSidebarHeight);
-  width: v-bind(dynamicSidebarWidth + 'px');
   float: right;
+  margin: none;
+  padding: none;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap; 
 }
-.sidebar-buttons {
-  height: v-bind(fixedButtonsHeight + 'px');
-  width: v-bind(dynamicSidebarWidth + 'px');
-  padding: 0px;
-  transition-duration: 0;
-  transition-property: none;
-  /* padding: 2px 1px 2px 2px; pl-2 pr-1 pt-2 pb-2 */
+.va-skeleton * {
+  margin: 0;
+  padding: 0;
 }
-.shrimp-icon {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  margin-right: 3px;
-  height: v-bind(fixedButtonsHeight + 'px');
-  width: v-bind(fixedButtonsHeight + 'px');
+.va-skeleton div.skeleton-header {
+  width: 100%;
+  font-weight: bold;
+  font-size: 24pt;
+  text-align: center; 
 }
-.chat-selector {
-  height: v-bind(fixedChatSelectorHeight + 'px');
-  width: v-bind(dynamicSidebarWidth + 'px');
+.va-skeleton div.skeleton-content {
+  width: 100%;
+  padding-top: 5px;
+  font-weight: bold;
+  font-size: 12pt;
+  text-align: center; 
 }
-.chat-selector .va-tabs {
-  background-color: #715411;
-}
-.chat-selector .va-tab * {
-  margin-top: 3px;
-}
-.embed-container {
-  height: v-bind(dynamicChatEmbedHeight + 'px');
-}
-
 </style>
 
 <template>
-  <div :class="`${sidebarClass}`">
-    <VaAppBar
-      color="secondary"
-      :class="`${sidebarButtonsClass}`"
-    >
-      <VaButton
-        color="textInverted"
-        size="medium"
-        preset="plain"
-        :icon="hideDecor ? 'check_box_outline_blank' : 'check_box'"
-        v-on:click="emit('toggleDecor')"
-      >
-        {{ t("multiTwitch.decor") }}
-      </VaButton>
-      <VaButton
-        class="ml-2"
-        color="textInverted"
-        size="medium"
-        preset="plain"
-        :icon="hideChat ? 'check_box_outline_blank' : 'check_box'"
-        v-on:click="emit('toggleChat');"
-      >
-        {{ t("multiTwitch.chat") }}
-      </VaButton>
-      <VaSpacer />
-      <VaMenu
-          trigger="hover"
-          :options="sideMenu"
-          @selected="(v) => v.handler()"
-          disabled-by="disabled"
-        >
-          <template #anchor>
-            <GSGShrimpIcon
-              :class="shrimpIconClass"
-              body-color="#000000"
-            >
-            </GSGShrimpIcon>
-          </template>
-        </VaMenu>
-    </VaAppBar>
-    <div :class="`${sidebarButtonsClass} grid-cols-3 grid hidden`">
-      <VaButton
-        round
-        class="item mr-1"
-        size="medium"
-        color="gsgYellow"
-        :icon="hideDecor ? 'check_box_outline_blank' : 'check_box'"
-        v-on:click="emit('toggleDecor')"
-      >
-        {{ t("multiTwitch.decor") }}
-      </VaButton>
-      <VaButton
-        round
-        class="item mr-1"
-        size="medium"
-        color="gsgYellow"
-        :icon="hideChat ? 'check_box_outline_blank' : 'check_box'"
-        v-on:click="emit('toggleChat');"
-      >
-        {{ t("multiTwitch.chat") }}
-      </VaButton>
-      <div>
-        <VaMenu
-          :options="sideMenu"
-          @selected="(v) => v.handler()"
-          disabled-by="disabled"
-        >
-          <template #anchor>
-            <GSGShrimpIcon :class="shrimpIconClass">
-            </GSGShrimpIcon>
-          </template>
-        </VaMenu>
-      </div>
-    </div>
+  <div 
+    :class="`${sidebarClass}`"
+    :style="`height: ${sidebarHeight}px; width: ${sidebarWidth}px`"
+  >
+    <SidebarNav
+      :height="fixedButtonsHeight"
+      :width="sidebarWidth"
+      :hide-chat="hideChat"
+      :hide-decor="hideDecor"
+      :centre-frames="centreFrames"
+      :disable-stream-loading="disableStreamLoading"
+      :include-g-s-g-channel="includeGSGChannel"
+      :start-muted="startMuted"
+      :use-dev-a-p-i="useDevAPI"
+      @toggle-centre="emit('toggleCentre')"
+      @toggle-chat="emit('toggleChat')"
+      @toggle-decor="emit('toggleDecor')"
+      @toggle-fake-data="showFakeDataModal()"
+      @toggle-include-g-s-g="emit('toggleIncludeGSG')"
+      @toggle-dev-a-p-i="emit('toggleDevAPI')"
+      @handle-url="(url) => { emit('handleUrl', url)}"
+      @toggle-start-muted="emit('toggleStartMuted')"
+    ></SidebarNav>
     <div
       :hidden="hideChat"
-      :class="`${chatSelectorClass} h-full bg-[]`"
+      :class="`${chatSelectorClass} bg-[] row`"
     >
-      <VaTabs 
-        v-if="!useDropdownChatSelect"
-        v-model="chatTabSelected"
-      >
-        <template #tabs>
-          <VaTab
-            v-for="stream in Object.values(streamsList)"
-            :key="stream.user_login"
-            :label="stream.user_name"
-          >
-            {{ stream.user_name }}
-          </VaTab>
-        </template>
-      </VaTabs>
-      <VaSelect
-        v-else
-        :class="chatSelectorClass"
-        v-model="chatTabSelected"
-        placeholder="Colored"
-        color="#FFFFFF"
-        :options="streamsList"
-        inner-label
-      />
-      <div :class="embedContainerClass">
-        <VaSkeletonGroup
-            v-if="!streamsList"
-            :class="`h-full w-[${dynamicSidebarWidth}px]`"
-            animation="wave"
-            :delay="0"
-          >
-          <div
-            :style="`width: ${dynamicSidebarWidth}px;`"
-          >
-              <VaSkeleton variant="text" class="ml-2 va-text" :lines="100" />
-          </div>
-        </VaSkeletonGroup>
-        <template
-          v-else
-          v-for="stream in streamsList"
-          :key="stream.user_login">
-          <TwitchChat
-            :hidden="currentChatLogin != stream.user_login"
-            :user-login="stream.user_login"
-            :height="dynamicChatEmbedHeight"
-          ></TwitchChat>
-        </template>
-      </div>
+      <ChatTabs
+        :streams-list="streamsList"
+        :height="fixedChatSelectorHeight"
+        :width="sidebarWidth"
+        background-color="gsgDarkYellow"
+        @select="(tab) => chatTabSelected = tab"
+      ></ChatTabs>
     </div>
+    <div
+      :class="embedContainerClass"
+      :hidden="hideChat"
+      :style="`height: ${chatEmbedHeight}px; width: ${sidebarWidth}`"
+    >
+      <template
+        v-for="stream in streamsList"
+        :key="stream.user_login"
+      >
+        <VaSkeleton
+          v-if="forceSkeleton || !streamsLoaded"
+          variant="squared"
+          :height="`${chatEmbedHeight}px`"
+          :color="currentRainbowColour"
+          :aria-label="t('multiTwitch.chatPlaceholder')"
+        >
+          <div
+            class="skeleton-header"
+            :style="`padding-top: ${chatEmbedHeight / 2 - 20}px;`"
+          >
+            {{ t('multiTwitch.chatPlaceholder') }}
+          </div>
+          <div
+            class="skeleton-content"
+          >
+            {{ streamsList.at(chatTabSelected)?.user_login }}
+          </div>
+        </VaSkeleton>
+        <TwitchChat
+          v-else
+          :startMuted="startMuted"
+          :hidden="currentChatLogin != stream.user_login"
+          :user-login="stream.user_login"
+          :height="`${chatEmbedHeight}px`"
+        ></TwitchChat>
+      </template>
+    </div>
+    <VaModal
+      v-model="fakeDataModal"
+      :ok-text="t('multiTwitch.enable')"
+      :cancel-text="t('multiTwitch.disable')"
+      :max-width="`${modalWidth}px`"
+      @ok="emit('setFakeData', true, true)"
+      @cancel="emit('setFakeData', false, false)"
+    >
+      <h4 class="va-h4">
+        {{ t("multiTwitch.fakeData") }}
+      </h4>
+      <p class="m-0">
+        {{ t("multiTwitch.fakeDataGenText") }}
+      </p>
+      <VaForm>
+        <VaFormField>
+          <VaSlider
+            v-model="fakeStreamCount"
+            class="mt-8"
+            :step="1"
+            :max="15"
+            :min="1"
+            track-label-visible
+          />
+        </VaFormField>
+      </VaForm>
+    </VaModal>
   </div>
 </template>

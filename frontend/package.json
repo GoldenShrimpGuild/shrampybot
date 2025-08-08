@@ -30,7 +30,7 @@
     "@types/lodash": "^4.17.16",
     "@vuestic/compiler": "latest",
     "@vuestic/tailwind": "^0.1.5",
-    "@vueuse/core": "^10.11.1",
+    "@vueuse/core": "^13.6.0",
     "axios": "^1.8.4",
     "chart.js": "^4.4.8",
     "chartjs-chart-geo": "^4.3.4",

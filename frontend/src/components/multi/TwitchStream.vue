@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
-const thisHost = new URL(window.location.href).hostname
-const embedUrl = `https://player.twitch.tv/?muted=true&channel=USER_LOGIN&parent=${thisHost}`
+const aspectRatio = 9/16;
 
 const props = defineProps<{
   userLogin: string,
   width: number,
-  height: number,
+  startMuted: boolean,
 }>()
 
 const emit = defineEmits<{
@@ -15,8 +14,11 @@ const emit = defineEmits<{
   loadedEmbed: []
 }>()
 
+const thisHost = new URL(window.location.href).hostname
+const embedUrl = `https://player.twitch.tv/?muted=START_MUTED_STATE&channel=USER_LOGIN&parent=${thisHost}`
+
 const iframeId = computed(() => `embed_${props.userLogin}`)
-const iframeUrl = computed(() => embedUrl.replace('USER_LOGIN', props.userLogin))
+const iframeUrl = computed(() => embedUrl.replace('USER_LOGIN', props.userLogin).replace('START_MUTED_STATE', props.startMuted ? 'true' : 'false'))
 
 const iframeRef = ref({} as HTMLIFrameElement | null)
 
@@ -29,11 +31,13 @@ onMounted(async () => {
 <template>
   <iframe
       :id="iframeId"
-      :class="`stream w-full`"
+      :class="`stream`"
       :src="iframeUrl"
       :allowfullscreen="true"
-      :height="height"
       :width="width"
+      :height="width * aspectRatio"
+      :style="`width: ${width}px; height: ${width * aspectRatio}px;`"
+      allow="autoplay"
       v-on:loadstart="emit('startEmbed')"
       v-on:load="emit('loadedEmbed')"
   ></iframe>

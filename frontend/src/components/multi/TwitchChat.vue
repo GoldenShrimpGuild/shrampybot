@@ -6,7 +6,7 @@ const embedUrl = `https://twitch.tv/embed/USER_LOGIN/chat?darkpopout&parent=${th
 
 const props = defineProps<{
   userLogin: string,
-  height: number,
+  height?: string | number,
 }>()
 
 const iframeId = computed(() => `embed_chat_${props.userLogin}`)
@@ -19,8 +19,7 @@ const iframeUrl = computed(() => embedUrl.replace('USER_LOGIN', props.userLogin)
     :id="iframeId"
     :class="`stream-chat h-full w-full`"
     :src="iframeUrl"
-    height="100%"
-    width="100%"
+    :height="height"
     frameborder="0"
     scrolling="no"
   >
