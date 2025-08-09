@@ -1,12 +1,15 @@
-import './scss/main.scss'
-
 import { createApp } from 'vue'
 import App from './App.vue'
 import i18n from './i18n'
 import { createVuestic } from 'vuestic-ui'
-import { createGtm } from '@gtm-support/vue-gtm'
 import stores from './stores'
 import router from './router'
+
+// CSS stuff
+import './style/icon-fonts/vuestic-icons/vuestic-icons.css'
+import './style/vuestic.css'
+import './style/main.css'
+import './style/shrampybot.css'
 
 const app = createApp(App)
 
@@ -16,13 +19,24 @@ app.use(router)
 app.use(
   createVuestic({
     config: {
+      breakpoint: {
+        enabled: false,
+        bodyClass: true,
+        thresholds: {
+          xs: 0,
+          sm: 0,
+          md: 0,
+          lg: 0,
+          xl: 0,
+        },
+      },
       colors: {
         variables: {
           primary: '#ffffff',
           secondary: '#ffbb22',
           backgroundPrimary: '#000000',
           backgroundSecondary: '#333333',
-          backgroundElement: '#444444',
+          backgroundElement: '#694e00ff',
           textPrimary: '#ffffff',
           textSecondary: '#ffbb22',
           textInverted: '#000000',
@@ -33,6 +47,7 @@ app.use(
           gsgRed: '#e42222',
 
           // custom colors
+          gsgDarkYellow: '#715411',
           discordBlurple: '#5865F2',
           mastodonLight: '#6364FF',
           mastodonDark: '#563ACC',
@@ -45,15 +60,5 @@ app.use(
     },
   }),
 )
-
-if (import.meta.env.VITE_APP_GTM_ENABLED) {
-  app.use(
-    createGtm({
-      id: import.meta.env.VITE_APP_GTM_KEY,
-      debug: false,
-      vueRouter: router,
-    }),
-  )
-}
 
 app.mount('#app')

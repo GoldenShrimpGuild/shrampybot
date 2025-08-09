@@ -4,7 +4,7 @@
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "strict": true,
     "jsx": "preserve",
     "sourceMap": true,
@@ -13,8 +13,15 @@
     "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "types": ["vite/client", "vue-timer-hook"],
-    "allowJs": true
+    "allowJs": false,
+    "outDir": "dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "vite.config.ts", "node_modules/vuestic-ui"],
-  "exclude": ["node_modules/**/*"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "vite.config.ts",
+    "node_modules/vuestic-ui"
+  ],
+  "exclude": ["node_modules/**/*", "dist"]
 }

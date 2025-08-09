@@ -255,6 +255,23 @@ const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
+    name: 'multi',
+    path: '/multi',
+    component: () => import('../pages/public/MultiTwitch.vue'),
+    meta: {
+      nav: {
+        icon: 'vuestic-iconset-dashboard',
+        displayName: 'menu.activeStreams',
+        disabled: true,
+        hidden: true,
+      },
+      perms: {
+        requiresAuth: false,
+        requiresScopes: [],
+      },
+    },
+  },
+  {
     name: '404',
     path: '/404',
     component: () => import('../pages/404.vue'),

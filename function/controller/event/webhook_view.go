@@ -166,6 +166,8 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 	}
 	log.Printf("UserID %v matches user %v\n", userId, user.Login)
 
+	needsDebounce := false
+
 	// Retrieve most recent logged stream for user (debounce check)
 	rStream, err := n.GetLatestStreamByUserId(userId)
 	if err != nil {
@@ -176,13 +178,10 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		debounceInterval, _ := strconv.Atoi(config.StreamupDebounceInterval)
 		debounceTime := time.Now().Add(-(time.Duration(debounceInterval) * time.Second))
 
-		// Check if the last stream ended less than n seconds ago
+		// Check if the last stream ended less than n seconds ago and mark it for debounce
 		if rStream.EndedAt.After(debounceTime) {
-			rStream.EndedAt = time.Time{}
-			n.PutStream(rStream)
-
-			log.Printf("Last stream ended less than %v seconds ago. Stopping processing.\n", config.StreamupDebounceInterval)
-			return nil
+			log.Printf("Last stream ended less than %v seconds ago. Marking for debounce.\n", config.StreamupDebounceInterval)
+			needsDebounce = true
 		}
 	}
 
@@ -212,9 +211,57 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 
 		// Explicitly assign tStream ID to stream as it seems to be getting missed sometimes.
 		stream.ID = tStream.ID
+
+		// Close out prior stream if we have a record of one
+		if rStream != nil {
+			// End old stream if it's still open and the new one with a different ID replaces it
+			if time.Time.Equal(rStream.EndedAt, time.Time{}) {
+				rStream.EndedAt = tStream.StartedAt
+
+				// Save here
+				n.PutStream(rStream)
+			}
+		}
+
 		log.Printf("Show the stream object after populating from Twitch data: %v\n", stream)
 	} else {
-		// If stream is already in our history then we've received a notice
+		// Found record of stream matching Twitch ID
+
+		if rStream != nil {
+			// Check if rStream.ID and stream.ID are one and the same
+			if rStream.ID == stream.ID {
+				// if the IDs match, make sure that the stream is re-opened, and update all the important info
+				stream.GameID = tStream.GameID
+				stream.GameName = tStream.GameName
+				stream.IsMature = tStream.IsMature
+				stream.Language = tStream.Language
+				stream.TagIDs = tStream.TagIDs
+				stream.Tags = tStream.Tags
+				stream.ThumbnailURL = tStream.ThumbnailURL
+				stream.Title = tStream.Title
+				stream.Type = tStream.Type
+				stream.ViewerCount = tStream.ViewerCount
+
+				if time.Time.After(stream.StartedAt, stream.EndedAt) {
+					stream.EndedAt = time.Time{}
+					// No need to save yet - stream will be saved shortly.
+				}
+			} else {
+				// If for whatever reason we pulled up two different IDs, close the rStream one.
+				if time.Time.Equal(rStream.EndedAt, time.Time{}) {
+					if time.Time.After(rStream.StartedAt, stream.StartedAt) {
+						rStream.EndedAt = stream.StartedAt
+					} else {
+						rStream.EndedAt = time.Now()
+					}
+
+					// Save here
+					n.PutStream(rStream)
+				}
+			}
+		}
+
+		// If stream is already in our history then we've sent a notice
 		// for it already. Stop processing.
 		log.Println("Found duplicate stream in our history. Stopping processing.")
 		return nil
@@ -228,6 +275,13 @@ func streamOnlineCallback(sub *twitch.Subscription, eventMap *map[string]string)
 		return err
 	}
 
+	// Check if we caught a debounce check and return if so.
+	if needsDebounce {
+		log.Println("Stored important records now. Finalizing debounce.")
+		return nil
+	}
+
+	// Filtering by category before announcing
 	category, err := n.GetCategoryByName(stream.GameName)
 	if err != nil {
 		log.Printf("Error looking for category %v in table: %v\n", stream.GameName, err)

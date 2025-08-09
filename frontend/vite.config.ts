@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'url'
@@ -11,9 +11,16 @@ export default defineConfig({
   build: {
     sourcemap: true,
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern'
+      }
+    }
+  },
   plugins: [
     vuestic({
-      devtools: true,
+      devtools: false,
       cssLayers: true,
     }),
     vue(),

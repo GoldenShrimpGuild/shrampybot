@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStaticTokenStore } from '../../stores/static_token'
 import { NewTokenRequestBody, OutputStaticTokenInfo } from '../../../model/controller/admin'
-import { DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types.js'
+import type { DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types.js'
 import { forEach } from 'lodash'
 
 const StaticTokenStore = useStaticTokenStore()
