@@ -24,7 +24,10 @@
             v-for="stream in streamsList"
             :key="stream.user_login"
             :class="`mt-card flex-none item`"
-            :style="`height: ${cardHeight}px; width: ${cardWidth}px`"
+            :style="`
+              height: ${cardHeight}px;
+              width: ${cardWidth}px;
+              background-color: ${stream.isEventStream ? getColor('gsgDarkYellow') : getColor('backgroundSecondary')}`"
           >
             <VaSkeleton
               v-if="forceSkeleton"
@@ -57,15 +60,18 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useColors } from 'vuestic-ui'
 import { useI18n } from 'vue-i18n'
 
 // Types
-import type { StreamHistoryDatum as Stream } from '../../../model/utility/nosqldb'
+import type { GSGStream as Stream } from '../../stores/public/classes'
 
 // Components
 import TwitchStream from '../../components/multi/TwitchStream.vue'
 
 const { t } = useI18n()
+
+const { getColor } = useColors()
 
 const fixedHeaderHeight = 50
 const fixedDecorationHeight = 65
