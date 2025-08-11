@@ -113,6 +113,8 @@ const props = defineProps<{
   disableStreamLoading: boolean,
   startMuted: boolean,
   useDevAPI: boolean,
+  onlyMusicCategory: boolean,
+  useCurrentEventData: boolean,
 }>()
 
 const emit = defineEmits<{
@@ -124,6 +126,9 @@ const emit = defineEmits<{
   (e: "toggleDevAPI"): void,
   (e: "toggleStartMuted"): void,
   (e: "handleUrl", url: string): void,
+  (e: "toggleCurrentEventData"): void,
+  (e: "toggleOnlyMusicCategory"): void,
+  (e: "adjustFilter"): void,
 }>()
 
 const sideMenu = computed(() => [
@@ -132,6 +137,15 @@ const sideMenu = computed(() => [
         value: "",
         disabled: true,
         handler: (o: object) => {},
+    },
+    {
+        text: t("multiTwitch.adjustFilters"),
+        value: "adjustFilter",
+        disabled: false,
+        icon: 'filter_list',
+        handler: (o: object) => {
+          emit("adjustFilter")
+        },
     },
     {
         text: t("multiTwitch.centreAlignStreams"),
@@ -158,6 +172,24 @@ const sideMenu = computed(() => [
         icon: props.includeGSGChannel ? 'check_box' : 'check_box_outline_blank',
         handler: (o: object) => {
             emit("toggleIncludeGSG")
+        }
+    },
+    {
+        text: t("multiTwitch.onlyMusicCategory"),
+        value: "onlyMusicCategory",
+        disabled: false,
+        icon: props.onlyMusicCategory ? 'check_box' : 'check_box_outline_blank',
+        handler: (o: object) => {
+            emit("toggleOnlyMusicCategory")
+        }
+    },
+    {
+        text: t("multiTwitch.includeCurrentEvent"),
+        value: "useCurrentEventData",
+        disabled: false,
+        icon: props.useCurrentEventData ? 'check_box' : 'check_box_outline_blank',
+        handler: (o: object) => {
+            emit("toggleCurrentEventData")
         }
     },
     {

@@ -1,15 +1,11 @@
 <script lang="ts" setup>
-import { computed, onBeforeMount, onMounted, ref, watch, watchEffect, reactive } from 'vue'
+import { computed, onBeforeMount, onMounted, ref, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import { usePublicStore } from '../../stores/public/'
 import { useMultiStore } from '../../stores/public/multi'
 import { useTimer } from 'vue-timer-hook'
 import { useWindowSize } from '@vueuse/core'
-
-// Types
-import type { StreamHistoryDatum as Stream } from '../../../model/utility/nosqldb'
-import type { Streams } from '../../stores/public/classes'
 
 // Components
 import Sidebar from '../../components/multi/Sidebar.vue'
@@ -27,6 +23,11 @@ const {
   useDevApi,
   testStreamCount,
   includeGSGChannel,
+  onlyMusicCategory,
+  useCurrentEventData,
+  includeFilterWords,
+  excludeFilterWords,
+  filterPriority,
 } = storeToRefs(PS)
 const { 
   hideChat,
@@ -118,12 +119,16 @@ body {
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  position: fixed;
+}
+.va-dropdown__content {
+  width: 250px;
 }
 </style>
 
 <template>
   <VaLayout
-    :right="{fixed: true}"
+    :right="{absolute: true, fixed: true, overlay: true}"
   >
     <template #content>
       <StreamViewer
@@ -157,6 +162,11 @@ body {
         :streams-loaded="streamsLoaded"
         :streams-list="streamsList"
         :start-muted="startMuted"
+        :only-music-category="onlyMusicCategory"
+        :use-current-event-data="useCurrentEventData"
+        :include-filter-words="includeFilterWords"
+        :exclude-filter-words="excludeFilterWords"
+        :filter-priority="filterPriority"
         @toggle-chat="MS.toggleChat()"
         @toggle-decor="MS.toggleDecor()"
         @toggle-centre="MS.toggleCentre()"
@@ -165,7 +175,10 @@ body {
         @toggle-start-muted="MS.toggleStartMuted()"
         @set-fake-data="handleFakeData"
         @handle-url="openUrlInNewTab"
+        @toggle-current-event-data="PS.toggleCurrentEventData()"
+        @toggle-only-music-category="PS.toggleOnlyMusicCategory()"
         @set-test-stream-count="(count) => {testStreamCount = count}"
+        @set-filter="PS.setFilter"
       ></Sidebar>
     </template>
   </VaLayout>

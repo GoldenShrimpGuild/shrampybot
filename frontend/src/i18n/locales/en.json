@@ -72,7 +72,7 @@
     "setFakeData": "Set Fake Data & Disable Embeds",
     "preferences": "Preferences",
     "centreAlignStreams": "Centre-Align Streams",
-    "includeGSGChannel": "Include GSG Channel",
+    "includeGSGChannel": "Include GSG Channel (if online)",
     "testing": "Testing",
     "aboutGSG": "About the Golden Shrimp Guild",
     "gsgWebsite": "GSG.live Website",
@@ -83,7 +83,18 @@
     "streamsStartMuted": "Streams Start Muted",
     "enable": "Enable",
     "disable": "Disable",
-    "chatPlaceholder": "Chat Placeholder"
+    "chatPlaceholder": "Chat Placeholder",
+    "onlyMusicCategory": "Only \"Music\" stream category",
+    "includeCurrentEvent": "Include Current Event Data",
+    "set": "Set",
+    "adjustFilters": "Adjust Filters",
+    "adjustFiltersDescription": "Here you can set your case-insensitive inclusion and exclusion filters.\n\nIf inclusion filters are set, only streams with descriptions containing those terms will be visible. If exclusion filters are set, streams with descriptions containing those terms will be hidden.\n\nIf you're not seeing anything in multi-twitch make sure all the filters are removed.",
+    "adjustIncludeFilterLabel": "Include Filter Input",
+    "adjustIncludeFilterPlaceholder": "Type your include filter here (press Enter after each)",
+    "adjustExcludeFilterLabel": "Exclude Filter Input",
+    "adjustExcludeFilterPlaceholder": "Type your exclude filter here (press Enter after each)",
+    "adjustFilterPriorityExclude": "Prioritize exclude filters when conflicting",
+    "adjustFilterPriorityInclude": "Prioritize include filters when conflicting"
   },
   "404": {
     "title": "This page’s gone fishing.",

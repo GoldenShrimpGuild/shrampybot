@@ -15,6 +15,7 @@
   --va-modal-padding-left: 1rem;
   --va-skeleton-wave-color: #ffbb22;
   --va-app-bar-transition: none;
+  --va-switch-checker-background-color: #000000;
 }
 
 .va-modal {

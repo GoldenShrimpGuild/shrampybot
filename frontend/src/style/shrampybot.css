@@ -6,7 +6,6 @@ body {
   margin: 0;
   /* box-sizing: content-box; */
   display: block;
-  position: static;
 }
 
 div.va-card .va-card__title {
