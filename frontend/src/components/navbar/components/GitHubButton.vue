@@ -11,5 +11,7 @@
 </template>
 
 <script lang="ts" setup>
+// components
+import { VaButton, VaIcon } from 'vuestic-ui';
 import VaIconGitHub from '../../icons/VaIconGitHub.vue'
 </script>

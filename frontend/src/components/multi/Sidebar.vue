@@ -7,6 +7,7 @@ import type { GSGStream as Stream } from '../../stores/public/classes'
 import type { SelectableOption } from 'vuestic-ui/dist/types/composables'
 
 // components
+import { VaSkeleton, VaModal, VaInput, VaSwitch, VaChip, VaForm, VaFormField, VaSlider } from 'vuestic-ui'
 import SidebarNav from './SidebarNav.vue'
 import ChatTabs from './ChatTabs.vue'
 import TwitchChat from '../../components/multi/TwitchChat.vue'
@@ -134,12 +135,15 @@ const showFilterModal = () => {
 
 <style scoped>
 .mt-sidebar {
-  float: right;
   margin: none;
   padding: none;
   text-overflow: ellipsis;
   overflow: hidden;
-  white-space: nowrap; 
+  white-space: nowrap;
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  z-index: 999;
 }
 .va-skeleton * {
   margin: 0;
@@ -163,7 +167,7 @@ const showFilterModal = () => {
 <template>
   <div 
     :class="`${sidebarClass}`"
-    :style="`height: ${sidebarHeight}px; width: ${sidebarWidth}px`"
+    :style="`height: ${sidebarHeight}px; width: ${sidebarWidth}px;`"
   >
     <SidebarNav
       :height="fixedButtonsHeight"
@@ -191,7 +195,7 @@ const showFilterModal = () => {
     ></SidebarNav>
     <div
       :hidden="hideChat"
-      :class="`${chatSelectorClass} bg-[] row`"
+      :class="`${chatSelectorClass} row`"
     >
       <ChatTabs
         :streams-list="streamsList"

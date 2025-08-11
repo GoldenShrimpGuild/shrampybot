@@ -1,12 +1,17 @@
 <script lang="ts" setup>
-import { ref, onMounted, watch, getCurrentInstance } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useToast } from 'vuestic-ui';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n'
 import { useAxios } from '../../plugins/axios'
-import { EventGetResponseBody } from '../../../model/controller/admin';
-import { CurrentEventDatum } from '../../../model/utility/nosqldb'
-import { CurrentEventPutRequestBody } from '../../../model/controller/admin'
+
+// components
+import { VaCard, VaCardTitle, VaCardContent, VaInput, VaButton, VaList, VaListItem, VaListItemLabel } from 'vuestic-ui'
+
+// types
+import type { EventGetResponseBody } from '../../../model/controller/admin';
+import type { CurrentEventDatum } from '../../../model/utility/nosqldb'
+import type { CurrentEventPutRequestBody } from '../../../model/controller/admin'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -173,16 +178,12 @@ onMounted(async () => {
           <VaCardContent>
             <VaInput label="Event ID" v-model="eventId" style="width: 20rem;"></VaInput>
 
-            <VaButton icon="va-clear" style="margin-top: 1rem; margin-left: 0.5rem;" color="gsgYellow" round @click="invalidateAPICache"
-              :loading="ICButtonLoading"
-              :disabled="ICButtonLoading"
-            >
+            <VaButton icon="va-clear" style="margin-top: 1rem; margin-left: 0.5rem;" color="gsgYellow" round
+              @click="invalidateAPICache" :loading="ICButtonLoading" :disabled="ICButtonLoading">
               {{ t('admin.event.icButton') }}
             </VaButton>
-            <VaButton icon="star" style="margin: 1rem; margin-left: 0.5rem;" color="gsgYellow" round @click="setCurrentEvent"
-              :loading="setCEButtonLoading"
-              :disabled="setCEButtonLoading"
-            >
+            <VaButton icon="star" style="margin: 1rem; margin-left: 0.5rem;" color="gsgYellow" round
+              @click="setCurrentEvent" :loading="setCEButtonLoading" :disabled="setCEButtonLoading">
               {{ t('admin.event.setCurrentEvent') }}
             </VaButton>
           </VaCardContent>
@@ -190,7 +191,7 @@ onMounted(async () => {
       </div>
     </div>
   </div>
-  <br/>
+  <br />
   <div class="row">
     <div class="flex flex-col md12">
       <div class="item">
@@ -208,8 +209,7 @@ onMounted(async () => {
             <p v-else>{{ t("admin.event.noCurrentEvent") }}</p>
 
             <VaButton icon="clear" style="margin-top: 1rem;" color="gsgRed" round @click="clearCurrentEvent"
-              :disabled="!currentEvent.eventId"
-            >
+              :disabled="!currentEvent.eventId">
               {{ t('admin.event.clearCurrentEvent') }}
             </VaButton>
           </VaCardContent>

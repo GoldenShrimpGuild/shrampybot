@@ -33,19 +33,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, App, getCurrentInstance } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import router from '../../router'
-import type { AxiosInstance } from 'axios'
 import { useAuthStore } from '../../stores/auth'
-import { useUserStore } from '../../stores/user'
 import { useGlobalStore } from '../../stores/global-store'
 import { isString } from 'lodash'
 import axios from 'axios'
 
+// components
+import { VaModal, VaCardTitle, VaCardContent, VaProgressBar } from 'vuestic-ui'
+
 const AuthStore = useAuthStore()
-const UserStore = useUserStore()
 const GlobalStore = useGlobalStore()
 
 // const axios = inject('axios') as AxiosInstance
@@ -84,6 +84,7 @@ const getQueryParams = async () => {
   }
   const path = '/auth/validate'
 
+  // Handle tokens
   await axios
     .post(
       path,
@@ -117,7 +118,6 @@ const encountered_error = async (reason: any) => {
   while (error_timeout_seconds.value > 0) {
     error_timeout_seconds.value -= 1
     error_timeout.value += 100 / 10
-    // await sleep(1000)
   }
 
   show_error_modal.value = false

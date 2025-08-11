@@ -5,9 +5,14 @@ import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
 import { useCategoryStore } from '../../stores/categories'
-import { CategoryDatum } from '../../../model/utility/nosqldb'
-import { forEach, keys } from 'lodash'
-import { AxiosResponse } from 'axios'
+import { forEach } from 'lodash'
+
+// components
+import { VaModal, VaButton, VaForm, VaInput, VaTextarea, VaChip } from 'vuestic-ui'
+
+// types
+import type { CategoryDatum } from '../../../model/utility/nosqldb'
+import type { AxiosResponse } from 'axios'
 
 const { t } = useI18n()
 
@@ -156,11 +161,10 @@ const sortedCategories = computed(() => {
           <td>
             <div class="flex gap-2">
               <VaButton size="small" round icon="edit" color="gsgYellow" @click="showModalEdit(category)">
-                {{ t('admin.category.edit') }}</VaButton
-              >
+                {{ t('admin.category.edit') }}</VaButton>
               <VaButton size="small" round icon="delete" color="gsgRed" @click="showModalDelete(category)">{{
                 t('admin.category.delete')
-              }}</VaButton>
+                }}</VaButton>
             </div>
           </td>
         </tr>
@@ -178,7 +182,7 @@ const sortedCategories = computed(() => {
       <div class="flex gap-2">
         <VaButton color="gsgYellow" @click="deleteModalShow = !deleteModalShow">{{
           t('admin.category.cancel')
-        }}</VaButton>
+          }}</VaButton>
         <VaButton color="gsgRed" @click="deleteCategory">{{ t('admin.category.delete') }}</VaButton>
       </div>
     </template>
@@ -195,29 +199,15 @@ const sortedCategories = computed(() => {
 
     <div class="flex flex-col items-start gap-2">
       <VaForm ref="addForm" immediate hide-error-messages class="flex flex-col gap-2 mb-2">
-        <VaInput
-          v-model="addEditModalForm.twitch_category"
-          :label="t('admin.category.twitchCategory')"
-          name="TwitchCategory"
-          :rules="[(v) => Boolean(v) || t('admin.category.twitchCategoryRequired')]"
-        />
-        <VaTextarea
-          v-model="addEditModalForm.mastodon_tag_entry"
-          :label="t('admin.category.mastodonTags')"
-          name="MastodonTags"
-          :placeholder="t('admin.category.spaceSeparatedList')"
-          @keyup="updateTags"
-        />
+        <VaInput v-model="addEditModalForm.twitch_category" :label="t('admin.category.twitchCategory')"
+          name="TwitchCategory" :rules="[(v) => Boolean(v) || t('admin.category.twitchCategoryRequired')]" />
+        <VaTextarea v-model="addEditModalForm.mastodon_tag_entry" :label="t('admin.category.mastodonTags')"
+          name="MastodonTags" :placeholder="t('admin.category.spaceSeparatedList')" @keyup="updateTags" />
         <div class="flex gap-2">
           <VaChip v-for="tag in addEditModalForm.mastodon_tags" color="mastodonLight" size="small">{{ tag }} </VaChip>
         </div>
-        <VaTextarea
-          v-model="addEditModalForm.bluesky_tag_entry"
-          :label="t('admin.category.blueskyTags')"
-          name="BlueskyTags"
-          :placeholder="t('admin.category.spaceSeparatedList')"
-          @keyup="updateTags"
-        />
+        <VaTextarea v-model="addEditModalForm.bluesky_tag_entry" :label="t('admin.category.blueskyTags')"
+          name="BlueskyTags" :placeholder="t('admin.category.spaceSeparatedList')" @keyup="updateTags" />
         <div class="flex gap-2">
           <VaChip v-for="tag in addEditModalForm.bluesky_tags" color="blueskyBlue" size="small">{{ tag }} </VaChip>
         </div>
@@ -228,7 +218,7 @@ const sortedCategories = computed(() => {
       <div class="flex gap-2">
         <VaButton color="gsgYellow" @click="addEditModalShow = !addEditModalShow">{{
           t('admin.category.cancel')
-        }}</VaButton>
+          }}</VaButton>
         <VaButton color="gsgYellow" @click="saveCategory">{{ t('admin.category.save') }}</VaButton>
       </div>
     </template>

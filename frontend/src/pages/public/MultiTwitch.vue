@@ -8,6 +8,7 @@ import { useTimer } from 'vue-timer-hook'
 import { useWindowSize } from '@vueuse/core'
 
 // Components
+import { VaLayout } from 'vuestic-ui/web-components'
 import Sidebar from '../../components/multi/Sidebar.vue'
 import StreamViewer from '../../components/multi/StreamViewer.vue'
 
@@ -120,15 +121,20 @@ body {
   overflow: hidden;
   white-space: nowrap;
   position: fixed;
+  width: v-bind(windowWidth + 'px');
+  z-index: -1;
 }
 .va-dropdown__content {
   width: 250px;
+}
+.va-layout__area--content {
+  width: v-bind(windowWidth + 'px');
 }
 </style>
 
 <template>
   <VaLayout
-    :right="{absolute: true, fixed: true, overlay: true}"
+    :right="{absolute: true}"
   >
     <template #content>
       <StreamViewer

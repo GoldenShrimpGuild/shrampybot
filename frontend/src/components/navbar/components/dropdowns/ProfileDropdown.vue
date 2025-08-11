@@ -37,7 +37,10 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useColors, VaAvatar } from 'vuestic-ui'
+import { useColors } from 'vuestic-ui'
+
+// components
+import { VaDropdown, VaDropdownContent, VaButton, VaList, VaAvatar, VaListItem, VaListSeparator, VaIcon } from 'vuestic-ui'
 import GSGShrimpIcon from '../../../icons/GSGShrimpIcon.vue'
 
 const { colors, setHSLAColor } = useColors()
@@ -64,48 +67,6 @@ withDefaults(
   }>(),
   {
     options: () => [
-      // {
-      //   name: 'account',
-      //   separator: true,
-      //   list: [
-      //     {
-      //       name: 'profile',
-      //       to: 'streams',
-      //       icon: 'mso-account_circle',
-      //     },
-      //     {
-      //       name: 'settings',
-      //       to: 'streams',
-      //       icon: 'mso-settings',
-      //     },
-      //     {
-      //       name: 'billing',
-      //       to: 'streams',
-      //       icon: 'mso-receipt_long',
-      //     },
-      //     {
-      //       name: 'projects',
-      //       to: 'streams',
-      //       icon: 'mso-favorite',
-      //     },
-      //   ],
-      // },
-      // {
-      //   name: 'explore',
-      //   separator: true,
-      //   list: [
-      //     {
-      //       name: 'faq',
-      //       to: 'faq',
-      //       icon: 'mso-quiz',
-      //     },
-      //     {
-      //       name: 'helpAndSupport',
-      //       href: 'https://discord.gg/u7fQdqQt8c',
-      //       icon: 'mso-error',
-      //     },
-      //   ],
-      // },
       {
         name: '',
         separator: false,

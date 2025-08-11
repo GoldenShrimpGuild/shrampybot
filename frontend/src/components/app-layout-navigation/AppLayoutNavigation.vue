@@ -26,10 +26,13 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useColors } from 'vuestic-ui'
-import VaIconMenuCollapsed from '../icons/VaIconMenuCollapsed.vue'
 import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
 import * as NavigationRoutes from '../../router'
+
+// components
+import { VaBreadcrumbs, VaBreadcrumbsItem } from 'vuestic-ui'
+import VaIconMenuCollapsed from '../icons/VaIconMenuCollapsed.vue'
 
 const { isSidebarMinimized } = storeToRefs(useGlobalStore())
 

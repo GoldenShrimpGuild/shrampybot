@@ -9,7 +9,7 @@
       size="medium"
       preset="plain"
       :icon="hideDecor ? 'check_box_outline_blank' : 'check_box'"
-      v-on:click="emit('toggleDecor')"
+      @click="emit('toggleDecor')"
     >
       {{ t("multiTwitch.decor") }}
     </VaButton>
@@ -19,13 +19,13 @@
       size="medium"
       preset="plain"
       :icon="hideChat ? 'check_box_outline_blank' : 'check_box'"
-      v-on:click="emit('toggleChat');"
+      @click="emit('toggleChat');"
     >
       {{ t("multiTwitch.chat") }}
     </VaButton>
     <VaSpacer />
     <VaMenu
-      trigger="hover"
+      :trigger="['hover', 'click']"
       :options="sideMenu"
       @selected="(v) => v.handler()"
       disabled-by="disabled"
@@ -96,6 +96,7 @@ import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Components
+import { VaButton, VaMenu, VaSpacer, VaAppBar } from 'vuestic-ui'
 import GSGShrimpIcon from '../icons/GSGShrimpIcon.vue'
 
 const { t } = useI18n()

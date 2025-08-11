@@ -40,6 +40,8 @@ import { useAuthStore } from '../stores/auth'
 import { useGlobalStore } from '../stores/global-store'
 import { useUserStore } from '../stores/user'
 
+// components
+import { VaLayout, VaButton } from 'vuestic-ui'
 import AppLayoutNavigation from '../components/app-layout-navigation/AppLayoutNavigation.vue'
 import AppNavbar from '../components/navbar/AppNavbar.vue'
 import Sidebar from '../components/sidebar/Sidebar.vue'
@@ -118,9 +120,6 @@ const onCloseSidebarButtonClick = () => {
 </script>
 
 <style lang="css">
-.va-card * {
-  text-overflow: ellipsis; overflow: hidden; white-space: nowrap;
-}
 .va-sidebar {
   width: unset !important;
   min-width: unset !important;

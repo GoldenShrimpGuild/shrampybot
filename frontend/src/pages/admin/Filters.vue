@@ -6,6 +6,9 @@ import { FilterDatum } from '../../../model/utility/nosqldb'
 import { useGlobalStore } from '../../stores/global-store'
 import { useFilterStore } from '../../stores/filters'
 
+// components
+import { VaButton, VaIcon, VaModal, VaForm, VaInput, VaCheckbox } from 'vuestic-ui'
+
 const { t } = useI18n()
 
 const addEditModalShow = ref(false)
@@ -106,8 +109,7 @@ const deleteFilter = async () => {
           <td>
             <div class="flex gap-2">
               <VaButton size="small" round icon="edit" color="gsgYellow" @click="showModalEdit(filter)"> Edit</VaButton>
-              <VaButton size="small" round icon="delete" color="gsgRed" @click="showModalDelete(filter)"
-                >Delete
+              <VaButton size="small" round icon="delete" color="gsgRed" @click="showModalDelete(filter)">Delete
               </VaButton>
             </div>
           </td>
@@ -123,19 +125,11 @@ const deleteFilter = async () => {
 
     <div class="flex flex-col items-start gap-2">
       <VaForm ref="addForm" immediate hide-error-messages class="flex flex-col gap-2 mb-2">
-        <VaInput
-          v-model="addEditModalForm.keyword"
-          :label="addEditModalForm.isRegex ? 'Regex' : 'Keyword'"
-          name="FilterKeyword"
-          :rules="[(v) => Boolean(v) || 'Keyword required']"
-        />
+        <VaInput v-model="addEditModalForm.keyword" :label="addEditModalForm.isRegex ? 'Regex' : 'Keyword'"
+          name="FilterKeyword" :rules="[(v) => Boolean(v) || 'Keyword required']" />
         <VaCheckbox v-model="addEditModalForm.isRegex" label="Regex" name="IsRegex"></VaCheckbox>
-        <VaCheckbox
-          v-model="addEditModalForm.caseInsensitive"
-          label="Case-Insensitive"
-          name="CaseInsensitive"
-          :disabled="addEditModalForm.isRegex"
-        ></VaCheckbox>
+        <VaCheckbox v-model="addEditModalForm.caseInsensitive" label="Case-Insensitive" name="CaseInsensitive"
+          :disabled="addEditModalForm.isRegex"></VaCheckbox>
       </VaForm>
     </div>
 

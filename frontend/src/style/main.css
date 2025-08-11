@@ -37,6 +37,15 @@ body {
   --va-slider-dot-width:	1.75rem;
   --va-slider-dot-height:	1.75rem;
   --va-slider-dot-border-radius: 50%;
+
+  --va-modal-padding-top: 1rem;
+  --va-modal-padding-right: 1rem;
+  --va-modal-padding-bottom: 1rem;
+  --va-modal-padding-left: 1rem;
+  --va-skeleton-wave-color: #ffbb22;
+  --va-app-bar-transition: none;
+  --va-switch-checker-background-color: #000000;
+  --va-switch-checker-active-background-color: #ffffff;
 }
 
 :focus {
