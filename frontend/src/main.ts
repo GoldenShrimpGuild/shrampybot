@@ -1,13 +1,14 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import i18n from './i18n'
-import { createVuestic } from 'vuestic-ui'
+import { createVuesticEssential } from 'vuestic-ui'
 import stores from './stores'
 import router from './router'
 
 // CSS stuff
+import 'vuestic-ui/styles/essential.css'
+import 'vuestic-ui/styles/typography.css'
 import './style/icon-fonts/vuestic-icons/vuestic-icons.css'
-import './style/vuestic.css'
 import './style/main.css'
 import './style/shrampybot.css'
 
@@ -17,8 +18,24 @@ app.use(stores)
 app.use(i18n)
 app.use(router)
 app.use(
-  createVuestic({
+  createVuesticEssential({
+    components: {},
+    plugins: {},
     config: {
+      components: {
+        VaButton: {
+          size: "small",
+          round: true,
+          color: "#ffbb22",
+          style: "font-weight: bold;"
+        },
+        VaSwitch: {
+          size: "small",
+          color: "#ffbb22",
+          offColor: "#715411",
+          style: "line-height: 12px;"
+        }
+      },
       breakpoint: {
         enabled: false,
         bodyClass: true,

@@ -17,11 +17,13 @@
 </template>
 
 <script lang="ts" setup>
+import { useAuthStore } from '../../../stores/auth'
+
+// components
+import { VaButton, VaIcon } from 'vuestic-ui'
 import ProfileDropdown from './dropdowns/ProfileDropdown.vue'
-// import NotificationDropdown from './dropdowns/NotificationDropdown.vue'
 import GithubButton from './GitHubButton.vue'
 import VaIconDiscord from '../../icons/VaIconDiscord.vue'
-import { useAuthStore } from '../../../stores/auth'
 
 const AuthStore = useAuthStore()
 

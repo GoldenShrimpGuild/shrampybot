@@ -15,6 +15,8 @@
 </template>
 
 <script setup lang="ts">
+import { VaCard, VaImage, VaCardBlock, VaCardContent, VaCardTitle } from 'vuestic-ui';
+
 const props = defineProps({
   image_url: {
     type: String,

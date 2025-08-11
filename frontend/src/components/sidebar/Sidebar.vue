@@ -70,6 +70,9 @@ import { useUserStore } from '../../stores/user'
 import { useColors } from 'vuestic-ui'
 import { useI18n } from 'vue-i18n'
 
+// components
+import { VaSidebar, VaSidebarItem, VaAccordion, VaCollapse, VaSidebarItemContent, VaSidebarItemTitle, VaIcon } from 'vuestic-ui'
+
 const GlobalStore = useGlobalStore()
 
 const { getColor, colorToRgba } = useColors()

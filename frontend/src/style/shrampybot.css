@@ -8,7 +8,8 @@ body {
   display: block;
 }
 
-div.va-card .va-card__title {
+div.va-card {
+  & .va-card__title {
     align-items: top;
     margin: 0;
     font-family: 'Revalia';
@@ -17,6 +18,15 @@ div.va-card .va-card__title {
     overflow: hidden;
     white-space: nowrap;
     width: 90%;
+  }
+}
+
+div.va-switch--checked .va-switch__checker-wrapper {
+  transform: translateX(100%);
+}
+
+div.va-switch--checked .va-switch__checker {
+  transform: translateX(calc(-100%)-0.3rem);
 }
 
 div.indented-list div.va-list-item {
@@ -108,10 +118,6 @@ a {
 .va-list-item-label {
   color: #ffffff;
   font-weight: bold;
-}
-
-.va-button {
-    font-weight: 600;
 }
 
 .va-input-wrapper__container {

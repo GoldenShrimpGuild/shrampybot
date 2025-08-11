@@ -3,10 +3,11 @@ import { onBeforeMount, ref, watch, watchEffect } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAxios } from '../../plugins/axios'
 import { useI18n } from 'vue-i18n'
-import StreamCard from '../../components/stream/StreamCard.vue'
-import { useAuthStore } from '../../stores/auth'
 import { useGlobalStore } from '../../stores/global-store'
 import { useTimer } from 'vue-timer-hook'
+
+// components
+import StreamCard from '../../components/stream/StreamCard.vue'
 
 const { t } = useI18n()
 

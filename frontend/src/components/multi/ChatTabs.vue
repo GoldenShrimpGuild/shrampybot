@@ -8,6 +8,9 @@ import { clamp, useElementSize, useMutationObserver, useParentElement } from '@v
 import { ComputedRef, VueElement, ShallowRef, Ref } from 'vue'
 import type { StreamHistoryDatum as Stream } from '../../../model/utility/nosqldb'
 
+// Components
+import { VaButton, VaTabs, VaTab } from 'vuestic-ui'
+
 const { getColor } = useColors()
 
 const props = defineProps<{
@@ -200,6 +203,7 @@ watch(pagX, (v, oV) => {
       ref="tab-pag-button-left"
       color="gsgDarkYellow"
       icon="va-arrow-left"
+      :round="false"
       :hidden="hidePagination"
       :style="`width: ${pagButtonWidth}px; height: ${selectorHeight}px`"
       @click="paginate(-1)"
@@ -228,6 +232,7 @@ watch(pagX, (v, oV) => {
       ref="tab-pag-button-right"
       color="gsgDarkYellow"
       icon="va-arrow-right"
+      :round="false"
       :hidden="hidePagination"
       :style="`width: ${pagButtonWidth}px; height: ${selectorHeight}px`"
       @click="paginate(1)"

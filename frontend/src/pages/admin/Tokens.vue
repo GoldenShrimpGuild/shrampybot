@@ -3,9 +3,14 @@ import { ref, watch, onBeforeMount, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 import { useStaticTokenStore } from '../../stores/static_token'
-import { NewTokenRequestBody, OutputStaticTokenInfo } from '../../../model/controller/admin'
-import type { DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types.js'
 import { forEach } from 'lodash'
+
+// components
+import { VaCard, VaCardTitle, VaCardContent, VaButton, VaSwitch, VaForm, VaTextarea, VaIcon, VaCheckbox, VaDateInput, VaListLabel, VaOptionList, VaModal } from 'vuestic-ui'
+
+// types
+import type { NewTokenRequestBody, OutputStaticTokenInfo } from '../../../model/controller/admin'
+import type { DateInputModelValue } from 'vuestic-ui/dist/types/components/va-date-input/types.js'
 
 const StaticTokenStore = useStaticTokenStore()
 const { tokens } = storeToRefs(StaticTokenStore)
@@ -223,15 +228,12 @@ const revokeToken = () => {
               Generate New Token
             </VaButton>
           </div>
-          <div>
-            <VaSwitch
-              v-model="showRevoked"
-              color="gsgYellow"
-              label="Show revoked tokens"
-              background-color="#ffffff"
-              size="small"
-            />
-          </div>
+          <VaSwitch
+            v-model="showRevoked"
+            label="Show revoked tokens"
+            color="gsgYellow"
+            size="small"
+          />
           <div class="va-table-responsive">
             <table class="va-table">
               <thead>

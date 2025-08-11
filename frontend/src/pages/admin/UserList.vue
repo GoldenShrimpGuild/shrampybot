@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { watch, onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { storeToRefs, mapActions } from 'pinia'
+import { storeToRefs } from 'pinia'
 import { useGlobalStore } from '../../stores/global-store'
 import { useTwitchUsersStore } from '../../stores/twitch_users'
 import { TwitchUserDatum } from '../../../model/utility/nosqldb'
-import { VaIcon } from 'vuestic-ui'
+
+// components
+import { VaTabs, VaTab, VaSwitch, VaIcon, VaButton, VaBadge } from "vuestic-ui"
 import Bluesky from '../../components/icons/BlueskyIcon.vue'
 import MastodonIcon from '../../components/icons/MastodonIcon.vue'
 import TwitchIcon from '../../components/icons/TwitchIcon.vue'

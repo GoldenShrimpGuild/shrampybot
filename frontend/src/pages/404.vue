@@ -1,14 +1,12 @@
 <script lang="ts" setup>
-import { useBreakpoint } from 'vuestic-ui'
-import VuesticLogo from '../components/logos/VuesticLogo.vue'
-import GSGShrimp from '../components/logos/GSGShrimp.vue'
-import ShrampybotLogo from '../components/logos/ShrampybotLogo.vue'
-
 import { useGlobalStore } from '../stores/global-store'
 
-const GlobalStore = useGlobalStore()
+// components
+import { VaLayout } from 'vuestic-ui'
+import { RouterLink } from 'vue-router'
+import GSGShrimp from '../components/logos/GSGShrimp.vue'
 
-const breakpoint = useBreakpoint()
+const GlobalStore = useGlobalStore()
 </script>
 
 <template>

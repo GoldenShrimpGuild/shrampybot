@@ -21,28 +21,16 @@
       </div>
     </template>
   </VaLayout>
-
-  <!-- <VaLayout v-else class="h-screen bg-[var(--va-background-secondary)]">
-    <template #content>
-      <div class="p-4">
-        <main class="h-full flex flex-row items-center justify-start mx-auto max-w-[420px]">
-          <div class="flex flex-col items-start">
-            <RouterLink class="py-4" to="/" aria-label="Visit homepage"> </RouterLink>
-            <RouterView />
-          </div>
-        </main>
-      </div>
-    </template>
-  </VaLayout> -->
 </template>
 
 <script lang="ts" setup>
 import { useBreakpoint } from 'vuestic-ui'
-import VuesticLogo from '../components/logos/VuesticLogo.vue'
-import GSGShrimp from '../components/logos/GSGShrimp.vue'
-import ShrampybotLogo from '../components/logos/ShrampybotLogo.vue'
-
 import { useGlobalStore } from '../stores/global-store'
+
+// components
+import { VaLayout } from 'vuestic-ui'
+import { RouterLink } from 'vue-router'
+import GSGShrimp from '../components/logos/GSGShrimp.vue'
 
 const GlobalStore = useGlobalStore()
 

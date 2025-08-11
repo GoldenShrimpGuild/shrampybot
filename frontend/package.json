@@ -28,6 +28,7 @@
     "@eslint/object-schema": "^2.1.6",
     "@floating-ui/dom": "^1.6.13",
     "@types/lodash": "^4.17.16",
+    "@unhead/vue": "^2.0.14",
     "@vuestic/compiler": "latest",
     "@vuestic/tailwind": "^0.1.5",
     "@vueuse/core": "^13.6.0",
@@ -46,7 +47,7 @@
     "sass": "^1.86.3",
     "serve": "^14.2.4",
     "uuid": "^11.1.0",
-    "vue": "3.5.13",
+    "vue": "^3.5.18",
     "vue-chartjs": "^5.3.2",
     "vue-i18n": "^9.14.4",
     "vue-router": "^4.5.0",
@@ -93,6 +94,9 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
+    ],
+    "ignoredBuiltDependencies": [
+      "vue-demi"
     ]
   }
 }
