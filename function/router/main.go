@@ -65,13 +65,15 @@ const (
 	StatusFailure
 	StatusUnknown
 	StatusNotFound
+	StatusNotNeeded
 )
 
 var StatusText = map[StatusCode]string{
-	StatusSuccess:  "success",
-	StatusFailure:  "failure",
-	StatusUnknown:  "unknown",
-	StatusNotFound: "notFound",
+	StatusSuccess:   "success",
+	StatusFailure:   "failure",
+	StatusUnknown:   "unknown",
+	StatusNotFound:  "notFound",
+	StatusNotNeeded: "notNeeded",
 }
 
 func (st StatusCode) String() string {

@@ -31,6 +31,7 @@ func main() {
 		"populate",
 		"reconcile",
 		"unsubscribe_all",
+		"tidy_live",
 	}, &argparse.Options{
 		Required: true,
 		Help:     "Task to execute",
@@ -65,5 +66,7 @@ func main() {
 		taskReconcile(config)
 	case "unsubscribe_all":
 		taskUnsubscribeAll(config)
+	case "tidy_live":
+		taskTidyLive(config)
 	}
 }

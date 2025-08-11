@@ -13,6 +13,7 @@ var (
 		"admin:collection",
 		"admin:events",
 		"admin:filters",
+		"admin:stream",
 		"admin:tokens",
 		"admin:users",
 	}

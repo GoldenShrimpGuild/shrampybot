@@ -51,6 +51,11 @@ func AdminController(route *router.Route) *router.Response {
 			c := NewFilterView()
 			return c.CallMethod(route)
 		}
+	case "stream":
+		if utility.MatchScope(scopes, "admin:stream") {
+			c := NewStreamView()
+			return c.CallMethod(route)
+		}
 	case "user":
 		if utility.MatchScope(scopes, "admin:users") {
 			c := NewUserView()
