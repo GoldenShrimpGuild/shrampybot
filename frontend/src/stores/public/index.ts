@@ -190,13 +190,17 @@ export const usePublicStore = defineStore('public', {
       if (thisLoadTime >= this.lastCurrentEventLoadAttempt + currentEventLoadInterval) {
         // Only do anything if using the data is enabled
         if (this.useCurrentEventData) {
-          const response = await this.axios.get(currentEventEndpoint)
-          if (response.status === 200) {
-            if (response.data && response.data.title) {
-              this.currentEventData = response.data
-              // update the last load time since we were successful
-              this.lastCurrentEventLoadAttempt = thisLoadTime
+          try {
+            const response = await this.axios.get(currentEventEndpoint)
+            if (response.status === 200) {
+              if (response.data && response.data.title) {
+                this.currentEventData = response.data
+                // update the last load time since we were successful
+                this.lastCurrentEventLoadAttempt = thisLoadTime
+              }
             }
+          } catch (error) {
+            // no current event. Ho hum, carry on anyway.
           }
         }
       }
