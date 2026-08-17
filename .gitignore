@@ -19,3 +19,4 @@ tools/shrampysubs/shrampysubs*
 bootstrap
 template.yml
 .aws-sam
+export.sh
