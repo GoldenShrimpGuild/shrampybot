@@ -3,11 +3,8 @@ package mastodon
 import (
 	"context"
 	"log"
-	"regexp"
 	"shrampybot/config"
 	"shrampybot/utility"
-	"strings"
-	"time"
 
 	mast "github.com/litui/go-mastodon"
 )
@@ -64,44 +61,46 @@ func (c *Client) Post(msg string, thumb *utility.Image) (*utility.PostResponse, 
 	return postResponse, nil
 }
 
-func (c *Client) GetMappedTwitchLoginsThreaded(ch chan map[string]string) {
-	log.Println("Entered function: GetMappedTwitchLoginsThreaded")
-	var twitchMatch = regexp.MustCompile(`(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([A-Za-z0-9_-]+)\/?`)
-	var accounts []*mast.AdminAccount
-	var pg mast.Pagination
-	pg.Limit = 200
+// Function no longer usable when moving to public instance
 
-	log.Println("Iterating through pages of accounts...")
-	for {
-		acct, err := c.mh.AdminViewAccounts(c.ctx, &mast.AdminViewAccountsInput{}, &pg)
-		if err != nil {
-			log.Println(err)
-			break
-		}
-		accounts = append(accounts, acct...)
-		if pg.MaxID == "" {
-			break
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
+// func (c *Client) GetMappedTwitchLoginsThreaded(ch chan map[string]string) {
+// 	log.Println("Entered function: GetMappedTwitchLoginsThreaded")
+// 	var twitchMatch = regexp.MustCompile(`(?:https?:\/\/)?(?:www\.)?twitch\.tv\/([A-Za-z0-9_-]+)\/?`)
+// 	var accounts []*mast.AdminAccount
+// 	var pg mast.Pagination
+// 	pg.Limit = 200
 
-	log.Println("Matching regex to Twitch URLs in profiles...")
+// 	log.Println("Iterating through pages of accounts...")
+// 	for {
+// 		acct, err := c.mh.AdminViewAccounts(c.ctx, &mast.AdminViewAccountsInput{}, &pg)
+// 		if err != nil {
+// 			log.Println(err)
+// 			break
+// 		}
+// 		accounts = append(accounts, acct...)
+// 		if pg.MaxID == "" {
+// 			break
+// 		}
+// 		time.Sleep(10 * time.Millisecond)
+// 	}
 
-	mastodonMap := map[string]string{}
+// 	log.Println("Matching regex to Twitch URLs in profiles...")
 
-	for _, acct := range accounts {
-		for _, field := range acct.Account.Fields {
-			if twitchMatch.MatchString(field.Value) {
-				values := twitchMatch.FindStringSubmatch(field.Value)
-				if len(values) == 2 {
-					// Map: [twitch ID] mastodon ID
-					mastodonMap[strings.ToLower(values[1])] = string(acct.Account.Acct)
-				}
-			}
-		}
-	}
-	// Pass back entire map
-	ch <- mastodonMap
-	close(ch)
-	log.Println("Exiting function: GetMappedTwitchLoginsThreaded")
-}
+// 	mastodonMap := map[string]string{}
+
+// 	for _, acct := range accounts {
+// 		for _, field := range acct.Account.Fields {
+// 			if twitchMatch.MatchString(field.Value) {
+// 				values := twitchMatch.FindStringSubmatch(field.Value)
+// 				if len(values) == 2 {
+// 					// Map: [twitch ID] mastodon ID
+// 					mastodonMap[strings.ToLower(values[1])] = string(acct.Account.Acct)
+// 				}
+// 			}
+// 		}
+// 	}
+// 	// Pass back entire map
+// 	ch <- mastodonMap
+// 	close(ch)
+// 	log.Println("Exiting function: GetMappedTwitchLoginsThreaded")
+// }
