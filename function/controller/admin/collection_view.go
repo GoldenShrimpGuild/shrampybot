@@ -3,7 +3,6 @@ package admin
 import (
 	"encoding/json"
 	"log"
-	"shrampybot/connector/mastodon"
 	"shrampybot/connector/twitch"
 	"shrampybot/router"
 	"shrampybot/utility/nosqldb"
@@ -188,19 +187,19 @@ func getTwitchUsers() (*[]nosqldb.TwitchUserDatum, error) {
 
 	// connect to Twitch
 	th, _ := twitch.NewClient()
-	// connect to Mastodon
-	mh, _ := mastodon.NewClient()
+	// // connect to Mastodon
+	// mh, _ := mastodon.NewClient()
 
 	// Parallelize assembling the logins list from multiple sources
 	chTh := make(chan string)
-	chMh := make(chan map[string]string)
+	// chMh := make(chan map[string]string)
 	go th.GetTeamMemberLoginsThreaded(chTh)
-	go mh.GetMappedTwitchLoginsThreaded(chMh)
+	// go mh.GetMappedTwitchLoginsThreaded(chMh)
 
-	mastodonMap := <-chMh
-	for t := range mastodonMap {
-		loginList = append(loginList, t)
-	}
+	// mastodonMap := <-chMh
+	// for t := range mastodonMap {
+	// 	loginList = append(loginList, t)
+	// }
 
 	for login := range chTh {
 		loginList = append(loginList, login)
@@ -219,9 +218,9 @@ func getTwitchUsers() (*[]nosqldb.TwitchUserDatum, error) {
 	json.Unmarshal(userBytes, &output)
 
 	// Add mastodon IDs to the retrieved users
-	for i, u := range output {
-		output[i].MastodonUserId = mastodonMap[u.Login]
-	}
+	// for i, u := range output {
+	// 	output[i].MastodonUserId = mastodonMap[u.Login]
+	// }
 
 	return &output, nil
 }
